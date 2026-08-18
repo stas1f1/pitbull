@@ -60,7 +60,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
         <div class="panel">
           <div class="lbl">Дифференциальное исполнение</div>
           <div class="big" style="color:#A62B22">УТЕЧКА</div>
-          <div class="meta">7.6 с · расходящихся колонок 11
+          <div class="meta">7.1 с · расходящихся колонок 11
              · расхождений в значениях 19334</div>
           <div class='cols'><code>COUNT(items)</code> <code>MAX(items.freight_value)</code> <code>MAX(items.price)</code> <code>MEAN(items.freight_value)</code> <code>MEAN(items.price)</code> <code>MIN(items.freight_value)</code> <code>MIN(items.price)</code> <code>STD(items.freight_value)</code> <code>STD(items.price)</code> <code>SUM(items.freight_value)</code> <code>SUM(items.price)</code></div>
         </div>
@@ -86,7 +86,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
         <div class="panel">
           <div class="lbl">Дифференциальное исполнение</div>
           <div class="big" style="color:#A62B22">УТЕЧКА</div>
-          <div class="meta">0.2 с · расходящихся колонок 4
+          <div class="meta">0.1 с · расходящихся колонок 4
              · расхождений в значениях 2014</div>
           <div class='cols'><code>review_score_mean</code> <code>review_score_min</code> <code>late_mean</code> <code>delay_days_mean</code></div>
         </div>
@@ -112,7 +112,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
         <div class="panel">
           <div class="lbl">Дифференциальное исполнение</div>
           <div class="big" style="color:#1F7A55">ЧИСТО</div>
-          <div class="meta">0.2 с · расходящихся колонок 0
+          <div class="meta">0.1 с · расходящихся колонок 0
              · расхождений в значениях 0</div>
           <div class='cols dim'>выход побитово совпал на полной и на усечённой базе</div>
         </div>
@@ -130,8 +130,32 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
         <tbody><tr><td>2018-01-01</td><td class='n'>763</td><td class='n'>0.5762</td><td class='n dim'>0.5762</td><td class='n' style='color:#5b6478;font-weight:600'>+0.00</td><td class='n'>0.572</td></tr><tr><td>2018-04-01</td><td class='n'>852</td><td class='n'>0.5925</td><td class='n dim'>0.5925</td><td class='n' style='color:#5b6478;font-weight:600'>+0.00</td><td class='n'>0.610</td></tr><tr><td>2018-07-01</td><td class='n'>867</td><td class='n'>0.5888</td><td class='n dim'>0.5888</td><td class='n' style='color:#5b6478;font-weight:600'>+0.00</td><td class='n'>0.602</td></tr></tbody></table>
       <p class="note">Отрицательный контроль: метод не срабатывает на корректном коде.</p>
     </section>
+    <section class="card">
+      <div class="hdr"><span class="num">Сцена 4</span>
+        <h2>LOCATOR: откуда именно течёт, и патч</h2><span class="chip" style="background:#1F7A55">ЧИСТО</span></div>
+      <p class="sub">База усекается по <b>одному каналу доступности</b> за раз (появление строки таблицы
+        или позднее значение колонки); канал, на котором выход программы меняется, — путь утечки.
+        Код программы по-прежнему не читается: столько же вызовов, сколько каналов.</p>
+      
+      <div class="panel" style="margin-bottom:14px">
+        <div class="lbl">сцена 2: наш эталон, первая версия · 3 канал(а) из 7 · 0.6 с</div>
+        <table><thead><tr><th>канал доступности</th><th>затронутые выходные колонки</th><th class="n">ячеек</th></tr></thead>
+        <tbody><tr><td><b>flat.review_score: значение позже t</b></td><td><code>review_score_mean</code> <code>review_score_min</code></td><td class='n'>732</td></tr><tr><td><b>flat.late: значение позже t</b></td><td><code>late_mean</code></td><td class='n'>605</td></tr><tr><td><b>flat.delay_days: значение позже t</b></td><td><code>delay_days_mean</code></td><td class='n'>677</td></tr></tbody></table>
+        <div class="meta" style="margin-top:10px">патч: та же программа, вход усечён только по найденным каналам →
+          <b style="color:#1F7A55">ЧИСТО</b></div>
+      </div>
+      <div class="panel" style="margin-bottom:14px">
+        <div class="lbl">сцена 1: featuretools по умолчанию · 1 канал(а) из 7 · 28.2 с</div>
+        <table><thead><tr><th>канал доступности</th><th>затронутые выходные колонки</th><th class="n">ячеек</th></tr></thead>
+        <tbody><tr><td><b>items: строки после t</b></td><td><code>COUNT(items)</code> <code>MAX(items.freight_value)</code> <code>MAX(items.price)</code> <code>MEAN(items.freight_value)</code> <code>MEAN(items.price)</code> <code>MIN(items.freight_value)</code> …</td><td class='n'>19334</td></tr></tbody></table>
+        <div class="meta" style="margin-top:10px">патч: та же программа, вход усечён только по найденным каналам →
+          <b style="color:#1F7A55">ЧИСТО</b></div>
+      </div>
+      <p class="note">Патч минимален и не трогает код: вход усекается по найденным каналам, и вердикт
+        меняется на ЧИСТО. Для собственного эталона это ровно то исправление, которое сделано в сцене 3.</p>
+    </section>
 <section class="foot">
-  <h3>Что показывают три сцены вместе</h3>
+  <h3>Что показывают сцены вместе</h3>
   <ul>
     <li><b>Проверка срабатывает там, где промышленная молчит.</b> На обеих утечках максимальный
       AUC одного признака не доходит до порога предупреждения DataRobot 0.85 — заключение чистое,
@@ -141,6 +165,9 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
     <li><b>Цена утечки не выводится из факта утечки.</b> Одно и то же нарушение стоит 0.2 пункта
       на задаче про отток и 3–5 пунктов на задаче про качество: всё решает, насколько цель
       опирается на протёкшие колонки. Поэтому корректность надо проверять отдельно от метрики.</li>
+    <li><b>Локализация — тем же приёмом.</b> Сцена 4: усечение по одному каналу за раз называет
+      таблицу и колонку, через которые будущее попадает в выход, и минимальный патч, после которого
+      вердикт — ЧИСТО.</li>
   </ul>
   <h3>Границы метода — их надо называть первыми</h3>
   <ul>

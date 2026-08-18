@@ -37,15 +37,26 @@ class TemporalDB:
     row_time: dict = field(default_factory=dict)
     value_time: dict = field(default_factory=dict)
 
-    def truncate(self, t):
+    def channels(self):
+        """Каналы, по которым будущее может попасть в выход: появление строки таблицы
+        («row», таблица) и позднее значение колонки («val», таблица, колонка)."""
+        ch = [("row", n) for n in self.tables if self.row_time.get(n) is not None]
+        ch += [("val", n, c) for n, m in self.value_time.items() for c in m]
+        return ch
+
+    def truncate(self, t, only=None):
+        """База, усечённая на момент t. only=None — по всем каналам; иначе только по
+        перечисленным (для локализации утечки по каналам)."""
         out = {}
         for name, df in self.tables.items():
             d = df
             rt = self.row_time.get(name)
-            if rt is not None:
+            if rt is not None and (only is None or ("row", name) in only):
                 d = d[d[rt] <= t]
             d = d.copy()
             for col, tcol in self.value_time.get(name, {}).items():
+                if only is not None and ("val", name, col) not in only:
+                    continue
                 mask = ~(d[tcol] <= t)
                 d.loc[mask, col] = np.nan
                 d.loc[mask, tcol] = pd.NaT
@@ -60,6 +71,14 @@ class TemporalDB:
             if rt is None:
                 bad += [f"{name}.{c}" for c in df.columns]
         return bad
+
+def masked_program(program, channels):
+    """Патч LOCATOR-а: та же программа, но перед вызовом входная база усекается по
+    найденным каналам. Ничего в коде программы не меняется."""
+    def patched(db, t, entities):
+        return program(db.truncate(t, only=frozenset(channels)), t, entities)
+    patched.__name__ = getattr(program, "__name__", "program") + "_patched"
+    return patched
 
 # ────────────────────────── дифференциальная проверка ──────────────────────────
 
@@ -88,6 +107,36 @@ def differential_check(program, db, seed, entities):
     cols = [c for c in full.columns if not _eq(full[c], trunc[c])]
     cells = int(sum((full[c].fillna(NA) != trunc[c].fillna(NA)).sum() for c in cols))
     return Verdict(bool(cols), cols, cells)
+
+# ─────────────────────────── локализация: LOCATOR ───────────────────────────
+
+@dataclass
+class Blame:
+    channel: tuple      # ("row", таблица) или ("val", таблица, колонка)
+    columns: list       # выходные колонки, которые меняются, если усечь только этот канал
+    cells: int
+
+    @property
+    def label(self):
+        return (f"{self.channel[1]}: строки после t" if self.channel[0] == "row"
+                else f"{self.channel[1]}.{self.channel[2]}: значение позже t")
+
+def locate(program, db, seed, entities, full=None):
+    """Через какие каналы будущее попадает в выход. Усекаем базу по ОДНОМУ каналу за раз
+    и смотрим, какие выходные колонки меняются. Столько же вызовов, сколько каналов;
+    код программы по-прежнему не читается."""
+    if full is None:
+        full = program(db, seed, entities)
+    out = []
+    for ch in db.channels():
+        part = program(db.truncate(seed, only=frozenset([ch])), seed, entities)
+        if part is None or full is None or list(part.columns) != list(full.columns) or part.shape != full.shape:
+            out.append(Blame(ch, ["<форма выхода>"], 0)); continue
+        cols = [c for c in full.columns if not _eq(full[c], part[c])]
+        if cols:
+            cells = int(sum((full[c].fillna(NA) != part[c].fillna(NA)).sum() for c in cols))
+            out.append(Blame(ch, cols, cells))
+    return out
 
 # ───────────────────── промышленная эвристика для сравнения ─────────────────────
 

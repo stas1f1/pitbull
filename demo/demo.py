@@ -5,6 +5,7 @@ PITFALL — демонстрация. Три сцены, все числа сч�
   Сцена 1  featuretools с настройками по умолчанию   ожидается УТЕЧКА
   Сцена 2  наш собственный эталон, первая версия     ожидается УТЕЧКА
   Сцена 3  тот же эталон после исправления           ожидается ЧИСТО
+  Сцена 4  LOCATOR: по каким каналам течёт, патч → перепроверка   ожидается ЧИСТО
 
     python3 demo.py            все сцены
     python3 demo.py 1          одна сцена
@@ -16,7 +17,7 @@ _DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data
 import sys, json, time, warnings, numpy as np, pandas as pd
 sys.path.insert(0, _ROOT + "/demo")
 warnings.filterwarnings("ignore")
-from pitfall import differential_check, univariate_probe, probe_says, fixed_model_auc, DATAROBOT
+from pitfall import differential_check, univariate_probe, probe_says, fixed_model_auc, DATAROBOT, locate, masked_program
 import scenes
 
 C = dict(r="\033[0m", b="\033[1m", dim="\033[2m", red="\033[91m", grn="\033[92m",
@@ -95,6 +96,28 @@ def scene(i, title, sub, program, ref_program, db, labeler, train_seeds, oracle_
                         inflation=[round((g["auc"] - ref[k]["auc"]) * 100, 2) for k, g in enumerate(got)] if ref else None))
     return v
 
+def scene_locate(i, programs, db, results):
+    """LOCATOR: усекаем базу по одному каналу за раз; канал, на котором выход меняется, —
+    путь утечки. Патч — та же программа с усечением входа только по найденным каналам."""
+    head(i, "LOCATOR: откуда именно течёт, и патч",
+         "усечение по одному каналу за раз; код программы по-прежнему не читается")
+    out = []
+    for title, program, labeler, oracle_seed in programs:
+        sd, ent, _ = labeler(db, oracle_seed)
+        print(f"\n  {C['b']}{title}{C['r']}  {C['dim']}({len(db.channels())} каналов доступности, момент {oracle_seed}){C['r']}")
+        t0 = time.time(); bl = locate(program, db, sd, ent); dt = time.time() - t0
+        for b in bl:
+            print(f"    {C['red']}▶ {b.label:42s}{C['r']} → {', '.join(b.columns[:5])}"
+                  f"{' …' if len(b.columns) > 5 else ''}  {C['dim']}({b.cells} ячеек){C['r']}")
+        chans = [b.channel for b in bl]
+        t1 = time.time(); v = differential_check(masked_program(program, chans), db, sd, ent); dp = time.time() - t1
+        print(f"    патч: усечь вход по {len(chans)} найденным каналам, больше ничего  →  "
+              f"{C['grn'] if not v.leak else C['red']}{C['b']}{v.label}{C['r']}  "
+              f"{C['dim']}локализация {dt:.1f} с, перепроверка {dp:.1f} с{C['r']}")
+        out.append(dict(program=title, seconds=round(dt, 2), blame=[dict(channel=list(b.channel), label=b.label,
+                        columns=b.columns, cells=b.cells) for b in bl], patched_verdict=v.label))
+    results.append(dict(scene=i, title="LOCATOR", programs=out))
+
 def main():
     only = next((a for a in sys.argv[1:] if a.isdigit()), None)
     print(f"{C['b']}{C['cyn']}\n  PITFALL — корректность признаков по времени через дифференциальное исполнение{C['r']}")
@@ -114,12 +137,21 @@ def main():
         scene(3, "тот же эталон после исправления",
               "у каждой колонки собственная метка доступности; больше ничего не изменено",
               scenes.seller_v2, None, db, scenes.seller_quality_labels, TRAIN_SQ, "2018-04-01", res)
+    if only in (None, "4"):
+        scene_locate(4, [("сцена 2: наш эталон, первая версия", scenes.seller_v1, scenes.seller_quality_labels, "2018-04-01"),
+                         ("сцена 1: featuretools по умолчанию", scenes.ft_tutorial, scenes.product_labels, "2018-04-01")],
+                     db, res)
     if only is None:
         print(f"\n{C['b']}{C['blu']}{rule('━')}{C['r']}")
         print(f"{C['b']}  ИТОГ{C['r']}")
         print(f"{C['b']}{C['blu']}{rule('━')}{C['r']}")
         print(f"  {C['b']}{'сцена':42s}{'оракул':>9s}{'проверка':>15s}{'завышение':>12s}{C['r']}")
         for r in res:
+            if "verdict" not in r:
+                for pr in r["programs"]:
+                    print(f"  LOCATOR ← {pr['program'][:32]:32s}{'':>9s}{'патч → ' + pr['patched_verdict']:>15s}"
+                          f"  {len(pr['blame'])} канал(а): {'; '.join(b['label'].split(':')[0] for b in pr['blame'])}")
+                continue
             vc = C['red'] if r["verdict"] == "УТЕЧКА" else C['grn']
             silent = probe_says(r["rows"][1]["probe"]) == "молчит"
             if r["verdict"] == "УТЕЧКА":

@@ -31,6 +31,35 @@ def probe_verdict(r):
 
 cards = []
 for r in R:
+    if "programs" in r:      # сцена LOCATOR
+        blocks = ""
+        for pr in r["programs"]:
+            rows = "".join(
+                f"<tr><td><b>{html.escape(b['label'])}</b></td>"
+                f"<td>{' '.join('<code>' + html.escape(c) + '</code>' for c in b['columns'][:6])}"
+                f"{' …' if len(b['columns']) > 6 else ''}</td><td class='n'>{b['cells']}</td></tr>"
+                for b in pr["blame"])
+            ok = pr["patched_verdict"] == "ЧИСТО"
+            blocks += f"""
+      <div class="panel" style="margin-bottom:14px">
+        <div class="lbl">{html.escape(pr['program'])} · {len(pr['blame'])} канал(а) из {7} · {pr['seconds']:.1f} с</div>
+        <table><thead><tr><th>канал доступности</th><th>затронутые выходные колонки</th><th class="n">ячеек</th></tr></thead>
+        <tbody>{rows}</tbody></table>
+        <div class="meta" style="margin-top:10px">патч: та же программа, вход усечён только по найденным каналам →
+          <b style="color:{GRN if ok else RED}">{pr['patched_verdict']}</b></div>
+      </div>"""
+        cards.append(f"""
+    <section class="card">
+      <div class="hdr"><span class="num">Сцена {r['scene']}</span>
+        <h2>LOCATOR: откуда именно течёт, и патч</h2>{chip('ЧИСТО')}</div>
+      <p class="sub">База усекается по <b>одному каналу доступности</b> за раз (появление строки таблицы
+        или позднее значение колонки); канал, на котором выход программы меняется, — путь утечки.
+        Код программы по-прежнему не читается: столько же вызовов, сколько каналов.</p>
+      {blocks}
+      <p class="note">Патч минимален и не трогает код: вход усекается по найденным каналам, и вердикт
+        меняется на ЧИСТО. Для собственного эталона это ровно то исправление, которое сделано в сцене 3.</p>
+    </section>""")
+        continue
     body, note = SUB[r["scene"]]
     pv, pc = probe_verdict(r)
     rows = ""
@@ -128,7 +157,7 @@ td{{padding:9px 10px;border-bottom:1px solid #f0f3fa}}
 <div class="wrap">
 {''.join(cards)}
 <section class="foot">
-  <h3>Что показывают три сцены вместе</h3>
+  <h3>Что показывают сцены вместе</h3>
   <ul>
     <li><b>Проверка срабатывает там, где промышленная молчит.</b> На обеих утечках максимальный
       AUC одного признака не доходит до порога предупреждения DataRobot 0.85 — заключение чистое,
@@ -138,6 +167,9 @@ td{{padding:9px 10px;border-bottom:1px solid #f0f3fa}}
     <li><b>Цена утечки не выводится из факта утечки.</b> Одно и то же нарушение стоит 0.2 пункта
       на задаче про отток и 3–5 пунктов на задаче про качество: всё решает, насколько цель
       опирается на протёкшие колонки. Поэтому корректность надо проверять отдельно от метрики.</li>
+    <li><b>Локализация — тем же приёмом.</b> Сцена 4: усечение по одному каналу за раз называет
+      таблицу и колонку, через которые будущее попадает в выход, и минимальный патч, после которого
+      вердикт — ЧИСТО.</li>
   </ul>
   <h3>Границы метода — их надо называть первыми</h3>
   <ul>
