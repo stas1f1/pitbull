@@ -1,8 +1,10 @@
 [
  {
   "scene": 1,
-  "title": "featuretools с настройками по умолчанию",
-  "verdict": "УТЕЧКА",
+  "key": "s1",
+  "title": "featuretools with default settings",
+  "leak": true,
+  "verdict": "VIOLATION",
   "columns": [
    "COUNT(items)",
    "MAX(items.freight_value)",
@@ -17,7 +19,7 @@
    "SUM(items.price)"
   ],
   "cells": 19334,
-  "seconds": 7.07,
+  "seconds": 7.06,
   "rows": [
    {
     "seed": "2018-01-01",
@@ -49,8 +51,10 @@
  },
  {
   "scene": 2,
-  "title": "наш собственный эталон, первая версия",
-  "verdict": "УТЕЧКА",
+  "key": "s2",
+  "title": "our own reference code, first version",
+  "leak": true,
+  "verdict": "VIOLATION",
   "columns": [
    "review_score_mean",
    "review_score_min",
@@ -58,7 +62,7 @@
    "delay_days_mean"
   ],
   "cells": 2014,
-  "seconds": 0.14,
+  "seconds": 0.16,
   "rows": [
    {
     "seed": "2018-01-01",
@@ -90,11 +94,13 @@
  },
  {
   "scene": 3,
-  "title": "тот же эталон после исправления",
-  "verdict": "ЧИСТО",
+  "key": "s3",
+  "title": "the same reference code after the fix",
+  "leak": false,
+  "verdict": "CLEAN",
   "columns": [],
   "cells": 0,
-  "seconds": 0.15,
+  "seconds": 0.18,
   "rows": [
    {
     "seed": "2018-01-01",
@@ -122,11 +128,13 @@
  },
  {
   "scene": 4,
-  "title": "LOCATOR",
+  "key": "s4",
+  "title": "LOCATOR: where exactly it leaks, and a patch",
   "programs": [
    {
-    "program": "сцена 2: наш эталон, первая версия",
-    "seconds": 0.61,
+    "program": "scene 2: our reference code, v1",
+    "key": "p2",
+    "seconds": 0.68,
     "blame": [
      {
       "channel": [
@@ -134,7 +142,7 @@
        "flat",
        "review_score"
       ],
-      "label": "flat.review_score: значение позже t",
+      "label": "flat.review_score: value known after t",
       "columns": [
        "review_score_mean",
        "review_score_min"
@@ -147,7 +155,7 @@
        "flat",
        "late"
       ],
-      "label": "flat.late: значение позже t",
+      "label": "flat.late: value known after t",
       "columns": [
        "late_mean"
       ],
@@ -159,25 +167,28 @@
        "flat",
        "delay_days"
       ],
-      "label": "flat.delay_days: значение позже t",
+      "label": "flat.delay_days: value known after t",
       "columns": [
        "delay_days_mean"
       ],
       "cells": 677
      }
     ],
-    "patched_verdict": "ЧИСТО"
+    "patched_leak": false,
+    "patched_verdict": "CLEAN",
+    "n_channels": 7
    },
    {
-    "program": "сцена 1: featuretools по умолчанию",
-    "seconds": 28.21,
+    "program": "scene 1: featuretools defaults",
+    "key": "p1",
+    "seconds": 30.18,
     "blame": [
      {
       "channel": [
        "row",
        "items"
       ],
-      "label": "items: строки после t",
+      "label": "items: rows after t",
       "columns": [
        "COUNT(items)",
        "MAX(items.freight_value)",
@@ -194,7 +205,9 @@
       "cells": 19334
      }
     ],
-    "patched_verdict": "ЧИСТО"
+    "patched_leak": false,
+    "patched_verdict": "CLEAN",
+    "n_channels": 7
    }
   ]
  }

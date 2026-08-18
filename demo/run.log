@@ -1,88 +1,88 @@
 
-  PITFALL — корректность признаков по времени через дифференциальное исполнение
-  phi(D, t) == phi(D|t, t).  Программа — чёрный ящик, вызываемый дважды.
-  Данные: Olist, 7 таблиц, 112 650 позиций заказов, 2016-09 — 2018-10
+  PITFALL — point-in-time correctness of feature programs by differential execution
+  phi(D, t) == phi(D|t, t).  The program is a black box, called twice.
+  Data: Olist, 7 tables, 112,650 order line items, 2016-09 — 2018-10
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  СЦЕНА 1. featuretools с настройками по умолчанию
-  ft.dfs без таблицы моментов предсказания — так написано в туториале библиотеки
+  SCENE 1. featuretools with default settings
+  ft.dfs without a cutoff-time table — the form of the library's introductory example
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  момент предсказания 2018-04-01, сущностей 5478
+  seed time 2018-04-01, entities 5478
 
-    ВЕРДИКТ: УТЕЧКА     дифференциальное исполнение, 7.1 с
-  расходятся колонки (11): COUNT(items), MAX(items.freight_value), MAX(items.price), MEAN(items.freight_value), MEAN(items.price), MIN(items.freight_value), MIN(items.price), STD(items.freight_value) …
-  расхождений в значениях: 19334
-  это доказательство, а не подозрение: те же входы, другой ответ
+    VERDICT: VIOLATION     differential execution, 7.1 s
+  diverging columns (11): COUNT(items), MAX(items.freight_value), MAX(items.price), MEAN(items.freight_value), MEAN(items.price), MIN(items.freight_value), MIN(items.price), STD(items.freight_value) …
+  diverging cells: 19334
+  a proof, not a suspicion: same inputs, different answer
 
-  момент            AUC   корректно   завышение   проверка
-  2018-01-01     0.8045      0.6563     +14.82 п.п.   0.834
-  2018-04-01     0.7774      0.6144     +16.30 п.п.   0.809
-  2018-07-01     0.7454      0.5890     +15.63 п.п.   0.759
+  seed              AUC     correct   inflation      probe
+  2018-01-01     0.8045      0.6563     +14.82 pp   0.834
+  2018-04-01     0.7774      0.6144     +16.30 pp   0.809
+  2018-07-01     0.7454      0.5890     +15.63 pp   0.759
 
-  промышленная проверка «макс AUC одного признака»: 0.809  (сильнейший: COUNT(items))
-  порог DataRobot 0.85 / 0.975  →  МОЛЧИТ
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  СЦЕНА 2. наш собственный эталон, первая версия
-  фильтр по времени заказа; у отзыва и факта доставки своя, более поздняя метка
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  момент предсказания 2018-04-01, сущностей 852
-
-    ВЕРДИКТ: УТЕЧКА     дифференциальное исполнение, 0.1 с
-  расходятся колонки (4): review_score_mean, review_score_min, late_mean, delay_days_mean
-  расхождений в значениях: 2014
-  это доказательство, а не подозрение: те же входы, другой ответ
-
-  момент            AUC   корректно   завышение   проверка
-  2018-01-01     0.6071      0.5762      +3.09 п.п.   0.623
-  2018-04-01     0.6451      0.5925      +5.26 п.п.   0.687
-  2018-07-01     0.6265      0.5888      +3.78 п.п.   0.657
-
-  промышленная проверка «макс AUC одного признака»: 0.687  (сильнейший: review_score_mean)
-  порог DataRobot 0.85 / 0.975  →  МОЛЧИТ
+  industrial probe «max single-feature AUC»: 0.809  (strongest: COUNT(items))
+  DataRobot 0.85 / 0.975 → SILENT;   H2O DAI 0.8 / 0.95 / 0.999 → WARNING
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  СЦЕНА 3. тот же эталон после исправления
-  у каждой колонки собственная метка доступности; больше ничего не изменено
+  SCENE 2. our own reference code, first version
+  history filtered by order time; review and delivery carry their own, later timestamps
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  момент предсказания 2018-04-01, сущностей 852
+  seed time 2018-04-01, entities 852
 
-    ВЕРДИКТ: ЧИСТО     дифференциальное исполнение, 0.2 с
-  выход побитово совпал на полной и на усечённой базе
+    VERDICT: VIOLATION     differential execution, 0.2 s
+  diverging columns (4): review_score_mean, review_score_min, late_mean, delay_days_mean
+  diverging cells: 2014
+  a proof, not a suspicion: same inputs, different answer
 
-  момент            AUC   корректно   завышение   проверка
-  2018-01-01     0.5762      0.5762      +0.00 п.п.   0.572
-  2018-04-01     0.5925      0.5925      +0.00 п.п.   0.610
-  2018-07-01     0.5888      0.5888      +0.00 п.п.   0.602
+  seed              AUC     correct   inflation      probe
+  2018-01-01     0.6071      0.5762      +3.09 pp   0.623
+  2018-04-01     0.6451      0.5925      +5.26 pp   0.687
+  2018-07-01     0.6265      0.5888      +3.78 pp   0.657
 
-  промышленная проверка «макс AUC одного признака»: 0.610  (сильнейший: review_score_mean)
-  порог DataRobot 0.85 / 0.975  →  МОЛЧИТ
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  СЦЕНА 4. LOCATOR: откуда именно течёт, и патч
-  усечение по одному каналу за раз; код программы по-прежнему не читается
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  сцена 2: наш эталон, первая версия  (7 каналов доступности, момент 2018-04-01)
-    ▶ flat.review_score: значение позже t        → review_score_mean, review_score_min  (732 ячеек)
-    ▶ flat.late: значение позже t                → late_mean  (605 ячеек)
-    ▶ flat.delay_days: значение позже t          → delay_days_mean  (677 ячеек)
-    патч: усечь вход по 3 найденным каналам, больше ничего  →  ЧИСТО  локализация 0.6 с, перепроверка 0.2 с
-
-  сцена 1: featuretools по умолчанию  (7 каналов доступности, момент 2018-04-01)
-    ▶ items: строки после t                      → COUNT(items), MAX(items.freight_value), MAX(items.price), MEAN(items.freight_value), MEAN(items.price) …  (19334 ячеек)
-    патч: усечь вход по 1 найденным каналам, больше ничего  →  ЧИСТО  локализация 28.2 с, перепроверка 5.3 с
+  industrial probe «max single-feature AUC»: 0.687  (strongest: review_score_mean)
+  DataRobot 0.85 / 0.975 → SILENT;   H2O DAI 0.8 / 0.95 / 0.999 → SILENT
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ИТОГ
+  SCENE 3. the same reference code after the fix
+  every column has its own availability timestamp; nothing else changed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  сцена                                        оракул       проверка   завышение
-  featuretools с настройками по умолчанию      УТЕЧКА        ПРОПУСК    +16.3 п.п.
-  наш собственный эталон, первая версия        УТЕЧКА        ПРОПУСК     +5.3 п.п.
-  тот же эталон после исправления               ЧИСТО          верно     +0.0 п.п.
-  LOCATOR ← сцена 2: наш эталон, первая верс            патч → ЧИСТО  3 канал(а): flat.review_score; flat.late; flat.delay_days
-  LOCATOR ← сцена 1: featuretools по умолчан            патч → ЧИСТО  1 канал(а): items
+  seed time 2018-04-01, entities 852
 
-  Оракул срабатывает там, где промышленная проверка молчит, и молчит
-  там, где код корректен. Он ничего не разбирает — только сравнивает выход.
+    VERDICT: CLEAN     differential execution, 0.2 s
+  output identical on the full and on the truncated database
+
+  seed              AUC     correct   inflation      probe
+  2018-01-01     0.5762      0.5762      +0.00 pp   0.572
+  2018-04-01     0.5925      0.5925      +0.00 pp   0.610
+  2018-07-01     0.5888      0.5888      +0.00 pp   0.602
+
+  industrial probe «max single-feature AUC»: 0.610  (strongest: review_score_mean)
+  DataRobot 0.85 / 0.975 → SILENT;   H2O DAI 0.8 / 0.95 / 0.999 → SILENT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SCENE 4. LOCATOR: where exactly it leaks, and a patch
+  truncate one availability channel at a time; the program is still not read
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  scene 2: our reference code, v1  (7 availability channels, seed time 2018-04-01)
+    ▶ flat.review_score: value known after t     → review_score_mean, review_score_min  (732 cells)
+    ▶ flat.late: value known after t             → late_mean  (605 cells)
+    ▶ flat.delay_days: value known after t       → delay_days_mean  (677 cells)
+    patch: truncate the input on the 3 channel(s) found, nothing else  →  CLEAN  localisation 0.7 s, re-check 0.2 s
+
+  scene 1: featuretools defaults  (7 availability channels, seed time 2018-04-01)
+    ▶ items: rows after t                        → COUNT(items), MAX(items.freight_value), MAX(items.price), MEAN(items.freight_value), MEAN(items.price) …  (19334 cells)
+    patch: truncate the input on the 1 channel(s) found, nothing else  →  CLEAN  localisation 30.2 s, re-check 5.6 s
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  scene                                       checker     probe@0.85   inflation
+  featuretools with default settings        VIOLATION         MISSED    +16.3 pp
+  our own reference code, first version     VIOLATION         MISSED     +5.3 pp
+  the same reference code after the fix         CLEAN        correct     +0.0 pp
+  LOCATOR ← scene 2: our reference code, v1            patch → CLEAN  3: flat.review_score; flat.late; flat.delay_days
+  LOCATOR ← scene 1: featuretools defaults             patch → CLEAN  1: items
+
+  The checker fires where the industrial probe is silent, and stays silent where the code
+  is correct. It parses nothing — it only compares outputs.
 

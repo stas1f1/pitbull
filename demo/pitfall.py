@@ -19,7 +19,10 @@ PITFALL — проверка корректности признаков по в
   * утечка, не проявившаяся на конкретном моменте t, не будет замечена на нём.
 """
 from dataclasses import dataclass, field
+import os
 import numpy as np, pandas as pd
+
+LANG = os.environ.get("PITFALL_LANG", "en")   # "en" | "ru" — язык подписей
 
 NA = -987654321.0
 
@@ -91,7 +94,9 @@ class Verdict:
 
     @property
     def label(self):
-        return "УТЕЧКА" if self.leak else "ЧИСТО"
+        if LANG == "ru":
+            return "УТЕЧКА" if self.leak else "ЧИСТО"
+        return "VIOLATION" if self.leak else "CLEAN"
 
 def _eq(a, b):
     return a.fillna(NA).round(9).equals(b.fillna(NA).round(9))
@@ -101,9 +106,9 @@ def differential_check(program, db, seed, entities):
     full = program(db, seed, entities)
     trunc = program(db.truncate(seed), seed, entities)
     if full is None or trunc is None:
-        return Verdict(full is not trunc, [], 0, "программа вернула None")
+        return Verdict(full is not trunc, [], 0, "program returned None")
     if list(full.columns) != list(trunc.columns) or full.shape != trunc.shape:
-        return Verdict(True, ["<форма выхода>"], 0, f"{full.shape} против {trunc.shape}")
+        return Verdict(True, ["<output shape>"], 0, f"{full.shape} vs {trunc.shape}")
     cols = [c for c in full.columns if not _eq(full[c], trunc[c])]
     cells = int(sum((full[c].fillna(NA) != trunc[c].fillna(NA)).sum() for c in cols))
     return Verdict(bool(cols), cols, cells)
@@ -118,8 +123,11 @@ class Blame:
 
     @property
     def label(self):
-        return (f"{self.channel[1]}: строки после t" if self.channel[0] == "row"
-                else f"{self.channel[1]}.{self.channel[2]}: значение позже t")
+        if LANG == "ru":
+            return (f"{self.channel[1]}: строки после t" if self.channel[0] == "row"
+                    else f"{self.channel[1]}.{self.channel[2]}: значение позже t")
+        return (f"{self.channel[1]}: rows after t" if self.channel[0] == "row"
+                else f"{self.channel[1]}.{self.channel[2]}: value known after t")
 
 def locate(program, db, seed, entities, full=None):
     """Через какие каналы будущее попадает в выход. Усекаем базу по ОДНОМУ каналу за раз
@@ -131,7 +139,7 @@ def locate(program, db, seed, entities, full=None):
     for ch in db.channels():
         part = program(db.truncate(seed, only=frozenset([ch])), seed, entities)
         if part is None or full is None or list(part.columns) != list(full.columns) or part.shape != full.shape:
-            out.append(Blame(ch, ["<форма выхода>"], 0)); continue
+            out.append(Blame(ch, ["<output shape>"], 0)); continue
         cols = [c for c in full.columns if not _eq(full[c], part[c])]
         if cols:
             cells = int(sum((full[c].fillna(NA) != part[c].fillna(NA)).sum() for c in cols))
@@ -158,10 +166,11 @@ def univariate_probe(X, y):
             best, who = a, c
     return best, who
 
-def probe_says(a):
-    if a >= DATAROBOT[1]: return "автовыброс"
-    if a >= DATAROBOT[0]: return "предупреждение"
-    return "молчит"
+def probe_says(a, thresholds=DATAROBOT):
+    """Вердикт одномерной проверки при данных порогах: 'silent' | 'warning' | 'auto-drop'."""
+    if a >= thresholds[-1]: return "auto-drop"
+    if a >= thresholds[0]: return "warning"
+    return "silent"
 
 # ───────────────────────────── фиксированная модель ─────────────────────────────
 

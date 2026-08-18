@@ -15,8 +15,9 @@
 ```bash
 python3 demo.py            # четыре сцены, всё считается вживую, ~2 минуты на 2 ядрах CPU
 python3 demo.py 2          # одна сцена (4 — LOCATOR)
+python3 demo.py --lang ru  # русские подписи (по умолчанию английские; также PITFALL_LANG=ru)
 python3 demo.py --no-color # без ANSI, для записи в лог
-python3 make_page.py       # собрать pitfall_demo.html из demo_results.json
+python3 make_page.py       # собрать pitfall_demo.html из demo_results.json (--lang ru → pitfall_demo_ru.html)
 ```
 
 Зависимости — `../requirements.txt` (см. корневой README, окружение `../.venv`). Данные — Olist
