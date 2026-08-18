@@ -18,6 +18,9 @@ python3 demo.py 2          # одна сцена (4 — LOCATOR)
 python3 demo.py --lang ru  # русские подписи (по умолчанию английские; также PITFALL_LANG=ru)
 python3 demo.py --no-color # без ANSI, для записи в лог
 python3 make_page.py       # собрать pitfall_demo.html из demo_results.json (--lang ru → pitfall_demo_ru.html)
+python3 demo.py --program try_me.py [--task seller|product]
+                           # «обмани оракула»: проверить и локализовать СВОЮ функцию признаков
+                           # сигнатура features(db, seed_time, entities) -> DataFrame; см. try_me.py
 ```
 
 Зависимости — `../requirements.txt` (см. корневой README, окружение `../.venv`). Данные — Olist
@@ -49,6 +52,7 @@ python3 make_page.py       # собрать pitfall_demo.html из demo_results.
 | `demo.py` | прогон, консольный вывод, `demo_results.json` |
 | `make_page.py` → `pitfall_demo.html` | самодостаточная страница со всеми числами |
 | `ft_scene.py` | отдельная проверка featuretools в трёх режимах → `ft_scene.csv` |
+| `try_me.py` | заготовка для посетителя: правь функцию → `demo.py --program try_me.py` → вердикт, каналы, патч |
 
 ## Границы метода
 

@@ -11,6 +11,9 @@ PITFALL — demonstration. Four scenes, every number is computed live.
     python3 demo.py 2            one scene
     python3 demo.py --lang ru    Russian labels (default: English)
     python3 demo.py --no-color   plain output for logs
+    python3 demo.py --program my_feats.py[:func] [--task seller|product]
+                                 check + localise YOUR feature function
+                                 signature: func(db, seed_time, entities) -> DataFrame
 """
 import os as _os
 _HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
@@ -183,7 +186,35 @@ def scene_locate(i, programs, db, results):
                         patched_leak=v.leak, patched_verdict=v.label, n_channels=len(db.channels())))
     results.append(dict(scene=i, key="s4", title=title, programs=out))
 
+def check_user_program(path, task, db):
+    """Try to beat the checker: load func(db, t, entities) from a file, check it, localise."""
+    import importlib.util
+    file, _, fn = path.partition(":")
+    spec = importlib.util.spec_from_file_location("user_program", file)
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    program = getattr(mod, fn or "features")
+    labeler = scenes.product_labels if task == "product" else scenes.seller_quality_labels
+    head("U", f"{file}:{program.__name__}", S["s4"][1])
+    sd, ent, _ = labeler(db, "2018-04-01")
+    print(f"  {S['seed'].format(seed='2018-04-01', n=len(ent))}")
+    t0 = time.time(); v = differential_check(program, db, sd, ent); dt = time.time() - t0
+    verdict_box(v, dt)
+    if v.leak:
+        t0 = time.time(); bl = locate(program, db, sd, ent); dt = time.time() - t0
+        for b in bl:
+            print(f"    {C['red']}▶ {b.label:42s}{C['r']} → {', '.join(b.columns[:5])}"
+                  f"{' …' if len(b.columns) > 5 else ''}  {C['dim']}{S['cellsn'].format(n=b.cells)}{C['r']}")
+        chans = [b.channel for b in bl]
+        v2 = differential_check(masked_program(program, chans), db, sd, ent)
+        print(f"    {S['patch'].format(n=len(chans))}{C['grn'] if not v2.leak else C['red']}{C['b']}{v2.label}{C['r']}  "
+              f"{C['dim']}{S['loc'].format(a=dt, b=0)}{C['r']}")
+    print()
+
 def main():
+    if "--program" in sys.argv:
+        path = sys.argv[sys.argv.index("--program") + 1]
+        task = sys.argv[sys.argv.index("--task") + 1] if "--task" in sys.argv else "seller"
+        check_user_program(path, task, scenes.olist_db()); return
     only = next((a for a in sys.argv[1:] if a.isdigit()), None)
     print(f"{C['b']}{C['cyn']}\n  {S['banner']}{C['r']}")
     print(f"  {C['dim']}{S['banner2']}{C['r']}")
