@@ -38,7 +38,7 @@ for k, (name, vals) in enumerate(DOSE.items()):
 ax.set_xticks(x); ax.set_xticklabels(["G0\nneutral", "G1\nmention", "G2\nper-aggregate"], fontsize=7.5)
 ax.set_ylabel("programs violating PIT, %"); ax.set_ylim(0, 75)
 ax.legend(frameon=False, fontsize=6.8, loc="upper right")
-ax.set_title("Wilson 95% CI; n=30 per cell", fontsize=7.5, color=GREY, pad=4)
+ax.set_title("Wilson 95% CI over programs that ran (n = 9–30 per cell)", fontsize=7.2, color=GREY, pad=4)
 fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig3_dose.pdf"); fig.savefig(_ROOT + "/fig/fig3_dose.png", dpi=220)
 
 # ── Рис. 4: слепота проверки ─────────────────────────────────────────────────
@@ -49,6 +49,7 @@ ft = pd.read_csv(_ROOT + "/demo/ft_scene.csv")
 fig, ax = plt.subplots(figsize=(3.45, 2.7))
 ax.axvspan(0, .85, color="#fdecea", zorder=0)
 ax.axvline(.85, color=RED, lw=.9, ls="--"); ax.axvline(.975, color=RED, lw=.7, ls=":")
+ax.axvline(.80, color=GREY, lw=.8, ls="--")
 ax.scatter(M.макс_AUC_признака, M.завышение, s=14, color=GREY, alpha=.75, lw=0,
            label="cutoff shift, tasks A/B", zorder=3)
 c2 = C[C.режим == "утечка только через соединение"]
@@ -60,8 +61,9 @@ ax.scatter(ftl.макс_AUC_признака, ftl.завышение, s=52, mark
 ax.scatter([.623, .687, .657], [3.09, 5.26, 3.78], s=34, marker="^", color=AMB, lw=0,
            label="our own expert code", zorder=5)
 ax.text(.857, .2, "DataRobot 0.85", fontsize=6.2, color=RED, rotation=90, va="bottom")
-ax.text(.982, .2, "H2O 0.975", fontsize=6.2, color=RED, rotation=90, va="bottom")
-ax.text(.565, 27.6, "probe SILENT\n→ leak missed", fontsize=7, color=RED, va="top", weight="bold")
+ax.text(.982, .2, "DataRobot 0.975", fontsize=6.2, color=RED, rotation=90, va="bottom")
+ax.text(.787, 27.6, "H2O 0.80", fontsize=6.2, color=GREY, rotation=90, va="top")
+ax.text(.565, 27.6, "probe SILENT at 0.85\n→ leak missed", fontsize=7, color=RED, va="top", weight="bold")
 ax.set_xlabel("industrial probe: max single-feature AUC")
 ax.set_ylabel("true AUC inflation, pp")
 ax.set_xlim(.55, 1.02); ax.set_ylim(-1.5, 29)
