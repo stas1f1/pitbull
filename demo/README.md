@@ -10,14 +10,27 @@
 на момент предсказания. Расхождение выходов — **доказательство** нарушения, а не подозрение.
 Ни код, ни SQL не разбираются: программа — чёрный ящик. Ложных срабатываний нет по построению.
 
-## Запуск
+## Интерактивная страница (то, что показываем на стенде)
+
+`demo/index.html` — самодостаточная страница (открывается офлайн, шрифты с Google Fonts при
+наличии сети, иначе системные). Семь разделов: реальный продавец с перетаскиваемой датой
+(«что видит наивный признак» против «что было известно»); переключатель программ × моментов
+с вердиктом, объяснением и выходами бок о бок; игра «обмани проверку» (8 функций);
+ползунок сдвига отсечки; порог промышленной проверки на диаграмме; локализация по каналам;
+границы метода.
+
+```bash
+python3 build_site_data.py   # ~1.5 мин: все числа считаются на реальной базе → site_data.json
+python3 build_site.py        # вшивает данные в site_template.html → index.html
+```
+
+## Консольный прогон
 
 ```bash
 python3 demo.py            # четыре сцены, всё считается вживую, ~2 минуты на 2 ядрах CPU
 python3 demo.py 2          # одна сцена (4 — LOCATOR)
 python3 demo.py --lang ru  # русские подписи (по умолчанию английские; также PITFALL_LANG=ru)
 python3 demo.py --no-color # без ANSI, для записи в лог
-python3 make_page.py       # собрать pitfall_demo.html из demo_results.json (--lang ru → pitfall_demo_ru.html)
 python3 demo.py --program try_me.py [--task seller|product]
                            # «обмани оракула»: проверить и локализовать СВОЮ функцию признаков
                            # сигнатура features(db, seed_time, entities) -> DataFrame; см. try_me.py
@@ -50,7 +63,8 @@ python3 demo.py --program try_me.py [--task seller|product]
 | `pitfall.py` | библиотека (пороги: DataRobot Gini Norm 0.85/0.975 = AUC 0.925/0.9875; H2O AUC 0.80/0.95/0.999): `TemporalDB` (отношение доступности, `channels`, `truncate(t, only=…)`), `differential_check`, `locate` + `masked_program` (LOCATOR), `univariate_probe`, `fixed_model_auc` |
 | `scenes.py` | данные и программы признаков трёх сцен; загрузчик общий с `rel/pit_common.py`, поэтому числа демо и числа статьи совпадают |
 | `demo.py` | прогон, консольный вывод, `demo_results.json` |
-| `make_page.py` → `pitfall_demo.html` | самодостаточная страница со всеми числами |
+| `build_site_data.py` → `site_data.json` | данные для страницы: таймлайн продавца, диффы по сущностям, кривые, игра |
+| `site_template.html` + `build_site.py` → `index.html` | интерактивная страница |
 | `ft_scene.py` | отдельная проверка featuretools в трёх режимах → `ft_scene.csv` |
 | `try_me.py` | заготовка для посетителя: правь функцию → `demo.py --program try_me.py` → вердикт, каналы, патч |
 

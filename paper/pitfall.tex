@@ -295,33 +295,32 @@ metric-based heuristic cannot.
 \section{Demonstration}
 
 \begin{figure}[t]\centering
-\includegraphics[width=.86\columnwidth]{fig/fig5_demo.png}
-\caption{Scene 4 of the demonstration page: \textsc{Locator} names the availability
-channel behind each diverging column.}
+\includegraphics[width=.92\columnwidth]{fig/fig5_demo.png}
+\caption{The demonstration page, section ``run it twice'': program and seed-date
+selectors and the verdict with a plain-language summary; below it (not shown) the
+outputs side by side, differences in red.}
 \label{fig:demo}
 \end{figure}
 
-The demonstration runs offline on a laptop in about two minutes
-(\texttt{python3 demo.py}), prints per scene a verdict, the diverging columns, the probe
-value at both thresholds and the true inflation, and renders a self-contained page
-(Fig.~\ref{fig:demo}). Attendees can edit a feature function (\texttt{--program}) and
-re-run the check.
+The demonstration is a self-contained interactive page built from live runs
+(Fig.~\ref{fig:demo}) plus a console runner (\texttt{python3 demo.py}, two minutes on a
+laptop). A visitor can drag the seed date over one seller's real orders and reviews and
+watch a na\"ive ``average review'' feature change; switch programs and seed dates and see
+the verdict and the outputs side by side; play ``fool the checker'' on eight short feature
+functions; move the cutoff and the probe threshold; inspect per-channel localisation; and
+submit a feature function of their own (\texttt{--program}).
 
-\textbf{Scene 1 --- library defaults.} \texttt{ft.dfs} without a cutoff-time table.
-Verdict \textsc{violation} in $7$\,s, 11 diverging columns, 19{,}334 cells; probe
-$0.809$ (silent for DataRobot, H2O notification); inflation $+16.3$ points.
-\textbf{Scene 2 --- our own code.} Verdict \textsc{violation} in $0.2$\,s, naming the
-four review and delivery aggregates; probe $0.687$, silent at both thresholds; $+5.3$
-points. \textbf{Scene 3 --- the fix.} The same program with the availability relation
-fixed and nothing else changed. Verdict \textsc{clean}, outputs identical, inflation
-$0.00$ at all three seed times; the negative control for the first two scenes.
+\textbf{Scene 1 --- library defaults.} \texttt{ft.dfs} without a cutoff-time table:
+\textsc{violation} in $7$\,s, 11 diverging columns, 19{,}334 cells; probe $0.809$
+(DataRobot silent, H2O notification); $+16.3$ points. \textbf{Scene 2 --- our own code.}
+\textsc{violation} in $0.2$\,s, naming the four review and delivery aggregates; probe
+$0.687$, silent at both thresholds; $+5.3$ points. \textbf{Scene 3 --- the fix.} The same
+program with the availability relation fixed: \textsc{clean}, outputs identical,
+inflation $0.00$ at all three seed times.
 
-\textbf{Scene 4 --- localisation.} \textsc{Locator} truncates the seven availability
-channels one at a time. For Scene 2 it attributes the two review aggregates to
-\texttt{review\_score} becoming known after $t$ and the two delivery aggregates to the
-delivery date; for Scene 1 it attributes all eleven columns to \texttt{items} rows
-appearing after $t$. Masking those channels alone re-checks \textsc{clean}, so no other
-channel is involved.
+\textbf{Scene 4 --- localisation.} Per-channel truncation traces Scene 2's four columns
+to the review and delivery timestamps and Scene 1's eleven columns to \texttt{items} rows
+appearing after $t$; masking those channels alone re-checks \textsc{clean}.
 
 \section{Limitations}
 

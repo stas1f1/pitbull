@@ -19,8 +19,11 @@
 ```bash
 uv venv --python 3.11 .venv && uv pip install --python .venv/bin/python -r requirements.txt
 #   (или: python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt)
-cd demo && ../.venv/bin/python demo.py
+cd demo && ../.venv/bin/python demo.py          # консоль, 4 сцены
+../.venv/bin/python build_site_data.py && ../.venv/bin/python build_site.py   # → demo/index.html
 ```
+
+Интерактивная страница демо — `demo/index.html` (открыть в браузере).
 
 Данные читаются из `PITFALL_olist_data/` в корне репозитория (входит в репозиторий);
 другой каталог можно указать переменной `PITFALL_DATA`. Все пути в скриптах — относительно
