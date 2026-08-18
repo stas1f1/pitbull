@@ -57,13 +57,13 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
         <div class="panel">
           <div class="lbl">Differential execution</div>
           <div class="big" style="color:#A62B22">VIOLATION</div>
-          <div class="meta">7.1 s · diverging columns 11 · diverging cells 19334</div>
+          <div class="meta">8.3 s · diverging columns 11 · diverging cells 19334</div>
           <div class='cols'><code>COUNT(items)</code> <code>MAX(items.freight_value)</code> <code>MAX(items.price)</code> <code>MEAN(items.freight_value)</code> <code>MEAN(items.price)</code> <code>MIN(items.freight_value)</code> <code>MIN(items.price)</code> <code>STD(items.freight_value)</code> <code>STD(items.price)</code> <code>SUM(items.freight_value)</code> <code>SUM(items.price)</code></div>
         </div>
         <div class="panel">
           <div class="lbl">Industrial probe «max single-feature AUC»</div>
           <div class="big" style="color:#A62B22">MISSED</div>
-          <div class="meta">value 0.809 · DataRobot 0.85 / 0.975 → silent · H2O DAI 0.80 / 0.95 / 0.999 → warning</div>
+          <div class="meta">value 0.809 · DataRobot (Gini Norm 0.85/0.975 = AUC 0.925/0.988) → silent · H2O DAI 0.80/0.95/0.999 → warning</div>
           <div class="cols dim">strongest feature: <code>COUNT(items)</code></div>
         </div>
       </div>
@@ -87,7 +87,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
         <div class="panel">
           <div class="lbl">Industrial probe «max single-feature AUC»</div>
           <div class="big" style="color:#A62B22">MISSED</div>
-          <div class="meta">value 0.687 · DataRobot 0.85 / 0.975 → silent · H2O DAI 0.80 / 0.95 / 0.999 → silent</div>
+          <div class="meta">value 0.687 · DataRobot (Gini Norm 0.85/0.975 = AUC 0.925/0.988) → silent · H2O DAI 0.80/0.95/0.999 → silent</div>
           <div class="cols dim">strongest feature: <code>review_score_mean</code></div>
         </div>
       </div>
@@ -111,7 +111,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
         <div class="panel">
           <div class="lbl">Industrial probe «max single-feature AUC»</div>
           <div class="big" style="color:#1F7A55">correctly silent</div>
-          <div class="meta">value 0.610 · DataRobot 0.85 / 0.975 → silent · H2O DAI 0.80 / 0.95 / 0.999 → silent</div>
+          <div class="meta">value 0.610 · DataRobot (Gini Norm 0.85/0.975 = AUC 0.925/0.988) → silent · H2O DAI 0.80/0.95/0.999 → silent</div>
           <div class="cols dim">strongest feature: <code>review_score_mean</code></div>
         </div>
       </div>
@@ -134,7 +134,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
           <b style="color:#1F7A55">CLEAN</b></div>
       </div>
       <div class="panel" style="margin-bottom:14px">
-        <div class="lbl">scene 1: featuretools defaults · 1 channel(s) of 7 · 30.2 s</div>
+        <div class="lbl">scene 1: featuretools defaults · 1 channel(s) of 7 · 33.2 s</div>
         <table><thead><tr><th>availability channel</th><th>affected output columns</th><th class="n">cells</th></tr></thead>
         <tbody><tr><td><b>items: rows after t</b></td><td><code>COUNT(items)</code> <code>MAX(items.freight_value)</code> <code>MAX(items.price)</code> <code>MEAN(items.freight_value)</code> <code>MEAN(items.price)</code> <code>MIN(items.freight_value)</code> …</td><td class='n'>19334</td></tr></tbody></table>
         <div class="meta" style="margin-top:10px">patch: the same program, input truncated on the channels found only →
@@ -144,7 +144,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0f3fa}
     </section>
 <section class="foot">
   <h3>What the scenes show together</h3>
-  <ul><li><b>The checker fires where the industrial probe is silent.</b> On both violations the maximum single-feature AUC stays below the DataRobot warning threshold of 0.85 — a clean bill — while the offline estimate is inflated by 16.3 and 5.3 points. At the H2O threshold of 0.80 the probe warns on scene 1 at two seed times of three, but also warns on the <i>correct</i> seller-activity pipeline at all three.</li><li><b>And stays silent where the code is correct.</b> Scene 3 is the same program with the availability relation fixed: the outputs coincide bit for bit; there are no false positives by construction.</li><li><b>The cost of a violation is not implied by the violation.</b> The same defect costs 0.2 points on a churn task and 3–5 points on a quality task: what matters is how much the target leans on the leaked columns. Correctness therefore has to be tested separately from the metric.</li><li><b>Localisation uses the same trick.</b> Scene 4: truncating one channel at a time names the table and column through which the future reaches the output, and the minimal patch after which the verdict is CLEAN.</li></ul>
+  <ul><li><b>The checker fires where the industrial probe is silent.</b> On both violations the maximum single-feature AUC stays far below DataRobot's warning threshold (Gini Norm 0.85, i.e. AUC 0.925) — a clean bill — while the offline estimate is inflated by 16.3 and 5.3 points. H2O's per-feature notification (AUC 0.80) fires on scene 1 at two seed times of three, but also fires on the <i>correct</i> seller-activity pipeline at all three.</li><li><b>And stays silent where the code is correct.</b> Scene 3 is the same program with the availability relation fixed: the outputs coincide bit for bit; there are no false positives by construction.</li><li><b>The cost of a violation is not implied by the violation.</b> The same defect costs 0.2 points on a churn task and 3–5 points on a quality task: what matters is how much the target leans on the leaked columns. Correctness therefore has to be tested separately from the metric.</li><li><b>Localisation uses the same trick.</b> Scene 4: truncating one channel at a time names the table and column through which the future reaches the output, and the minimal patch after which the verdict is CLEAN.</li></ul>
   <h3>Limits of the method — to be named first</h3>
   <ul><li><b>A mutable field without history is undecidable.</b> <code>order_status</code> has no timestamp: the moment an order became cancelled is not in the data. The truncated database is indistinguishable from the full one for such a column, and the method does not apply.</li><li><b>A non-deterministic program</b> diverges without leaking — a fixed seed is required.</li><li><b>Misses are possible:</b> a violation that does not manifest at the tested seed time is not seen there. There are no false positives — the asymmetry is deliberate.</li><li><b>One database, three tasks, three seed times.</b> A preliminary result; RelBench was unreachable from the experiment network, the task structure was reproduced from its description.</li></ul>
   <p class="note">Data: Olist, 7 tables, 112,650 order line items, September 2016 — October 2018. Everything is computed live on 2 CPU cores: <code>python3 demo.py</code>. One and the same model with a fixed seed everywhere — swapping the booster alone moves AUC by up to 11.5 pp.</p>

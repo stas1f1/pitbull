@@ -29,8 +29,8 @@ divergence. The check does not parse the program, is language-agnostic, has no f
 positives by construction, names the offending columns in $0.2$--$7.6$\,s, and, by
 truncating one availability channel at a time, localises the leak to the table and column
 through which it enters. The univariate probe used by commercial AutoML platforms misses
-all three sources at its default warning threshold and raises a false alarm on a correct
-pipeline at the stricter one.
+all three sources at DataRobot's default warning threshold, and H2O's more sensitive
+per-feature notification also fires on a correct pipeline.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -56,16 +56,15 @@ Finally, a row can carry columns written later than the row itself, such as a re
 attached to an order; filtering by the order timestamp admits the row together with its
 future columns; this third case is the one most often missed.
 
-This study started as a test of whether language-model agents produce leaking feature
-code. In the course of it we found violations in three independent sources, none
-constructed by us: \texttt{featuretools}~\cite{dfs} called without a cutoff-time table,
+We found violations in three independent sources, none constructed by us: \texttt{featuretools}~\cite{dfs} called without a cutoff-time table,
 the form of its introductory example~\cite{ftdocs}; the reference implementation written
 by the authors of this paper, found by our own checker; and single-shot generations from
 two language models under a prompt that does not mention leakage.
 
 Existing safeguards do not cover this case. Commercial AutoML platforms (DataRobot,
-H2O Driverless AI, SageMaker) use the same univariate probe, which flags a feature whose
-single-feature AUC exceeds a threshold~\cite{datarobot,h2o}. Rule-based checkers such as
+H2O Driverless AI, SageMaker) use the same univariate probe: fit a model on each single
+feature and flag it when its score exceeds a threshold, e.g.\ Gini Norm $0.85$ (AUC
+$0.925$) for DataRobot and AUC $0.80$ for H2O~\cite{datarobot,h2o}. Rule-based checkers such as
 \texttt{leakr}~\cite{leakr2025} enumerate a fixed list of patterns.
 Static analyzers for notebooks~\cite{yang2022} and pipeline instrumentation such as
 \texttt{mlinspect}~\cite{mlinspect} target preprocessing order and train/test
@@ -196,22 +195,23 @@ probe (Section~\ref{sec:blind}).
 \begin{table}[t]
 \caption{Sources of point-in-time violation. Rows 1, 2 and 5 were not constructed by
 us; row 4 is a controlled regime. ``Probe'' is the maximum single-feature AUC on the
-leaking features; DataRobot warns at $0.85$, H2O Driverless AI at $0.80$.}
+leaking features; DataRobot warns at Gini Norm $0.85$ (AUC $0.925$), H2O Driverless AI
+notifies at AUC $0.80$.}
 \label{tab:sources}
 \centering\scriptsize
 \setlength{\tabcolsep}{2.4pt}
 \begin{tabular}{@{}lccc@{}}
 \toprule
-Source & Inflation, pp & Probe & at 0.85 / 0.80 \\
+Source & Inflation, pp & Probe & DataRobot / H2O \\
 \midrule
-\texttt{featuretools}, no cutoff table & $+14.8\ldots+16.3$ & $0.76$--$0.83$ & silent / warns 2/3 \\
+\texttt{featuretools}, no cutoff & $+14.8\ldots+16.3$ & $0.76$--$0.83$ & silent / notifies 2/3 \\
 Our reference code, task B & $+3.1\ldots+5.3$ & $0.62$--$0.69$ & silent / silent \\
 \quad same defect, tasks A and C & $-0.1\ldots+1.0$ & $0.71$--$0.86$ & silent$^\dagger$ \\
 Leak through a join path only & $+3.0\ldots+5.1$ & unchanged & silent / silent \\
-LLM code, neutral prompt & median $+0.1$ & --- & $53\%$ / $35\%$ violate \\
+LLM code, neutral prompt & median $+0.1$ & \multicolumn{2}{c}{$53\%$ / $35\%$ of programs violate} \\
 \bottomrule
 \end{tabular}\\[2pt]
-{\scriptsize $^\dagger$On task A the probe crosses both thresholds on the \emph{correct}
+{\scriptsize $^\dagger$On task A the H2O notification fires on the \emph{correct}
 pipeline too (Section~\ref{sec:blind}).}
 \end{table}
 
@@ -240,10 +240,10 @@ was static, as the database was not reachable from our environment.
 
 \begin{figure}[t]\centering
 \includegraphics[width=.96\columnwidth]{fig/fig4_blind.pdf}
-\caption{Probe value against true inflation. Points left of $0.85$ are violations the
+\caption{Probe value against true inflation. Points left of $0.925$ are violations the
 DataRobot probe does not report, including all three sources of Table~\ref{tab:sources};
-the H2O threshold of $0.80$ catches two of the three \texttt{featuretools} points and none
-of the others.}
+the H2O notification at $0.80$ catches two of the three \texttt{featuretools} points and
+none of the others.}
 \label{fig:blind}
 \end{figure}
 
@@ -252,10 +252,11 @@ Fig.~\ref{fig:blind} plots the probe value against true inflation. The clearest 
 leakage through a join: the probe returns $0.714/0.722/0.717$ under a correct cutoff and
 the same $0.714/0.722/0.717$ under leakage, while the model gains $3.0$--$5.1$ points. On
 task B no condition, including the complete absence of a cutoff ($+18.0$ points), reaches
-$0.80$. The probe also errs in the other direction: on task A the correct pipeline scores
-$0.837/0.861/0.833$, above $0.80$ at every seed time and above $0.85$ at one, because
-recency is a legitimate and strong predictor of churn. Lowering the threshold trades
-misses for false alarms; no threshold separates the two on these tasks.
+the DataRobot threshold, and only shifts of two months or more reach H2O's $0.80$. The more
+sensitive threshold also errs in the other direction: on task A the correct pipeline
+scores $0.837/0.861/0.833$, above $0.80$ at every seed time, because recency is a
+legitimate and strong predictor of churn. Lowering the threshold trades misses for false
+alarms; on these tasks no threshold separates the two.
 
 \subsection{Generated feature code}
 We asked two models, \texttt{deepseek-v4-flash} and
@@ -304,7 +305,7 @@ self-contained page (Fig.~\ref{fig:demo}). Attendees can edit a feature function
 
 \textbf{Scene 1 --- library defaults.} \texttt{ft.dfs} without a cutoff-time table.
 Verdict \textsc{violation} in $7$\,s, 11 diverging columns, 19{,}334 cells; probe
-$0.809$ (silent at $0.85$, warns at $0.80$); inflation $+16.3$ points.
+$0.809$ (silent for DataRobot, H2O notification); inflation $+16.3$ points.
 
 \textbf{Scene 2 --- our own code.} Verdict \textsc{violation} in $0.2$\,s, naming the
 four review and delivery aggregates; probe $0.687$, silent at both thresholds; $+5.3$
@@ -354,8 +355,8 @@ objects of measurement and are released unedited. Code, data and all reported nu
 \bibitem{mlinspect} S.~Grafberger, S.~Guha, J.~Stoyanovich, and S.~Schelter, ``mlinspect: a data distribution debugger for machine learning pipelines,'' in \emph{Proc. SIGMOD}, 2021.
 \bibitem{peerj2025} N.~Alturayeif and J.~Hassine, ``Data leakage detection in machine learning code: transfer learning, active learning, or low-shot prompting?'' \emph{PeerJ Computer Science}, 11:e2730, 2025.
 \bibitem{leakr2025} C.~Isabella, ``leakr: data leakage detection,'' CRAN package, 2025.
-\bibitem{datarobot} DataRobot, ``Target leakage,'' product docs, \url{https://docs.datarobot.com}, 2026.
-\bibitem{h2o} H2O.ai, ``Driverless AI: leakage detection,'' product docs, \url{https://docs.h2o.ai}, 2026.
+\bibitem{datarobot} DataRobot, ``Data quality assessment: target leakage,'' \url{https://docs.datarobot.com/en/docs/reference/data-ref/data-quality-ref.html}, 2026.
+\bibitem{h2o} H2O.ai, ``Data leakage and shift detection in Driverless AI,'' \url{https://docs.h2o.ai/driverless-ai/1-11-lts/docs/userguide/leakage-shift-detection.html}, 2026.
 \bibitem{relbench} J.~Robinson \emph{et al.}, ``RelBench: a benchmark for deep learning on relational databases,'' in \emph{NeurIPS Datasets and Benchmarks}, 2024.
 \bibitem{relbench2} J.~Gu, R.~Ranjan, C.~Kanatsoulis \emph{et al.}, ``RelBench v2: a large-scale benchmark and relational data repository,'' in \emph{ICLR Workshop on Foundation Models for Tabular and Structured Data (DATA-FM)}, 2026.
 \bibitem{dbinfer} M.~Wang \emph{et al.}, ``4DBInfer: a 4D benchmarking toolbox for graph-centric predictive modeling on relational DBs,'' in \emph{NeurIPS Datasets and Benchmarks}, 2024.

@@ -47,9 +47,10 @@ M = R.merge(P, on=["задача", "тест", "режим"])
 C = pd.read_csv(_ROOT + "/rel/fix_c.csv")
 ft = pd.read_csv(_ROOT + "/demo/ft_scene.csv")
 fig, ax = plt.subplots(figsize=(3.45, 2.7))
-ax.axvspan(0, .85, color="#fdecea", zorder=0)
-ax.axvline(.85, color=RED, lw=.9, ls="--"); ax.axvline(.975, color=RED, lw=.7, ls=":")
-ax.axvline(.80, color=GREY, lw=.8, ls="--")
+ax.axvspan(0, .80, color="#fbdcd8", zorder=0)          # silent for every deployed threshold
+ax.axvspan(.80, .925, color="#fdecea", zorder=0)        # silent for DataRobot, H2O notifies
+ax.axvline(.925, color=RED, lw=.9, ls="--"); ax.axvline(.9875, color=RED, lw=.7, ls=":")
+ax.axvline(.80, color=GREY, lw=.8, ls="--"); ax.axvline(.95, color=GREY, lw=.7, ls=":")
 ax.scatter(M.макс_AUC_признака, M.завышение, s=14, color=GREY, alpha=.75, lw=0,
            label="cutoff shift, tasks A/B", zorder=3)
 c2 = C[C.режим == "утечка только через соединение"]
@@ -60,10 +61,11 @@ ax.scatter(ftl.макс_AUC_признака, ftl.завышение, s=52, mark
            label="featuretools defaults", zorder=5)
 ax.scatter([.623, .687, .657], [3.09, 5.26, 3.78], s=34, marker="^", color=AMB, lw=0,
            label="our own expert code", zorder=5)
-ax.text(.857, .2, "DataRobot 0.85", fontsize=6.2, color=RED, rotation=90, va="bottom")
-ax.text(.982, .2, "DataRobot 0.975", fontsize=6.2, color=RED, rotation=90, va="bottom")
-ax.text(.787, 27.6, "H2O 0.80", fontsize=6.2, color=GREY, rotation=90, va="top")
-ax.text(.565, 27.6, "probe SILENT at 0.85\n→ leak missed", fontsize=7, color=RED, va="top", weight="bold")
+ax.text(.931, .2, "DataRobot warn (Gini .85 = AUC .925)", fontsize=5.6, color=RED, rotation=90, va="bottom")
+ax.text(.993, .2, "DataRobot drop", fontsize=5.6, color=RED, rotation=90, va="bottom")
+ax.text(.787, .2, "H2O notify .80", fontsize=5.8, color=GREY, rotation=90, va="bottom")
+ax.text(.956, 27.6, "H2O detect .95", fontsize=5.8, color=GREY, rotation=90, va="top")
+ax.text(.565, 27.6, "probe SILENT\n(every deployed threshold)", fontsize=6.6, color=RED, va="top", weight="bold")
 ax.set_xlabel("industrial probe: max single-feature AUC")
 ax.set_ylabel("true AUC inflation, pp")
 ax.set_xlim(.55, 1.02); ax.set_ylim(-1.5, 29)

@@ -150,11 +150,19 @@ def locate(program, db, seed, entities, full=None):
 
 from sklearn.metrics import roc_auc_score
 
-DATAROBOT = (0.85, 0.975)
+# Пороги промышленных проверок, приведённые к шкале AUC одного признака.
+# DataRobot: ACE-оценка в Gini Norm = 2·AUC−1, предупреждение 0.85, сброс 0.975
+#   (docs.datarobot.com → reference/data-ref/data-quality-ref, "Target leakage")
+#   → AUC 0.925 / 0.9875.
+# H2O Driverless AI: AUC модели на одном признаке, уведомление ≥0.80,
+#   детекция ≥0.95, сброс >0.999 (docs.h2o.ai → userguide/leakage-shift-detection).
+DATAROBOT_GINI = (0.85, 0.975)
+DATAROBOT = tuple(round((g + 1) / 2, 4) for g in DATAROBOT_GINI)   # (0.925, 0.9875)
 H2O = (0.80, 0.95, 0.999)
 
 def univariate_probe(X, y):
-    """«Максимальный AUC одного признака» — то, что делают DataRobot и H2O DAI."""
+    """«Максимальный AUC одного признака» — приближение проверки DataRobot / H2O DAI
+    (у них — простая модель на одном признаке; AUC самого признака — её нижняя граница)."""
     best, who = 0.5, None
     for c in X.columns:
         v = pd.to_numeric(X[c], errors="coerce")

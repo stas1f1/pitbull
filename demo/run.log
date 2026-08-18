@@ -9,7 +9,7 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   seed time 2018-04-01, entities 5478
 
-    VERDICT: VIOLATION     differential execution, 7.1 s
+    VERDICT: VIOLATION     differential execution, 8.3 s
   diverging columns (11): COUNT(items), MAX(items.freight_value), MAX(items.price), MEAN(items.freight_value), MEAN(items.price), MIN(items.freight_value), MIN(items.price), STD(items.freight_value) …
   diverging cells: 19334
   a proof, not a suspicion: same inputs, different answer
@@ -20,7 +20,7 @@
   2018-07-01     0.7454      0.5890     +15.63 pp   0.759
 
   industrial probe «max single-feature AUC»: 0.809  (strongest: COUNT(items))
-  DataRobot 0.85 / 0.975 → SILENT;   H2O DAI 0.8 / 0.95 / 0.999 → WARNING
+  DataRobot (Gini Norm 0.85/0.975 = AUC 0.925/0.9875) → SILENT;   H2O DAI 0.8/0.95/0.999 → WARNING
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   SCENE 2. our own reference code, first version
@@ -39,7 +39,7 @@
   2018-07-01     0.6265      0.5888      +3.78 pp   0.657
 
   industrial probe «max single-feature AUC»: 0.687  (strongest: review_score_mean)
-  DataRobot 0.85 / 0.975 → SILENT;   H2O DAI 0.8 / 0.95 / 0.999 → SILENT
+  DataRobot (Gini Norm 0.85/0.975 = AUC 0.925/0.9875) → SILENT;   H2O DAI 0.8/0.95/0.999 → SILENT
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   SCENE 3. the same reference code after the fix
@@ -56,7 +56,7 @@
   2018-07-01     0.5888      0.5888      +0.00 pp   0.602
 
   industrial probe «max single-feature AUC»: 0.610  (strongest: review_score_mean)
-  DataRobot 0.85 / 0.975 → SILENT;   H2O DAI 0.8 / 0.95 / 0.999 → SILENT
+  DataRobot (Gini Norm 0.85/0.975 = AUC 0.925/0.9875) → SILENT;   H2O DAI 0.8/0.95/0.999 → SILENT
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   SCENE 4. LOCATOR: where exactly it leaks, and a patch
@@ -71,15 +71,15 @@
 
   scene 1: featuretools defaults  (7 availability channels, seed time 2018-04-01)
     ▶ items: rows after t                        → COUNT(items), MAX(items.freight_value), MAX(items.price), MEAN(items.freight_value), MEAN(items.price) …  (19334 cells)
-    patch: truncate the input on the 1 channel(s) found, nothing else  →  CLEAN  localisation 30.2 s, re-check 5.6 s
+    patch: truncate the input on the 1 channel(s) found, nothing else  →  CLEAN  localisation 33.2 s, re-check 5.6 s
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  scene                                       checker     probe@0.85   inflation
-  featuretools with default settings        VIOLATION         MISSED    +16.3 pp
-  our own reference code, first version     VIOLATION         MISSED     +5.3 pp
-  the same reference code after the fix         CLEAN        correct     +0.0 pp
+  scene                                       checker          DataRobot / H2O   inflation
+  featuretools with default settings        VIOLATION       MISSED / caught       +16.3 pp
+  our own reference code, first version     VIOLATION       MISSED / MISSED        +5.3 pp
+  the same reference code after the fix         CLEAN      correct / correct       +0.0 pp
   LOCATOR ← scene 2: our reference code, v1            patch → CLEAN  3: flat.review_score; flat.late; flat.delay_days
   LOCATOR ← scene 1: featuretools defaults             patch → CLEAN  1: items
 

@@ -23,7 +23,7 @@ T = {
   scene="Scene", leak="VIOLATION", clean="CLEAN", miss="MISSED", caught="caught", ok="correctly silent", fa="FALSE ALARM",
   diff="Differential execution", probe="Industrial probe «max single-feature AUC»",
   meta="{s:.1f} s · diverging columns {c} · diverging cells {n}", same="output identical on the full and on the truncated database",
-  pmeta="value {p:.3f} · DataRobot 0.85 / 0.975 → {ds} · H2O DAI 0.80 / 0.95 / 0.999 → {hs}",
+  pmeta="value {p:.3f} · DataRobot (Gini Norm 0.85/0.975 = AUC 0.925/0.988) → {ds} · H2O DAI 0.80/0.95/0.999 → {hs}",
   strongest="strongest feature:", th=("seed time", "entities", "AUC", "correct version", "inflation, pp", "probe"),
   sub={1: ("<code>ft.dfs</code> without a cutoff-time table — the form of the library's introductory example. "
            "Task: product demand. featuretools 1.31.0, 13 features, depth 2.",
@@ -43,9 +43,9 @@ T = {
          "verdict flips to CLEAN. For our own reference code this is exactly the fix made in Scene 3.",
   foot_h="What the scenes show together",
   foot=["<b>The checker fires where the industrial probe is silent.</b> On both violations the maximum single-feature "
-        "AUC stays below the DataRobot warning threshold of 0.85 — a clean bill — while the offline estimate is inflated "
-        "by 16.3 and 5.3 points. At the H2O threshold of 0.80 the probe warns on scene 1 at two seed times of three, "
-        "but also warns on the <i>correct</i> seller-activity pipeline at all three.",
+        "AUC stays far below DataRobot's warning threshold (Gini Norm 0.85, i.e. AUC 0.925) — a clean bill — while the "
+        "offline estimate is inflated by 16.3 and 5.3 points. H2O's per-feature notification (AUC 0.80) fires on scene 1 "
+        "at two seed times of three, but also fires on the <i>correct</i> seller-activity pipeline at all three.",
         "<b>And stays silent where the code is correct.</b> Scene 3 is the same program with the availability "
         "relation fixed: the outputs coincide bit for bit; there are no false positives by construction.",
         "<b>The cost of a violation is not implied by the violation.</b> The same defect costs 0.2 points on a churn "
@@ -75,7 +75,7 @@ T = {
   scene="Сцена", leak="УТЕЧКА", clean="ЧИСТО", miss="ПРОПУСК", caught="поймала", ok="верно молчит", fa="ЛОЖНАЯ ТРЕВОГА",
   diff="Дифференциальное исполнение", probe="Промышленная проверка «макс AUC одного признака»",
   meta="{s:.1f} с · расходящихся колонок {c} · расхождений в значениях {n}", same="выход побитово совпал на полной и на усечённой базе",
-  pmeta="значение {p:.3f} · DataRobot 0.85 / 0.975 → {ds} · H2O DAI 0.80 / 0.95 / 0.999 → {hs}",
+  pmeta="значение {p:.3f} · DataRobot (Gini Norm 0.85/0.975 = AUC 0.925/0.988) → {ds} · H2O DAI 0.80/0.95/0.999 → {hs}",
   strongest="сильнейший признак:", th=("момент предсказания", "сущностей", "AUC", "корректная версия", "завышение, п.п.", "проверка"),
   sub={1: ("<code>ft.dfs</code> без таблицы моментов предсказания — форма вводного примера библиотеки. "
            "Задача: спрос на товар. featuretools 1.31.0, 13 признаков, глубина 2.",
@@ -95,9 +95,9 @@ T = {
          "Для собственного эталона это ровно то исправление, которое сделано в сцене 3.",
   foot_h="Что показывают сцены вместе",
   foot=["<b>Проверка срабатывает там, где промышленная молчит.</b> На обеих утечках максимальный AUC одного признака "
-        "не доходит до порога предупреждения DataRobot 0.85 — заключение чистое, а офлайн-оценка завышена на 16.3 и "
-        "5.3 пункта. При пороге H2O 0.80 проверка предупреждает на сцене 1 в двух моментах из трёх — но и на "
-        "<i>корректном</i> пайплайне задачи про активность продавца во всех трёх.",
+        "далеко не доходит до порога предупреждения DataRobot (Gini Norm 0.85, т.е. AUC 0.925) — заключение чистое, а "
+        "офлайн-оценка завышена на 16.3 и 5.3 пункта. Уведомление H2O (AUC 0.80) срабатывает на сцене 1 в двух "
+        "моментах из трёх — но и на <i>корректном</i> пайплайне задачи про активность продавца во всех трёх.",
         "<b>И молчит там, где код корректен.</b> Сцена 3 — та же программа с исправленным отношением доступности: "
         "выход совпадает побитово, ложных срабатываний нет по построению.",
         "<b>Цена утечки не выводится из факта утечки.</b> Одно и то же нарушение стоит 0.2 пункта на задаче про "
@@ -127,7 +127,7 @@ def chip(leak):
     return f'<span class="chip" style="background:{RED if leak else GRN}">{T["leak"] if leak else T["clean"]}</span>'
 
 def probe_verdict(r):
-    silent = r["rows"][1]["probe"] < 0.85
+    silent = r["rows"][1]["probe"] < 0.925   # DataRobot warning threshold on the AUC scale
     if r["leak"]:
         return (T["miss"], RED) if silent else (T["caught"], AMB)
     return (T["ok"], GRN) if silent else (T["fa"], RED)
@@ -201,7 +201,7 @@ for r in R:
         <div class="panel">
           <div class="lbl">{T['probe']}</div>
           <div class="big" style="color:{pc}">{pv}</div>
-          <div class="meta">{T['pmeta'].format(p=p, ds=says(p, (0.85, 0.975)), hs=says(p, (0.80, 0.95, 0.999)))}</div>
+          <div class="meta">{T['pmeta'].format(p=p, ds=says(p, (0.925, 0.9875)), hs=says(p, (0.80, 0.95, 0.999)))}</div>
           <div class="cols dim">{T['strongest']} <code>{html.escape(str(r['rows'][1]['feature']))}</code></div>
         </div>
       </div>

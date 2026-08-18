@@ -51,7 +51,7 @@ S = {
     same="output identical on the full and on the truncated database",
     hdr=("seed", "AUC", "correct", "inflation", "probe"), pp="pp",
     probe="industrial probe «max single-feature AUC»: {a:.3f}  (strongest: {who})",
-    thr="DataRobot {d0} / {d1} → {ds};   H2O DAI {h0} / {h1} / {h2} → {hs}",
+    thr="DataRobot (Gini Norm 0.85/0.975 = AUC {d0}/{d1}) → {ds};   H2O DAI {h0}/{h1}/{h2} → {hs}",
     s1=("featuretools with default settings",
         "ft.dfs without a cutoff-time table — the form of the library's introductory example"),
     s2=("our own reference code, first version",
@@ -64,7 +64,7 @@ S = {
     chans="{n} availability channels, seed time {seed}",
     patch="patch: truncate the input on the {n} channel(s) found, nothing else  →  ",
     loc="localisation {a:.1f} s, re-check {b:.1f} s", cellsn="({n} cells)",
-    summary="SUMMARY", shdr=("scene", "checker", "probe@0.85", "inflation"),
+    summary="SUMMARY", shdr=("scene", "checker", "DataRobot / H2O", "inflation"),
     miss="MISSED", caught="caught", ok="correct", fa="FALSE ALARM", patchto="patch → ",
     tail1="The checker fires where the industrial probe is silent, and stays silent where the code",
     tail2="is correct. It parses nothing — it only compares outputs.",
@@ -80,7 +80,7 @@ S = {
     same="выход побитово совпал на полной и на усечённой базе",
     hdr=("момент", "AUC", "корректно", "завышение", "проверка"), pp="п.п.",
     probe="промышленная проверка «макс AUC одного признака»: {a:.3f}  (сильнейший: {who})",
-    thr="DataRobot {d0} / {d1} → {ds};   H2O DAI {h0} / {h1} / {h2} → {hs}",
+    thr="DataRobot (Gini Norm 0.85/0.975 = AUC {d0}/{d1}) → {ds};   H2O DAI {h0}/{h1}/{h2} → {hs}",
     s1=("featuretools с настройками по умолчанию",
         "ft.dfs без таблицы моментов предсказания — форма вводного примера библиотеки"),
     s2=("наш собственный эталон, первая версия",
@@ -93,7 +93,7 @@ S = {
     chans="{n} каналов доступности, момент {seed}",
     patch="патч: усечь вход по {n} найденным каналам, больше ничего  →  ",
     loc="локализация {a:.1f} с, перепроверка {b:.1f} с", cellsn="({n} ячеек)",
-    summary="ИТОГ", shdr=("сцена", "оракул", "проверка@0.85", "завышение"),
+    summary="ИТОГ", shdr=("сцена", "оракул", "DataRobot / H2O", "завышение"),
     miss="ПРОПУСК", caught="поймала", ok="верно", fa="ЛОЖНАЯ ТРЕВОГА", patchto="патч → ",
     tail1="Оракул срабатывает там, где промышленная проверка молчит, и молчит",
     tail2="там, где код корректен. Он ничего не разбирает — только сравнивает выход.",
@@ -235,7 +235,7 @@ def main():
         print(f"\n{C['b']}{C['blu']}{rule('━')}{C['r']}")
         print(f"{C['b']}  {S['summary']}{C['r']}")
         print(f"{C['b']}{C['blu']}{rule('━')}{C['r']}")
-        print(f"  {C['b']}{h[0]:42s}{h[1]:>9s}{h[2]:>15s}{h[3]:>12s}{C['r']}")
+        print(f"  {C['b']}{h[0]:42s}{h[1]:>9s}{h[2]:>25s}{h[3]:>12s}{C['r']}")
         for r in res:
             if "programs" in r:
                 for pr in r["programs"]:
@@ -243,14 +243,15 @@ def main():
                           f"  {len(pr['blame'])}: {'; '.join(b['label'].split(':')[0] for b in pr['blame'])}")
                 continue
             vc = C['red'] if r["leak"] else C['grn']
-            silent = probe_says(r["rows"][1]["probe"]) == "silent"
-            if r["leak"]:
-                pv, pc = (S['miss'] if silent else S['caught']), (C['red'] if silent else C['ylw'])
-            else:
-                pv, pc = (S['ok'] if silent else S['fa']), (C['grn'] if silent else C['red'])
+            def pv_of(th):
+                silent = probe_says(r["rows"][1]["probe"], th) == "silent"
+                if r["leak"]:
+                    return (S['miss'] if silent else S['caught']), (C['red'] if silent else C['ylw'])
+                return (S['ok'] if silent else S['fa']), (C['grn'] if silent else C['red'])
+            (p1, c1), (p2, c2) = pv_of(DATAROBOT), pv_of(H2O)
             infl = max(r["inflation"]) if r["inflation"] else 0.0
-            print(f"  {r['title'][:42]:42s}{vc}{r['verdict']:>9s}{C['r']}{pc}{pv:>15s}{C['r']}"
-                  f"{infl:>+9.1f} {S['pp']}")
+            print(f"  {r['title'][:42]:42s}{vc}{r['verdict']:>9s}{C['r']}  {c1}{p1:>11s}{C['r']} / {c2}{p2:<11s}{C['r']}"
+                  f"{infl:>+7.1f} {S['pp']}")
         print(f"\n  {C['dim']}{S['tail1']}{C['r']}")
         print(f"  {C['dim']}{S['tail2']}{C['r']}\n")
     json.dump(res, open(_ROOT + "/demo/demo_results.json", "w"), ensure_ascii=False, indent=1)
