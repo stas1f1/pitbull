@@ -1,0 +1,123 @@
+[
+ {
+  "scene": 1,
+  "title": "featuretools с настройками по умолчанию",
+  "verdict": "УТЕЧКА",
+  "columns": [
+   "COUNT(items)",
+   "MAX(items.freight_value)",
+   "MAX(items.price)",
+   "MEAN(items.freight_value)",
+   "MEAN(items.price)",
+   "MIN(items.freight_value)",
+   "MIN(items.price)",
+   "STD(items.freight_value)",
+   "STD(items.price)",
+   "SUM(items.freight_value)",
+   "SUM(items.price)"
+  ],
+  "cells": 19334,
+  "seconds": 7.57,
+  "rows": [
+   {
+    "seed": "2018-01-01",
+    "n": 4490,
+    "auc": 0.8044612035375094,
+    "probe": 0.8339369623473455,
+    "feature": "COUNT(items)"
+   },
+   {
+    "seed": "2018-04-01",
+    "n": 5478,
+    "auc": 0.7773687660241775,
+    "probe": 0.8093184141883719,
+    "feature": "COUNT(items)"
+   },
+   {
+    "seed": "2018-07-01",
+    "n": 5842,
+    "auc": 0.7453589650934749,
+    "probe": 0.7585183459895677,
+    "feature": "COUNT(items)"
+   }
+  ],
+  "inflation": [
+   14.82,
+   16.3,
+   15.63
+  ]
+ },
+ {
+  "scene": 2,
+  "title": "наш собственный эталон, первая версия",
+  "verdict": "УТЕЧКА",
+  "columns": [
+   "review_score_mean",
+   "review_score_min",
+   "late_mean",
+   "delay_days_mean"
+  ],
+  "cells": 2014,
+  "seconds": 0.16,
+  "rows": [
+   {
+    "seed": "2018-01-01",
+    "n": 763,
+    "auc": 0.6070716027488362,
+    "probe": 0.6227624140988695,
+    "feature": "review_score_mean"
+   },
+   {
+    "seed": "2018-04-01",
+    "n": 852,
+    "auc": 0.645140255981916,
+    "probe": 0.686561880926801,
+    "feature": "review_score_mean"
+   },
+   {
+    "seed": "2018-07-01",
+    "n": 867,
+    "auc": 0.6265322731048981,
+    "probe": 0.6570209050372153,
+    "feature": "review_score_mean"
+   }
+  ],
+  "inflation": [
+   3.09,
+   5.26,
+   3.78
+  ]
+ },
+ {
+  "scene": 3,
+  "title": "тот же эталон после исправления",
+  "verdict": "ЧИСТО",
+  "columns": [],
+  "cells": 0,
+  "seconds": 0.19,
+  "rows": [
+   {
+    "seed": "2018-01-01",
+    "n": 763,
+    "auc": 0.5761818332963866,
+    "probe": 0.5718278929283973,
+    "feature": "pay_value_sum"
+   },
+   {
+    "seed": "2018-04-01",
+    "n": 852,
+    "auc": 0.5924969104560105,
+    "probe": 0.6099567153334533,
+    "feature": "review_score_mean"
+   },
+   {
+    "seed": "2018-07-01",
+    "n": 867,
+    "auc": 0.5887573964497042,
+    "probe": 0.6023126091453179,
+    "feature": "review_score_mean"
+   }
+  ],
+  "inflation": null
+ }
+]

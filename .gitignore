@@ -1,0 +1,29 @@
+# secrets
+.env
+*.env
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.claude/
+# large / regenerable
+*.db
+*.db.wal
+*.duckdb
+*.pkl
+*.aux
+*.log
+*.out
+*.synctex.gz
+paper/*.bbl
+paper/*.blg
+# prestudy: scratch, external clones, duplicate Olist copies, AutoGluon tmp
+prestudy/p3_scratch/
+prestudy/p2_repos/
+prestudy/env/ag_tmp/
+prestudy/handoff/rel/
+prestudy/p1_repro/
+prestudy/p3_out/pilot/
+# demo run log is regenerable but keep it: unignore
+!demo/run.log
