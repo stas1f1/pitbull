@@ -6,11 +6,14 @@
 Задача в стиле RelBench: для каждого активного продавца на момент T предсказать,
 будет ли у него хоть один заказ в следующие 90 дней.
 """
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import warnings, numpy as np, pandas as pd
 from sklearn.metrics import roc_auc_score
 from lightgbm import LGBMClassifier
 warnings.filterwarnings("ignore")
-D = "/home/claude/rel/"
+D = _DATA  # Olist CSVs
 
 # ---------- сборка событийной таблицы ----------
 orders = pd.read_csv(D + "olist_orders_dataset.csv",
@@ -128,4 +131,4 @@ print()
 print("Куда уехала важность признаков (топ-5 по приросту при полной утечке):")
 d = (imps["утечка: отсечки нет вообще"] - imps["корректно (отсечка = момент предсказания)"]).sort_values(ascending=False)
 print(d.head(5).to_string())
-R.to_csv("/home/claude/rel/multi_leak.csv", index=False)
+R.to_csv(_ROOT + "/rel/multi_leak.csv", index=False)

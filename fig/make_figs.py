@@ -1,3 +1,6 @@
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import json, numpy as np, pandas as pd
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -7,7 +10,7 @@ plt.rcParams.update({"font.size": 8, "font.family": "DejaVu Sans", "axes.linewid
 NAVY, RED, AMB, GRN, GREY = "#1E2761", "#A62B22", "#B57314", "#1F7A55", "#7d87a3"
 
 # ── Рис. 2: I(delta) ─────────────────────────────────────────────────────────
-R = pd.read_csv("/home/claude/rel/delta_auc.csv"); R["d"] = R.режим.str.replace("δ=", "").astype(int)
+R = pd.read_csv(_ROOT + "/rel/delta_auc.csv"); R["d"] = R.режим.str.replace("δ=", "").astype(int)
 fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.5), sharey=True)
 for ax, (task, name) in zip(axes, [("A", "A. seller activity"), ("B", "B. seller review quality")]):
     S = R[R.задача == task]
@@ -18,7 +21,7 @@ for ax, (task, name) in zip(axes, [("A", "A. seller activity"), ("B", "B. seller
     ax.set_xlabel("cutoff shift δ, days"); ax.set_xlim(-2, 92)
 axes[0].set_ylabel("AUC inflation, pp"); axes[0].legend(frameon=False, fontsize=7, title="seed time",
                                                         title_fontsize=7, loc="upper left")
-fig.tight_layout(); fig.savefig("/home/claude/fig/fig2_delta.pdf"); fig.savefig("/home/claude/fig/fig2_delta.png", dpi=220)
+fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig2_delta.pdf"); fig.savefig(_ROOT + "/fig/fig2_delta.png", dpi=220)
 
 # ── Рис. 3: дозозависимость ──────────────────────────────────────────────────
 DOSE = {"deepseek-v4-flash":            [(53.3, 36.1, 69.8), (48.0, 30.0, 66.5), (19.2, 8.5, 37.9)],
@@ -36,13 +39,13 @@ ax.set_xticks(x); ax.set_xticklabels(["G0\nneutral", "G1\nmention", "G2\nper-agg
 ax.set_ylabel("programs violating PIT, %"); ax.set_ylim(0, 75)
 ax.legend(frameon=False, fontsize=6.8, loc="upper right")
 ax.set_title("Wilson 95% CI; n=30 per cell", fontsize=7.5, color=GREY, pad=4)
-fig.tight_layout(); fig.savefig("/home/claude/fig/fig3_dose.pdf"); fig.savefig("/home/claude/fig/fig3_dose.png", dpi=220)
+fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig3_dose.pdf"); fig.savefig(_ROOT + "/fig/fig3_dose.png", dpi=220)
 
 # ── Рис. 4: слепота проверки ─────────────────────────────────────────────────
-P = pd.read_csv("/home/claude/rel/delta_probe.csv"); P["d"] = P.режим.str.replace("δ=", "").astype(int)
+P = pd.read_csv(_ROOT + "/rel/delta_probe.csv"); P["d"] = P.режим.str.replace("δ=", "").astype(int)
 M = R.merge(P, on=["задача", "тест", "режим"])
-C = pd.read_csv("/home/claude/rel/fix_c.csv")
-ft = pd.read_csv("/home/claude/demo/ft_scene.csv")
+C = pd.read_csv(_ROOT + "/rel/fix_c.csv")
+ft = pd.read_csv(_ROOT + "/demo/ft_scene.csv")
 fig, ax = plt.subplots(figsize=(3.45, 2.7))
 ax.axvspan(0, .85, color="#fdecea", zorder=0)
 ax.axvline(.85, color=RED, lw=.9, ls="--"); ax.axvline(.975, color=RED, lw=.7, ls=":")
@@ -63,5 +66,5 @@ ax.set_xlabel("industrial probe: max single-feature AUC")
 ax.set_ylabel("true AUC inflation, pp")
 ax.set_xlim(.55, 1.02); ax.set_ylim(-1.5, 29)
 ax.legend(frameon=False, fontsize=6.4, loc="upper left", bbox_to_anchor=(0.015, .86))
-fig.tight_layout(); fig.savefig("/home/claude/fig/fig4_blind.pdf"); fig.savefig("/home/claude/fig/fig4_blind.png", dpi=220)
+fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig4_blind.pdf"); fig.savefig(_ROOT + "/fig/fig4_blind.png", dpi=220)
 print("figures written")

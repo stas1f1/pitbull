@@ -1,8 +1,11 @@
 """Три сцены демонстрации PITFALL. Все числа считаются вживую при запуске."""
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import sys, numpy as np, pandas as pd
-sys.path.insert(0, "/home/claude/demo")
+sys.path.insert(0, _ROOT + "/demo")
 from pitfall import TemporalDB
-D = "/home/claude/rel/"
+D = _DATA  # Olist CSVs
 
 # ══════════════════════════ данные ══════════════════════════
 
@@ -35,7 +38,7 @@ def olist_db():
 
     # плоское представление для сцен 2-3 берём ровно тем же загрузчиком, что и rel/fix_ab.py,
     # чтобы числа демо и числа статьи были одними и теми же
-    sys.path.insert(0, "/home/claude/rel")
+    sys.path.insert(0, _ROOT + "/rel")
     import pit_common
     flat = pit_common.load()
 

@@ -17,9 +17,14 @@
 ## Быстрый старт
 
 ```bash
-pip install pandas numpy scikit-learn lightgbm featuretools --break-system-packages
-cd demo && python3 demo.py
+uv venv --python 3.11 .venv && uv pip install --python .venv/bin/python -r requirements.txt
+#   (или: python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt)
+cd demo && ../.venv/bin/python demo.py
 ```
+
+Данные читаются из `PITFALL_olist_data/` в корне репозитория (входит в репозиторий);
+другой каталог можно указать переменной `PITFALL_DATA`. Все пути в скриптах — относительно
+репозитория, запускать можно из любого каталога.
 
 Три сцены, около минуты на двух ядрах CPU, без сети и без GPU:
 
@@ -32,11 +37,12 @@ cd demo && python3 demo.py
 ## Воспроизведение чисел статьи
 
 ```bash
-cd rel
+cd rel   # интерпретатор — ../.venv/bin/python
 python3 fix_ab.py        # задачи A и B      → fix_ab_auc.csv, fix_ab_probe.csv
 python3 fix_c.py         # задача C          → fix_c.csv
 python3 delta_sweep.py   # кривая I(δ)       → delta_auc.csv, delta_probe.csv
-python3 oracle_check.py  # прежняя программа против исправленной
+python3 oracle_check.py  # прежняя программа против исправленной (сокращённый набор
+                         # признаков: 3 расходящиеся колонки; в демо полный набор — 4)
 cd ../demo && python3 ft_scene.py   # featuretools в трёх режимах → ft_scene.csv
 cd ../fig && python3 make_figs.py && python3 make_figs2.py
 ```
@@ -55,16 +61,9 @@ cd paper && pdflatex pitfall.tex && pdflatex pitfall.tex
 
 ## Данные
 
-Olist — публичный набор бразильского маркетплейса, 7 таблиц, 112 650 позиций заказов,
-сентябрь 2016 — октябрь 2018. Семь файлов `olist_*.csv` кладутся в `rel/`.
-
-Из-за размера они поставляются отдельным архивом `PITFALL_olist_data.tar.gz`:
-
-```bash
-mkdir -p rel && tar xzf PITFALL_olist_data.tar.gz -C rel
-```
-
-Либо скачать с Kaggle: `olistbr/brazilian-ecommerce`. Нужны файлы
+Olist — публичный набор бразильского маркетплейса (Kaggle `olistbr/brazilian-ecommerce`,
+CC BY-NC-SA 4.0), 7 таблиц, 112 650 позиций заказов, сентябрь 2016 — октябрь 2018.
+Семь файлов `olist_*.csv` лежат в `PITFALL_olist_data/`. Используются файлы
 `olist_orders_dataset.csv`, `olist_order_items_dataset.csv`,
 `olist_order_reviews_dataset.csv`, `olist_order_payments_dataset.csv`,
 `olist_products_dataset.csv`, `olist_sellers_dataset.csv`,

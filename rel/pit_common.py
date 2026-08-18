@@ -17,9 +17,12 @@ order_status — изменяемое поле без истории. Момен
 признак canceled исключён из всех режимов (а не только из корректного), чтобы
 набор признаков был одинаков и менялась только временная семантика.
 """
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import numpy as np, pandas as pd
 
-D = "/home/claude/rel/"
+D = _DATA  # Olist CSVs
 
 def load():
     orders = pd.read_csv(D + "olist_orders_dataset.csv",

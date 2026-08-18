@@ -19,8 +19,9 @@ python3 demo.py --no-color # без ANSI, для записи в лог
 python3 make_page.py       # собрать pitfall_demo.html из demo_results.json
 ```
 
-Зависимости: `pandas`, `numpy`, `scikit-learn`, `lightgbm`, `featuretools`. Данные — Olist
-в `/home/claude/rel/` (7 таблиц, 112 650 позиций заказов, 2016-09 — 2018-10).
+Зависимости — `../requirements.txt` (см. корневой README, окружение `../.venv`). Данные — Olist
+в `../PITFALL_olist_data/` (7 таблиц, 112 650 позиций заказов, 2016-09 — 2018-10), другой
+каталог — через переменную `PITFALL_DATA`.
 
 ## Три сцены
 

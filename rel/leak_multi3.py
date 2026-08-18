@@ -11,11 +11,14 @@
   - утечка по времени внутри собственной истории (бывает и в одной таблице);
   - утечка через соседнюю сущность по пути соединения (бывает только в многотабличных данных).
 """
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import warnings, numpy as np, pandas as pd
 from sklearn.metrics import roc_auc_score
 from lightgbm import LGBMClassifier
 warnings.filterwarnings("ignore")
-D = "/home/claude/rel/"
+D = _DATA  # Olist CSVs
 
 orders = pd.read_csv(D + "olist_orders_dataset.csv",
                      parse_dates=["order_purchase_timestamp", "order_delivered_customer_date",
@@ -116,7 +119,7 @@ for test_seed in TESTS:
 R = pd.DataFrame(rows)
 base = R[R.режим == "корректно (обе отсечки верны)"].set_index("тест").AUC
 R["завышение"] = R.apply(lambda r: (r.AUC - base.loc[r.тест]) * 100, axis=1)
-R.to_csv(D + "multi_leak3.csv", index=False)
+R.to_csv(_HERE + "/multi_leak3.csv", index=False)
 
 print("\n" + "=" * 86)
 print("ЗАДАЧА C: ЗАВЫШЕНИЕ AUC, п.п.")

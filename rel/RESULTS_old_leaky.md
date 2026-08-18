@@ -61,4 +61,4 @@
 
 ## Код
 
-`/home/claude/rel/` — `leak_multi.py` (первый прогон), `leak_multi2.py` (задачи A и B), `leak_multi3.py` (задача C с разделением по группам признаков), `summary3.csv`.
+`rel/` — `leak_multi.py` (первый прогон), `leak_multi2.py` (задачи A и B), `leak_multi3.py` (задача C с разделением по группам признаков), `summary3.csv`.

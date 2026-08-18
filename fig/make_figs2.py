@@ -1,3 +1,6 @@
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import numpy as np, pandas as pd
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -34,10 +37,10 @@ box(.2, 1.0, 4.0, 1.1, "LOCATOR (LLM)\npatch → re-check", "#fff6e8", AMB, tc=A
 box(5.8, 1.0, 4.0, 1.1, "FLATTEN →\ntabular AutoML", "#eaf5f0", GRN, tc=GRN, fs=6.4)
 ax.add_patch(FancyArrowPatch((.6, 2.1), (.35, 3.6), connectionstyle="arc3,rad=.45",
                              arrowstyle="-|>", mutation_scale=6, lw=.7, color=AMB, zorder=1))
-fig.tight_layout(pad=.15); fig.savefig("/home/claude/fig/fig1_arch.pdf"); fig.savefig("/home/claude/fig/fig1_arch.png", dpi=240)
+fig.tight_layout(pad=.15); fig.savefig(_ROOT + "/fig/fig1_arch.pdf"); fig.savefig(_ROOT + "/fig/fig1_arch.png", dpi=240)
 
 # ── Рис. 3 компактно: I(delta), среднее по моментам с диапазоном ───────────────
-R = pd.read_csv("/home/claude/rel/delta_auc.csv"); R["d"] = R.режим.str.replace("δ=", "").astype(int)
+R = pd.read_csv(_ROOT + "/rel/delta_auc.csv"); R["d"] = R.режим.str.replace("δ=", "").astype(int)
 fig, ax = plt.subplots(figsize=(W, 2.05))
 for task, name, col in [("A", "A. seller activity", NAVY), ("B", "B. review quality", RED)]:
     g = R[R.задача == task].groupby("d").завышение
@@ -48,5 +51,5 @@ ax.axhline(0, color="#c9d3ea", lw=.7)
 ax.set_xlabel("cutoff shift δ, days"); ax.set_ylabel("AUC inflation, pp")
 ax.set_xlim(-2, 92); ax.legend(frameon=False, fontsize=6.5, loc="upper left")
 ax.set_title("mean over three seed times, band = min–max", fontsize=6.4, color=GREY, pad=3)
-fig.tight_layout(pad=.2); fig.savefig("/home/claude/fig/fig3_delta_c.pdf"); fig.savefig("/home/claude/fig/fig3_delta_c.png", dpi=240)
+fig.tight_layout(pad=.2); fig.savefig(_ROOT + "/fig/fig3_delta_c.pdf"); fig.savefig(_ROOT + "/fig/fig3_delta_c.png", dpi=240)
 print("ok")

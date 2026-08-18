@@ -3,8 +3,11 @@
 Программа признаков запускается дважды: на полной базе и на базе, физически
 усечённой на момент предсказания. Любое расхождение — доказательство нарушения.
 """
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import sys, warnings, numpy as np, pandas as pd
-sys.path.insert(0, "/home/claude/rel")
+sys.path.insert(0, _ROOT + "/rel")
 from pit_common import load, AVAIL, D
 warnings.filterwarnings("ignore")
 

@@ -6,11 +6,14 @@
 
 Задача B важна тем, что её цель НЕ про давность заказа — значит утечка не тавтологична.
 """
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import warnings, numpy as np, pandas as pd
 from sklearn.metrics import roc_auc_score
 from lightgbm import LGBMClassifier
 warnings.filterwarnings("ignore")
-D = "/home/claude/rel/"
+D = _DATA  # Olist CSVs
 
 orders = pd.read_csv(D + "olist_orders_dataset.csv",
                      parse_dates=["order_purchase_timestamp", "order_delivered_customer_date",
@@ -110,7 +113,7 @@ for task in ["A", "B"]:
             print(f"{task} {test_seed} {mode:22s} n={len(yte):5d} AUC={auc:.4f}", flush=True)
 
 R = pd.DataFrame(rows); P = pd.DataFrame(probes)
-R.to_csv(D + "multi_leak2.csv", index=False); P.to_csv(D + "multi_probe2.csv", index=False)
+R.to_csv(_HERE + "/multi_leak2.csv", index=False); P.to_csv(_HERE + "/multi_probe2.csv", index=False)
 
 print("\n" + "=" * 88)
 print("ЗАВЫШЕНИЕ AUC ОТНОСИТЕЛЬНО КОРРЕКТНОЙ ОТСЕЧКИ (п.п.)")

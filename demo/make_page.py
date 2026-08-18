@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """Собирает самодостаточную HTML-страницу демо из demo_results.json."""
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import json, html
 
-R = json.load(open("/home/claude/demo/demo_results.json"))
+R = json.load(open(_ROOT + "/demo/demo_results.json"))
 NAVY, DEEP, ICE, TINT = "#1E2761", "#141B3D", "#CADCFC", "#F1F4FB"
 GRN, AMB, RED = "#1F7A55", "#B57314", "#A62B22"
 
@@ -152,5 +155,5 @@ td{{padding:9px 10px;border-bottom:1px solid #f0f3fa}}
    с фиксированным seed — смена бустера сама по себе даёт до 11.5 п.п.</p>
 </section>
 </div></body></html>"""
-open("/home/claude/demo/pitfall_demo.html", "w").write(page)
+open(_ROOT + "/demo/pitfall_demo.html", "w").write(page)
 print("ok", len(page))

@@ -3,13 +3,16 @@
 Один и тот же EntitySet, один и тот же набор примитивов, одна и та же модель.
 Различие только в том, передана ли таблица моментов предсказания в dfs.
 """
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import sys, time, warnings, numpy as np, pandas as pd, featuretools as ft
-sys.path.insert(0, "/home/claude/rel")
+sys.path.insert(0, _ROOT + "/rel")
 from woodwork.logical_types import Categorical, Double, Datetime
 from sklearn.metrics import roc_auc_score
 from lightgbm import LGBMClassifier
 warnings.filterwarnings("ignore")
-D = "/home/claude/rel/"
+D = _DATA  # Olist CSVs
 
 orders = pd.read_csv(D + "olist_orders_dataset.csv", parse_dates=["order_purchase_timestamp"])
 orders = orders[["order_id", "customer_id", "order_status", "order_purchase_timestamp"]].dropna(
@@ -104,7 +107,7 @@ for mode in MODES:
 R = pd.DataFrame(rows)
 base = R[R.режим == "с отсечкой"].set_index("тест").AUC
 R["завышение"] = R.apply(lambda r: (r.AUC - base.loc[r.тест]) * 100, axis=1)
-R.to_csv("/home/claude/demo/ft_scene.csv", index=False)
+R.to_csv(_ROOT + "/demo/ft_scene.csv", index=False)
 print("\nЗАВЫШЕНИЕ, п.п.")
 print(R.pivot_table(index="режим", columns="тест", values="завышение").round(2).to_string())
 print("\nМАКС AUC ОДНОГО ПРИЗНАКА")

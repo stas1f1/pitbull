@@ -17,7 +17,7 @@
    "SUM(items.price)"
   ],
   "cells": 19334,
-  "seconds": 7.57,
+  "seconds": 5.99,
   "rows": [
    {
     "seed": "2018-01-01",

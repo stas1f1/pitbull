@@ -1,0 +1,8 @@
+# Versions on which all numbers in the paper were produced (see HANDOVER.md §7)
+numpy==1.26.4
+pandas>=2.2,<3
+scikit-learn>=1.4
+lightgbm==4.7.0
+featuretools==1.31.0
+matplotlib>=3.8
+setuptools<70   # woodwork imports pkg_resources

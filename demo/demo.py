@@ -10,8 +10,11 @@ PITFALL — демонстрация. Три сцены, все числа сч�
     python3 demo.py 1          одна сцена
     python3 demo.py --json     без оформления, машинный вывод
 """
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import sys, json, time, warnings, numpy as np, pandas as pd
-sys.path.insert(0, "/home/claude/demo")
+sys.path.insert(0, _ROOT + "/demo")
 warnings.filterwarnings("ignore")
 from pitfall import differential_check, univariate_probe, probe_says, fixed_model_auc, DATAROBOT
 import scenes
@@ -128,7 +131,7 @@ def main():
                   f"{infl:>+9.1f} п.п.")
         print(f"\n  {C['dim']}Оракул срабатывает там, где промышленная проверка молчит, и молчит{C['r']}")
         print(f"  {C['dim']}там, где код корректен. Он ничего не разбирает — только сравнивает выход.{C['r']}\n")
-    json.dump(res, open("/home/claude/demo/demo_results.json", "w"), ensure_ascii=False, indent=1)
+    json.dump(res, open(_ROOT + "/demo/demo_results.json", "w"), ensure_ascii=False, indent=1)
 
 if __name__ == "__main__":
     main()

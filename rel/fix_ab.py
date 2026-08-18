@@ -1,6 +1,9 @@
 """Задачи A и B, пересчёт с корректным отношением доступности. См. pit_common.py."""
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__)); _ROOT = _os.path.dirname(_HERE)
+_DATA = _os.environ.get("PITFALL_DATA", _os.path.join(_ROOT, "PITFALL_olist_data")) + "/"
 import sys, warnings, numpy as np, pandas as pd
-sys.path.insert(0, "/home/claude/rel")
+sys.path.insert(0, _ROOT + "/rel")
 from sklearn.metrics import roc_auc_score
 from lightgbm import LGBMClassifier
 from pit_common import load, visible, D
@@ -87,7 +90,7 @@ for task in ["A", "B"]:
 R = pd.DataFrame(rows); P = pd.DataFrame(probes)
 base = R[R.режим == "корректно (PIT)"].set_index(["задача", "тест"]).AUC
 R["завышение"] = R.apply(lambda r: (r.AUC - base.loc[(r.задача, r.тест)]) * 100, axis=1)
-R.to_csv(D + "fix_ab_auc.csv", index=False); P.to_csv(D + "fix_ab_probe.csv", index=False)
+R.to_csv(_HERE + "/fix_ab_auc.csv", index=False); P.to_csv(_HERE + "/fix_ab_probe.csv", index=False)
 
 print("\n" + "=" * 92); print("ЗАВЫШЕНИЕ AUC ОТНОСИТЕЛЬНО КОРРЕКТНОЙ PIT-ОТСЕЧКИ (п.п.)"); print("=" * 92)
 print(R.pivot_table(index=["задача", "режим"], columns="тест", values="завышение").round(2).to_string())
