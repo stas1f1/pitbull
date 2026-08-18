@@ -5,54 +5,54 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Did the feature peek? — PITFALL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#f5f0e6; --paper2:#ede6d8; --ink:#1c1a16; --ink2:#4a453c; --mute:#847c6f; --rule:#d8cfbf;
-  --red:#a3231b; --red2:#f3d9d3; --green:#2e6a4d; --green2:#d7e7dc; --gold:#b98a1e;
-  --serif:"Newsreader",Georgia,"Times New Roman",serif; --disp:"Fraunces","Newsreader",Georgia,serif;
-  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --paper:#edeee8; --paper2:#e2e4dc; --ink:#14213d; --ink2:#3f4a63; --mute:#7c8496; --rule:#cfd3cc;
+  --red:#c8501f; --red2:#f4dccf; --green:#157a6e; --green2:#d3e8e3; --gold:#4a5d8a;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif; --disp:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--ink);font:19px/1.55 var(--serif);
- background-image:radial-gradient(rgba(0,0,0,.028) 1px,transparent 1px);background-size:6px 6px}
+ background-image:linear-gradient(rgba(20,33,61,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(20,33,61,.045) 1px,transparent 1px);background-size:28px 28px}
 a{color:inherit}
 .wrap{max-width:980px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
 /* nav */
-nav{position:sticky;top:0;z-index:20;background:rgba(245,240,230,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
+nav{position:sticky;top:0;z-index:20;background:rgba(237,238,232,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
 nav .wrap{display:flex;align-items:center;gap:22px;height:50px;font:12.5px var(--mono);letter-spacing:.14em;text-transform:uppercase}
-nav .brand{font-family:var(--disp);font-weight:600;letter-spacing:.02em;text-transform:none;font-size:17px;margin-right:auto}
+nav .brand{font-family:var(--disp);font-weight:800;letter-spacing:-.02em;text-transform:none;font-size:18px;margin-right:auto}
 nav a{text-decoration:none;color:var(--ink2)} nav a:hover{color:var(--red)}
-nav a.paper{background:var(--red);color:#fff;padding:5px 11px}
+nav a.paper{background:var(--ink);color:#fff;padding:5px 11px}
 @media(max-width:820px){nav a:not(.brand):not(.paper){display:none}}
 /* hero */
 header.hero{padding:70px 0 40px}
-h1{font:300 clamp(40px,6.4vw,74px)/1.02 var(--disp);letter-spacing:-.02em;margin:0 0 22px;font-variation-settings:"opsz" 144}
-h1 em{font-style:italic;color:var(--red);font-weight:400}
+h1{font:800 clamp(40px,6.6vw,78px)/.98 var(--disp);letter-spacing:-.035em;margin:0 0 22px;font-variation-settings:"opsz" 96}
+h1 em{font-style:normal;color:var(--red);font-weight:300;letter-spacing:-.02em}
 .dek{font-size:23px;line-height:1.4;max-width:760px;color:var(--ink2);margin:0 0 26px}
 .byline{font:14px var(--mono);color:var(--mute);letter-spacing:.04em}
-.tldr{border-left:6px solid var(--red);padding:18px 26px;margin:38px 0 26px;background:rgba(255,255,255,.45)}
-.tldr h3{margin:0 0 8px;font:600 15px var(--mono);letter-spacing:.16em;color:var(--red);text-transform:uppercase}
-.tldr p{margin:0;font-size:20px}
+.tldr{padding:22px 28px;margin:38px 0 26px;background:var(--ink);color:var(--paper);box-shadow:8px 8px 0 var(--red)}
+.tldr h3{margin:0 0 8px;font:600 13px var(--mono);letter-spacing:.18em;color:var(--red2);text-transform:uppercase}
+.tldr p{margin:0;font-size:20px;color:#f5f6f2}
 .btns{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0 0}
 .btn{font:13px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:12px 20px;border:1.5px solid var(--ink);text-decoration:none;color:var(--ink);background:transparent}
-.btn.primary{background:var(--ink);color:var(--paper)}
-.btn:hover{border-color:var(--red);color:var(--red)} .btn.primary:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.btn.primary{background:var(--red);color:#fff;border-color:var(--red)}
+.btn:hover{border-color:var(--red);color:var(--red)} .btn.primary:hover{background:var(--ink);border-color:var(--ink)}
 /* sections */
 section{padding:56px 0 30px;border-top:1px solid var(--rule)}
-.secnum{display:inline-grid;place-items:center;width:44px;height:44px;background:var(--red);color:#fff;font:600 21px var(--disp);
- transform:skewX(-6deg);margin-right:16px;vertical-align:middle;box-shadow:3px 3px 0 rgba(0,0,0,.18)}
-h2{font:400 clamp(28px,4vw,40px)/1.15 var(--disp);margin:0 0 20px;letter-spacing:-.01em;display:flex;align-items:center}
-h3{font:600 22px/1.3 var(--disp);margin:34px 0 10px}
+.secnum{display:inline-grid;place-items:center;width:46px;height:46px;border:2.5px solid var(--red);color:var(--red);border-radius:50%;font:700 20px var(--disp);
+ margin-right:16px;vertical-align:middle;flex:none}
+h2{font:700 clamp(28px,4vw,42px)/1.1 var(--disp);margin:0 0 20px;letter-spacing:-.03em;display:flex;align-items:center}
+h3{font:700 21px/1.3 var(--disp);margin:34px 0 10px;letter-spacing:-.02em}
 p{margin:0 0 16px} .lede{font-size:21px}
 .small{font-size:16px;color:var(--ink2)} .note{font:14.5px/1.5 var(--mono);color:var(--mute)}
 code,pre{font-family:var(--mono)} code{font-size:.86em;background:rgba(0,0,0,.05);padding:1px 5px}
-pre{font-size:13.2px;line-height:1.5;background:#fbf8f1;border:1px solid var(--rule);padding:16px 18px;overflow:auto;margin:0;box-shadow:4px 4px 0 rgba(0,0,0,.06)}
+pre{font-size:13px;line-height:1.55;background:#f7f8f4;border:1px solid var(--rule);border-left:3px solid var(--ink);padding:16px 18px;overflow:auto;margin:0}
 pre .hl{background:var(--red2);display:inline-block;width:100%}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:28px} @media(max-width:820px){.two{grid-template-columns:1fr}}
-.card{background:#fbf8f1;border:1px solid var(--rule);box-shadow:4px 4px 0 rgba(0,0,0,.06);padding:18px 22px}
-.stamp{display:inline-block;font:700 15px var(--mono);letter-spacing:.2em;padding:6px 12px;border:3px double currentColor;transform:rotate(-4deg);text-transform:uppercase}
+.card{background:#f7f8f4;border:1px solid var(--rule);padding:18px 22px;box-shadow:0 1px 0 var(--rule),0 12px 24px -18px rgba(20,33,61,.35)}
+.stamp{display:inline-block;font:700 14px var(--mono);letter-spacing:.2em;padding:6px 12px;border:2px solid currentColor;border-radius:3px;transform:rotate(-3deg);text-transform:uppercase;background:rgba(255,255,255,.6)}
 .stamp.leak{color:var(--red)} .stamp.clean{color:var(--green)}
 .seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--ink);margin:6px 0 16px}
 .seg button{font:13px var(--mono);letter-spacing:.06em;padding:9px 14px;background:transparent;border:0;border-right:1.5px solid var(--ink);color:var(--ink);cursor:pointer}
@@ -63,7 +63,7 @@ th{font-weight:500;text-align:left;color:var(--mute);border-bottom:1px solid var
 td{padding:7px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .diff{color:var(--red);font-weight:600} .arrow{color:var(--mute);padding:0 4px}
-.big{font:300 56px/1 var(--disp);letter-spacing:-.02em} .big.red{color:var(--red)} .big.green{color:var(--green)}
+.big{font:300 60px/1 var(--disp);letter-spacing:-.04em;font-variation-settings:"opsz" 96} .big.red{color:var(--red)} .big.green{color:var(--green)}
 .legend{font:13px var(--mono);color:var(--ink2);display:flex;gap:18px;flex-wrap:wrap;margin:8px 0}
 .legend span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;background:var(--c)}
 input[type=range]{width:100%;accent-color:var(--red)}
@@ -71,9 +71,9 @@ svg text{font-family:var(--mono)}
 .kbd{font:12px var(--mono);border:1px solid var(--rule);padding:1px 6px;background:#fff}
 /* scattered receipt strips */
 .strips{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.strip{position:absolute;font:10.5px/1.35 var(--mono);color:rgba(28,26,22,.42);white-space:pre;background:rgba(255,255,255,.55);
- padding:6px 9px;border:1px solid rgba(0,0,0,.08);box-shadow:2px 2px 0 rgba(0,0,0,.05)}
-.strip.future{color:rgba(163,35,27,.55);text-decoration:line-through;background:rgba(243,217,211,.5)}
+.strip{position:absolute;font:10.5px/1.35 var(--mono);color:rgba(20,33,61,.45);white-space:pre;background:rgba(255,255,255,.6);
+ padding:6px 9px;border:1px dashed rgba(20,33,61,.22)}
+.strip.future{color:rgba(200,80,31,.6);text-decoration:line-through;background:rgba(244,220,207,.5);border-color:rgba(200,80,31,.35)}
 @media(max-width:1200px){.strips{display:none}}
 footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color:var(--ink2)}
 /* game */
@@ -86,7 +86,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 .score{font:14px var(--mono);color:var(--mute);letter-spacing:.06em}
 .mark{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 2px;background:var(--rule)}
 .mark.ok{background:var(--green)} .mark.bad{background:var(--red)}
-.callout{padding:14px 18px;background:var(--paper2);border-left:4px solid var(--gold);font-size:17px}
+.callout{padding:14px 18px;background:var(--paper2);border-left:4px solid var(--ink);font-size:17px}
 </style>
 </head>
 <body>
@@ -183,7 +183,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
   <div class="card">
     <div class="two">
       <div><div class="note">cutoff shifted by <b id="dose-d">0</b> days</div><input type="range" id="dose" min="0" max="8" step="1" value="0"></div>
-      <div class="legend"><span style="--c:#1c1a16">seller activity (task A)</span><span style="--c:#b98a1e">seller review quality (task B)</span></div>
+      <div class="legend"><span style="--c:#14213d">seller activity (task A)</span><span style="--c:#4a5d8a">seller review quality (task B)</span></div>
     </div>
     <div id="dose-chart"></div>
   </div>
@@ -201,7 +201,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
     <div class="two"><div><div class="note">warning threshold: single-feature AUC ≥ <b id="thr-v">0.925</b></div><input type="range" id="thr" min="0.60" max="1.0" step="0.005" value="0.925"></div>
       <div class="note" id="thr-txt"></div></div>
     <div id="blind-chart"></div>
-    <div class="legend"><span style="--c:#9a9385">cutoff shifted, tasks A/B</span><span style="--c:#a3231b">leak only through a join</span><span style="--c:#1c1a16">featuretools without cutoff</span><span style="--c:#b98a1e">our own code</span></div>
+    <div class="legend"><span style="--c:#9aa1b0">cutoff shifted, tasks A/B</span><span style="--c:#c8501f">leak only through a join</span><span style="--c:#14213d">featuretools without cutoff</span><span style="--c:#4a5d8a">our own code</span></div>
   </div>
   <p style="margin-top:22px">Two things go wrong. Leaks that spread over many aggregate features never make any one of them look suspicious — the featuretools run is inflated by 16 points while its best single feature scores 0.81.
   And on the churn-like task, the honest strongest feature (“days since last order”) scores 0.83–0.86 on <i>correct</i> code, so a threshold low enough to catch the leaks also flags the clean pipeline. Move the slider: no position separates the two.</p>
@@ -275,33 +275,33 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
   const W=900,H=240,L=40,R=20,y0=130; const x = d => L+(d-d0)/(d1-d0)*(W-L-R);
   let cur = day(D.timeline.t);
   const svg = svgEl('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',style:'display:block;touch-action:none'});
-  const fut = svgEl('rect',{x:x(cur),y:14,width:W-R-x(cur),height:166,fill:'rgba(163,35,27,.07)'});
+  const fut = svgEl('rect',{x:x(cur),y:14,width:W-R-x(cur),height:166,fill:'rgba(200,80,31,.08)'});
   svg.append(fut);
-  svg.append(svgEl('line',{x1:L,x2:W-R,y1:y0,y2:y0,stroke:'#1c1a16','stroke-width':1.2}));
+  svg.append(svgEl('line',{x1:L,x2:W-R,y1:y0,y2:y0,stroke:'#14213d','stroke-width':1.2}));
   // month ticks
-  for (let d=d0; d<=d1; d++){ const dt=new Date(d*864e5); if(dt.getUTCDate()===1){ svg.append(svgEl('line',{x1:x(d),x2:x(d),y1:y0-4,y2:y0+4,stroke:'#847c6f'}));
-      svg.append(svgEl('text',{x:x(d),y:y0+20,'font-size':11,fill:'#847c6f','text-anchor':'middle'}, dt.toLocaleString('en',{month:'short',year:'2-digit',timeZone:'UTC'}))); } }
+  for (let d=d0; d<=d1; d++){ const dt=new Date(d*864e5); if(dt.getUTCDate()===1){ svg.append(svgEl('line',{x1:x(d),x2:x(d),y1:y0-4,y2:y0+4,stroke:'#7c8496'}));
+      svg.append(svgEl('text',{x:x(d),y:y0+20,'font-size':11,fill:'#7c8496','text-anchor':'middle'}, dt.toLocaleString('en',{month:'short',year:'2-digit',timeZone:'UTC'}))); } }
   const marks = [];
   orders.forEach((o,i)=>{
     const ox = x(day(o.ts)); const lane = y0-30-(i%3)*30;
     const g = svgEl('g');
-    g.append(svgEl('rect',{x:ox-5,y:y0-6,width:10,height:12,fill:'#1c1a16'}));
-    g.append(svgEl('text',{x:ox,y:y0-10-(i%3)*0-72+ (i%3)*0, 'font-size':10,fill:'#847c6f','text-anchor':'middle', opacity:0}, ''));
+    g.append(svgEl('rect',{x:ox-5,y:y0-6,width:10,height:12,fill:'#14213d'}));
+    g.append(svgEl('text',{x:ox,y:y0-10-(i%3)*0-72+ (i%3)*0, 'font-size':10,fill:'#7c8496','text-anchor':'middle', opacity:0}, ''));
     if (o.review_ts && o.review_ts!=='NaT'){
       const rx = x(day(o.review_ts));
-      g.append(svgEl('path',{d:`M${ox} ${y0-6} C ${ox} ${lane}, ${rx} ${lane}, ${rx} ${lane}`,fill:'none',stroke:'#847c6f','stroke-dasharray':'3 3'}));
-      const star = svgEl('text',{x:rx,y:lane+4,'font-size':13,'text-anchor':'middle',fill:'#b98a1e'}, '★'.repeat(o.score));
+      g.append(svgEl('path',{d:`M${ox} ${y0-6} C ${ox} ${lane}, ${rx} ${lane}, ${rx} ${lane}`,fill:'none',stroke:'#7c8496','stroke-dasharray':'3 3'}));
+      const star = svgEl('text',{x:rx,y:lane+4,'font-size':13,'text-anchor':'middle',fill:'#b8860b'}, '★'.repeat(o.score));
       g.append(star);
-      g.append(svgEl('text',{x:rx,y:lane-8,'font-size':10,'text-anchor':'middle',fill:'#847c6f'}, o.review_ts.slice(5)));
+      g.append(svgEl('text',{x:rx,y:lane-8,'font-size':10,'text-anchor':'middle',fill:'#7c8496'}, o.review_ts.slice(5)));
       marks.push({o, rx, star});
     } else {
-      g.append(svgEl('text',{x:ox,y:lane+4,'font-size':10,'text-anchor':'middle',fill:'#847c6f'}, 'no review'));
+      g.append(svgEl('text',{x:ox,y:lane+4,'font-size':10,'text-anchor':'middle',fill:'#7c8496'}, 'no review'));
     }
     svg.append(g);
   });
   const cursor = svgEl('g',{style:'cursor:ew-resize'});
-  const cl = svgEl('line',{x1:x(cur),x2:x(cur),y1:12,y2:182,stroke:'#a3231b','stroke-width':2});
-  const ct = svgEl('text',{x:x(cur),y:208,'font-size':12,fill:'#a3231b','text-anchor':'middle','font-weight':600}, '');
+  const cl = svgEl('line',{x1:x(cur),x2:x(cur),y1:12,y2:182,stroke:'#c8501f','stroke-width':2});
+  const ct = svgEl('text',{x:x(cur),y:208,'font-size':12,fill:'#c8501f','text-anchor':'middle','font-weight':600}, '');
   const grip = svgEl('rect',{x:x(cur)-16,y:12,width:32,height:170,fill:'transparent'});
   cursor.append(cl,ct,grip); svg.append(cursor);
   $('#tl').append(svg);
@@ -318,7 +318,7 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
     $('#tl-naive-x').textContent = naive.length? `${past.length} orders so far, ${naive.length} of them with a review in the table — including ${late.length} written after this date` : 'no orders yet';
     $('#tl-true').textContent = known.length? mean(known).toFixed(2)+' ★' : (past.length? 'no review yet' : '—');
     $('#tl-true-x').textContent = known.length? `${known.length} review${known.length>1?'s':''} actually written by this date` : '';
-    for (const m of marks){ const after = day(m.o.review_ts)>cur; m.star.setAttribute('fill', after? '#a3231b':'#b98a1e'); m.star.setAttribute('opacity', after? .9:1); }
+    for (const m of marks){ const after = day(m.o.review_ts)>cur; m.star.setAttribute('fill', after? '#c8501f':'#b8860b'); m.star.setAttribute('opacity', after? .9:1); }
   };
   upd();
   let drag=false;
@@ -404,17 +404,17 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
   const get=(task,seed,d)=>D.dose.find(r=>r.task===task&&r.seed===seed&&r.d===d);
   const W=900,H=260,L=50,B=40,T=16; const y=v=>T+(1-(v-.5)/.5)*(H-T-B);
   const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
-  [.5,.6,.7,.8,.9,1].forEach(v=>{svg.append(svgEl('line',{x1:L,x2:W-10,y1:y(v),y2:y(v),stroke:'#d8cfbf'})); svg.append(svgEl('text',{x:L-8,y:y(v)+4,'font-size':11,'text-anchor':'end',fill:'#847c6f'},v.toFixed(1)));});
-  svg.append(svgEl('text',{x:L+4,y:12,'font-size':11,fill:'#847c6f'},'AUC of the fixed model'));
+  [.5,.6,.7,.8,.9,1].forEach(v=>{svg.append(svgEl('line',{x1:L,x2:W-10,y1:y(v),y2:y(v),stroke:'#cfd3cc'})); svg.append(svgEl('text',{x:L-8,y:y(v)+4,'font-size':11,'text-anchor':'end',fill:'#7c8496'},v.toFixed(1)));});
+  svg.append(svgEl('text',{x:L+4,y:12,'font-size':11,fill:'#7c8496'},'AUC of the fixed model'));
   const groups=[]; const bw=48, gap=140;
   ['A','B'].forEach((task,ti)=>seeds.forEach((s,si)=>{ const gx = L+40+ (ti*3+si)*gap; groups.push({task,s,gx});
-    svg.append(svgEl('text',{x:gx+bw/2,y:H-B+16,'font-size':11,'text-anchor':'middle',fill:'#4a453c'}, s.slice(0,7)));
-    svg.append(svgEl('text',{x:gx+bw/2,y:H-B+30,'font-size':10.5,'text-anchor':'middle',fill:'#847c6f'}, task==='A'?'seller activity':'review quality')); }));
+    svg.append(svgEl('text',{x:gx+bw/2,y:H-B+16,'font-size':11,'text-anchor':'middle',fill:'#3f4a63'}, s.slice(0,7)));
+    svg.append(svgEl('text',{x:gx+bw/2,y:H-B+30,'font-size':10.5,'text-anchor':'middle',fill:'#7c8496'}, task==='A'?'seller activity':'review quality')); }));
   const bars=[], base=[], lbl=[];
-  groups.forEach((g,k)=>{ const b0=get(g.task,g.s,0); const col = g.task==='A'?'#1c1a16':'#b98a1e';
+  groups.forEach((g,k)=>{ const b0=get(g.task,g.s,0); const col = g.task==='A'?'#14213d':'#4a5d8a';
     const ghost=svgEl('rect',{x:g.gx,y:y(b0.auc),width:bw,height:y(.5)-y(b0.auc),fill:col,opacity:.22}); svg.append(ghost); base.push(ghost);
     const bar=svgEl('rect',{x:g.gx,y:y(b0.auc),width:bw,height:y(.5)-y(b0.auc),fill:col}); svg.append(bar); bars.push(bar);
-    const t=svgEl('text',{x:g.gx+bw/2,y:y(b0.auc)-6,'font-size':12,'text-anchor':'middle',fill:'#1c1a16'},''); svg.append(t); lbl.push(t); });
+    const t=svgEl('text',{x:g.gx+bw/2,y:y(b0.auc)-6,'font-size':12,'text-anchor':'middle',fill:'#14213d'},''); svg.append(t); lbl.push(t); });
   $('#dose-chart').append(svg);
   const upd=()=>{ const d=ds[+$('#dose').value]; $('#dose-d').textContent=d;
     groups.forEach((g,k)=>{ const r=get(g.task,g.s,d); const b0=get(g.task,g.s,0); bars[k].setAttribute('y',y(r.auc)); bars[k].setAttribute('height',y(.5)-y(r.auc));
@@ -427,14 +427,14 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
   const pts=D.blind.points; const W=900,H=340,L=52,R=16,T=16,B=44;
   const x=v=>L+(v-.55)/(1.0-.55)*(W-L-R), y=v=>T+(1-v/28)*(H-T-B);
   const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
-  const shade=svgEl('rect',{x:L,y:T,width:0,height:H-T-B,fill:'rgba(163,35,27,.08)'}); svg.append(shade);
-  [0,5,10,15,20,25].forEach(v=>{svg.append(svgEl('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:'#e6dfd0'})); svg.append(svgEl('text',{x:L-8,y:y(v)+4,'font-size':11,'text-anchor':'end',fill:'#847c6f'},v));});
-  [.6,.7,.8,.9,1].forEach(v=>{svg.append(svgEl('text',{x:x(v),y:H-B+18,'font-size':11,'text-anchor':'middle',fill:'#847c6f'},v.toFixed(1)));});
-  svg.append(svgEl('text',{x:(L+W-R)/2,y:H-6,'font-size':12,'text-anchor':'middle',fill:'#4a453c'},'best single feature, AUC (what the usual test sees)'));
-  svg.append(svgEl('text',{x:14,y:H/2,'font-size':12,'text-anchor':'middle',fill:'#4a453c',transform:`rotate(-90 14 ${H/2})`},'true inflation of the model, AUC points'));
-  const line=svgEl('line',{x1:0,x2:0,y1:T,y2:H-B,stroke:'#a3231b','stroke-width':2,'stroke-dasharray':'6 4'}); svg.append(line);
-  const col={shift:'#9a9385',join:'#a3231b',ft:'#1c1a16',ours:'#b98a1e'};
-  const tip=el('div',{style:'font:12.5px var(--mono);color:#4a453c;min-height:20px;margin-top:6px'}, 'hover a dot');
+  const shade=svgEl('rect',{x:L,y:T,width:0,height:H-T-B,fill:'rgba(200,80,31,.08)'}); svg.append(shade);
+  [0,5,10,15,20,25].forEach(v=>{svg.append(svgEl('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:'#dfe2da'})); svg.append(svgEl('text',{x:L-8,y:y(v)+4,'font-size':11,'text-anchor':'end',fill:'#7c8496'},v));});
+  [.6,.7,.8,.9,1].forEach(v=>{svg.append(svgEl('text',{x:x(v),y:H-B+18,'font-size':11,'text-anchor':'middle',fill:'#7c8496'},v.toFixed(1)));});
+  svg.append(svgEl('text',{x:(L+W-R)/2,y:H-6,'font-size':12,'text-anchor':'middle',fill:'#3f4a63'},'best single feature, AUC (what the usual test sees)'));
+  svg.append(svgEl('text',{x:14,y:H/2,'font-size':12,'text-anchor':'middle',fill:'#3f4a63',transform:`rotate(-90 14 ${H/2})`},'true inflation of the model, AUC points'));
+  const line=svgEl('line',{x1:0,x2:0,y1:T,y2:H-B,stroke:'#c8501f','stroke-width':2,'stroke-dasharray':'6 4'}); svg.append(line);
+  const col={shift:'#9aa1b0',join:'#c8501f',ft:'#14213d',ours:'#4a5d8a'};
+  const tip=el('div',{style:'font:12.5px var(--mono);color:#3f4a63;min-height:20px;margin-top:6px'}, 'hover a dot');
   pts.forEach(p=>{ const c=svgEl('circle',{cx:x(p.probe),cy:y(p.infl),r:p.kind==='shift'?4.5:7,fill:col[p.kind],opacity:p.kind==='shift'?.75:1,style:'cursor:crosshair'});
     c.addEventListener('mouseenter',()=>{ tip.textContent = `${{shift:'cutoff shifted',join:'leak through the join only',ft:'featuretools without cutoff',ours:'our own reference code'}[p.kind]} · task ${p.task} · ${p.seed}${p.d!=null?' · δ='+p.d+'d':''} → best single feature ${p.probe.toFixed(3)}, model inflated by ${p.infl.toFixed(1)} points`; });
     svg.append(c); });
