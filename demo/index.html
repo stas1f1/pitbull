@@ -54,6 +54,14 @@ pre .hl{background:var(--red2);display:inline-block;width:100%}
 .card{background:#f7f8f4;border:1px solid var(--rule);padding:18px 22px;box-shadow:0 1px 0 var(--rule),0 12px 24px -18px rgba(20,33,61,.35)}
 .stamp{display:inline-block;font:700 14px var(--mono);letter-spacing:.2em;padding:6px 12px;border:2px solid currentColor;border-radius:3px;transform:rotate(-3deg);text-transform:uppercase;background:rgba(255,255,255,.6)}
 .stamp.leak{color:var(--red)} .stamp.clean{color:var(--green)}
+.fold{margin-top:6px}
+.fold>summary{font:13px var(--mono);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  display:inline-block;padding:9px 16px;border:1.5px solid var(--ink);color:var(--ink);list-style:none}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::after{content:" ↓";}
+.fold[open]>summary::after{content:" ↑";}
+.fold>summary:hover{background:rgba(0,0,0,.06)}
+.foldbody{margin-top:18px}
 .seg{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 16px}
 .seg button{font:13px var(--mono);letter-spacing:.06em;padding:9px 14px;background:transparent;border:1.5px solid var(--ink);color:var(--ink);cursor:pointer}
 .seg button.on{background:var(--ink);color:var(--paper)}
@@ -95,7 +103,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 <nav><div class="wrap">
   <a class="brand" href="#top">PITFALL</a>
   <a href="#idea">The idea</a><a href="#check">Try it</a><a href="#game">Fool it</a><a href="#cost">The cost</a>
-  <a href="#blind">The blind spot</a><a href="#where">Where it leaks</a><a href="#beyond">Beyond Olist</a><a href="#limits">Limits</a>
+  <a href="#blind">The blind spot</a><a href="#where">Where it leaks</a><a href="#beyond">Other data</a><a href="#limits">Limits</a>
   <a class="paper" href="../paper/pitfall.pdf">Paper</a>
 </div></nav>
 
@@ -235,38 +243,52 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 
 <!-- 7 ─────────────────────────────────────────────────────────── -->
 <section id="beyond"><div class="wrap">
-  <h2><span class="secnum">7</span>Does this hold beyond Olist?</h2>
-  <p class="lede">Everything above is one database and code we wrote ourselves, which is the weakest possible evidence.
-  So we ran the same check, unchanged, against five more public databases and against SQL nobody on this project wrote:
-  the hand-written feature code released with the RelBench benchmark, by its own authors, for its own tasks.
-  Each file gets one verdict. Nothing here is a mock-up.</p>
+  <h2><span class="secnum">7</span>Does this hold on other data?</h2>
+  <p class="lede">Sections 1–6 are one database and code we wrote ourselves.
+  So we ran the same check, unchanged, on five more public databases and on SQL nobody here wrote:
+  the feature code that ships with the RelBench benchmark, written by its authors for their own tasks.
+  One verdict per file.</p>
 
-  <div class="card">
-    <div class="note">published expert SQL — 15 files, 5 databases, hover a file</div>
-    <div id="corpus-strip"></div>
-    <div class="note" id="corpus-tip" style="margin-top:10px">hover a file</div>
-  </div>
+  <details class="fold">
+    <summary>show what came back</summary>
+    <div class="foldbody">
 
-  <p style="margin-top:22px">Six files come back clean, and that is not an absence of evidence: on those runs the past-only copy dropped
-  between 270 thousand and 21 million rows and not one output cell moved. Eight diverge. One cannot be run at all, and it is the most interesting of the fifteen:
-  it reads a column that the benchmark's own authors deleted from the published database, with the comment <span class="kbd">remove time leakage columns</span>.
-  That column is exactly the undecidable kind from section 8 — a field that gets overwritten with no record of when. Three parties reached the same conclusion about it independently.</p>
+      <div class="card">
+        <div class="note">published expert SQL: 15 files, 5 databases</div>
+        <div id="corpus-strip"></div>
+        <div class="note" id="corpus-tip" style="margin-top:10px">hover a file</div>
+      </div>
 
-  <h3 style="margin-top:30px">A clean verdict is only as strong as the date you tested</h3>
-  <p>The three <span class="kbd">rel-event</span> files join a users table without a cutoff, so the demographic columns can describe people who had not signed up yet.
-  Below is every prediction date in that task, and the share of rows whose user registered <i>after</i> the date.</p>
-  <div class="card">
-    <div id="event-chart"></div>
-    <div class="note" id="event-tip" style="margin-top:6px">hover a bar</div>
-  </div>
-  <p style="margin-top:18px">The defect is present on 23 of the 24 dates, on some of them for half the rows. It is absent on exactly one — and that one is the date the benchmark uses for its test set.
-  Test on that date alone and the file looks clean. This is why the check proves peeking rather than its absence, and why dates should be drawn from the middle of the training period rather than from the date the score is reported on.</p>
+      <p style="margin-top:22px">Eight of the fifteen files peek. Six come back clean, and on those runs the past-only copy
+      dropped between 270 thousand and 21 million rows without moving a single output cell.
+      One file will not run at all, and it is the most interesting of the fifteen.
+      It reads a column the benchmark's own authors removed from the published data, with the comment
+      <span class="kbd">remove time leakage columns</span>. That column is the undecidable kind from section 8:
+      a field overwritten in place, with no record of when. Three parties landed on the same column for three different reasons.</p>
 
-  <h3 style="margin-top:30px">The same one-character mistake, priced twice</h3>
-  <p>A second database, Formula&nbsp;1 race results, settles a question Olist could not. Races before 2005 are stamped with the day only; from 2005 on they carry the start time.
-  So the same off-by-one — writing “on or before the date” where “strictly before” was meant — lets the race being predicted into its own features in the first era and nothing at all in the second.</p>
-  <div class="card"><div id="gran-chart"></div></div>
-  <p class="small" style="margin-top:12px">Same code, same task, same database, one character. Whether it costs anything is decided by the timestamps, not by the code — which is why it has to be tested rather than reasoned about.</p>
+      <h3 style="margin-top:30px">A clean verdict is only as strong as the date you tested</h3>
+      <p>The three <span class="kbd">rel-event</span> files join a users table with no cutoff, so the demographic columns
+      can describe people who had not signed up yet. Below is every prediction date in that task, with the share of rows
+      whose user registered <i>after</i> that date.</p>
+      <div class="card">
+        <div id="event-chart"></div>
+        <div class="note" id="event-tip" style="margin-top:6px">hover a bar</div>
+      </div>
+      <p style="margin-top:18px">The defect shows up on 23 of the 24 dates, on some of them for half the rows.
+      On one date it shows up nowhere, and that is the date the benchmark scores on. Test only there and the file looks clean.
+      So a clean verdict says the code did not peek on the dates you tried, and nothing more.
+      Pick dates from the middle of the training period, not the one the score is reported on.</p>
+
+      <h3 style="margin-top:30px">The same one-character mistake, priced twice</h3>
+      <p>Formula&nbsp;1 race results settle a question Olist could not. Races before 2005 carry the day only;
+      from 2005 on they carry the start time. Write “on or before the date” where “strictly before” was meant,
+      and in the first era the race being predicted walks into its own features. In the second era nothing walks in.</p>
+      <div class="card"><div id="gran-chart"></div></div>
+      <p class="small" style="margin-top:12px">Same code, same task, same database, one character.
+      The timestamps decide whether it costs anything. That is why it has to be run rather than argued about.</p>
+
+    </div>
+  </details>
 </div></section>
 
 <!-- 8 ─────────────────────────────────────────────────────────── -->
@@ -550,8 +572,8 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
         +`color:#fff;background:${col[r.verdict]}`}, r.file);
       chip.addEventListener('mouseenter',()=>{
         tip().innerHTML = r.verdict==='ERROR'
-          ? `<b>${r.file}</b> — cannot run: it reads a column the published database does not contain`
-          : `<b>${r.file}</b> — ${word[r.verdict]} on ${r.leaks} of ${r.seeds} dates tested`
+          ? `<b>${r.file}</b> · cannot run: it reads a column the published database does not contain`
+          : `<b>${r.file}</b> · ${word[r.verdict]} on ${r.leaks} of ${r.seeds} dates tested`
             + (r.cols.length?` · columns that move: ${r.cols.slice(0,4).join(', ')}${r.cols.length>4?' …':''}`:'');
       });
       wrap.append(chip);
@@ -578,7 +600,7 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
       const b=svgEl('rect',{x:L+i*bw+1.5,y:y(r.share),width:bw-3,height:Math.max(1,y(0)-y(r.share)),
         fill:last?'#157a6e':'#c8501f',opacity:last?1:.82,style:'cursor:crosshair'});
       b.addEventListener('mouseenter',()=>{ tip().innerHTML =
-        `<b>${r.date.slice(0,10)}</b> — ${r.fut} of ${r.n} rows (${r.share}%) name a user who signed up later`
+        `<b>${r.date.slice(0,10)}</b> · ${r.fut} of ${r.n} rows (${r.share}%) name a user who signed up later`
         + (last?' · <b>this is the benchmark\u2019s test date</b>':''); });
       svg.append(b);
       if(i%4===0||last) svg.append(svgEl('text',{x:L+i*bw+bw/2,y:H-Bo+16,'font-size':10,
