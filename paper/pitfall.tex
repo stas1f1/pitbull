@@ -131,7 +131,7 @@ The same primitive localises the leak. The database has a finite set of
 column $c$ becoming known after $t$. Truncating one channel at a time identifies the
 channels on which the output changes and the output columns each affects (seven runs in
 our database); masking exactly those channels and re-checking confirms that no other
-channel contributes. Masking diagnoses; it does not repair, since any program passes on
+channel contributes. Masking diagnoses without repairing, since any program passes on
 a pre-truncated input.
 
 \emph{Why check rather than always truncate?} With one seed time per call, truncating
@@ -289,21 +289,21 @@ seed time, because recency is a legitimate predictor of churn. Both errors repli
 where it is identical to six significant figures in both regimes.
 
 \subsection{Generated feature code}
-\textbf{We asked two code models}, \texttt{deepseek-v4-flash} and
-\texttt{bytedance-seed/seed-2.0-code}, for a Python function computing features for task
-C, giving the schema and the seed-time column and nothing else; the words ``leakage'' and
-``point-in-time'' do not appear. Verdicts come from the checker, with five flagged
-programs read by hand and confirmed. Of $233$
-generations under the neutral prompt, $132$ run at all, and $61$ of those are incorrect:
+We used two code models, \texttt{deepseek-v4-flash} and
+\texttt{bytedance-seed/seed-2.0-code}, to generate a Python function computing features for task
+C, giving the schema and the seed-time column, not mentioning ``leakage'' or
+``point-in-time''. Verdicts come from the checker, with five flagged
+programs manually confirmed. $233$
+generations, $132$ functional, $61$ incorrect:
 $62\%$ for the first model and $22\%$ for the second. Roughly half the generations crash
 before producing a feature table, a share that does not fall as the sample grows, so the
 rate among those that run needs a bound: over all $233$ generations it lies between
-$26\%$ and $70\%$. The failure mode is the
-same in every case examined: the model filters the entity's own history by the primary
-event timestamp and ignores the later timestamp of the joined entity. We make no claim about
+$26\%$ and $70\%$. Models fail the same, filtering the entity's own history by the primary
+event timestamp, ignoring the later timestamp of the joined one. We make no claim about
 models in general. Task construction is decisive: on a second task with one seed time per
-entity and no secondary time axis, both models produce $0$ violations. Prompt guards help partially but not to zero: a reminder and then a
-per-aggregate requirement cut the pooled rate from $46.2\%$ to $14.6\%$.
+entity and no secondary time axis, both models produce $0$ violations. Prompt guards help 
+partially but not to zero: a reminder and then a per-aggregate requirement cut the pooled 
+rate from $46.2\%$ to $14.6\%$.
 
 \subsection{Cost of a violation is task-dependent}
 The same defect in the same code costs $3.09$ to $5.26$ points on task B, while on task
@@ -324,10 +324,11 @@ plain-language summary. Below it, not shown, the outputs side by side.}
 \end{figure}
 
 The demonstration is a self-contained interactive page built from live runs
-(Fig.~\ref{fig:demo}) plus a console runner, \texttt{python3 demo.py}. A visitor drags
-the seed date over one seller's real orders and watches a na\"ive ``average review''
-feature change; compares programs side by side; plays ``fool the checker''; moves the
-cutoff and the probe threshold; and submits a feature function of their own. The console scenes replay Section~\ref{sec:sources} live, ending in per-channel
+(Fig.~\ref{fig:demo}) plus a console runner, \texttt{python3 demo.py}. A visitor drags the seed date
+over one seller's real orders and watches a na\"ive ``average review'' feature change,
+compares programs side by side, moves the cutoff and the probe threshold, and submits a
+feature function of their own.
+The console scenes replay Section~\ref{sec:sources} live, ending in per-channel
 localisation of each diverging column.
 
 \section{Limitations}
