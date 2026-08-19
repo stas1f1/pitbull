@@ -41,34 +41,73 @@ ax.legend(frameon=False, fontsize=6.8, loc="upper right")
 ax.set_title("Wilson 95% CI over programs that ran (n = 9–30 per cell)", fontsize=7.2, color=GREY, pad=4)
 fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig3_dose.pdf"); fig.savefig(_ROOT + "/fig/fig3_dose.png", dpi=220)
 
-# ── Рис. 4: слепота проверки ─────────────────────────────────────────────────
+# ── Рис. 4: проверка ошибается в обе стороны ─────────────────────────────────
+# Слева от 0.80 промышленная проверка молчит на настоящих нарушениях; справа от
+# 0.80 она предупреждает на КОРРЕКТНОМ коде. Одной вертикали, разделяющей эти два
+# множества, не существует — в этом и довод.
 P = pd.read_csv(_ROOT + "/rel/delta_probe.csv"); P["d"] = P.режим.str.replace("δ=", "").astype(int)
 M = R.merge(P, on=["задача", "тест", "режим"])
 C = pd.read_csv(_ROOT + "/rel/fix_c.csv")
 ft = pd.read_csv(_ROOT + "/demo/ft_scene.csv")
-fig, ax = plt.subplots(figsize=(3.45, 2.7))
-ax.axvspan(0, .80, color="#fbdcd8", zorder=0)          # silent for every deployed threshold
-ax.axvspan(.80, .925, color="#fdecea", zorder=0)        # silent for DataRobot, H2O notifies
+AB = pd.read_csv(_ROOT + "/rel/fix_ab_probe.csv")
+F1 = pd.read_csv(_ROOT + "/rel/out/f1_auc.csv")
+SQ = pd.read_csv(_ROOT + "/rel/out/sql_cost.csv")
+
+# корректный код: завышение ровно 0 по построению
+ok_x = (list(AB[AB.режим == "корректно (PIT)"].макс_AUC_признака)
+        + list(C[C.режим == "корректно (PIT, обе группы)"].макс_AUC_признака)
+        + list(F1[F1["mode"] == "pit"].probe)
+        + list(SQ[SQ.regime == "corrected"].probe))
+ok_y = [0.0] * len(ok_x)
+
+# Широкий формат на обе колонки: по горизонтали умещаются четыре порога с
+# подписями, легенда уходит вправо и не наезжает на точки.
+# Одна колонка. Легенда вынесена полосой над осями в два столбца: внутри поля
+# она накрывала самую плотную группу точек слева.
+fig, ax = plt.subplots(figsize=(3.5, 2.95))
+ax.axvspan(.55, .80, color="#fbdcd8", zorder=0)         # молчит при любом развёрнутом пороге
+ax.axvspan(.80, .925, color="#fdecea", zorder=0)        # DataRobot молчит, H2O уведомляет
 ax.axvline(.925, color=RED, lw=.9, ls="--"); ax.axvline(.9875, color=RED, lw=.7, ls=":")
 ax.axvline(.80, color=GREY, lw=.8, ls="--"); ax.axvline(.95, color=GREY, lw=.7, ls=":")
-ax.scatter(M.макс_AUC_признака, M.завышение, s=14, color=GREY, alpha=.75, lw=0,
-           label="cutoff shift, tasks A/B", zorder=3)
+ax.axhline(0, color="#9aa4c0", lw=.6, zorder=1)
+
+ax.scatter(M.макс_AUC_признака, M.завышение, s=11, color=GREY, alpha=.7, lw=0,
+           label="cutoff shift, Olist", zorder=3)
+viol = F1[F1["mode"].isin(["naive", "join_only", "both60"])]
+ax.scatter(viol.probe, viol.inflation_pp, s=11, color="#5c6a99", alpha=.85, lw=0,
+           label="violations, rel-f1", zorder=3)
 c2 = C[C.режим == "утечка только через соединение"]
-ax.scatter(c2.макс_AUC_признака, c2.завышение, s=42, marker="D", color=RED, lw=0,
-           label="leak through join only", zorder=5)
+ax.scatter(c2.макс_AUC_признака, c2.завышение, s=34, marker="D", color=RED, lw=0,
+           label="join-path leak", zorder=5)
 ftl = ft[ft.режим == "туториал"]
 ax.scatter(ftl.макс_AUC_признака, ftl.завышение, s=52, marker="*", color=NAVY, lw=0,
-           label="featuretools defaults", zorder=5)
-ax.scatter([.623, .687, .657], [3.09, 5.26, 3.78], s=34, marker="^", color=AMB, lw=0,
+           label="featuretools", zorder=5)
+ax.scatter([.623, .687, .657], [3.09, 5.26, 3.78], s=28, marker="^", color=AMB, lw=0,
            label="our reference code", zorder=5)
-ax.text(.931, .2, "DataRobot warn (Gini .85 = AUC .925)", fontsize=5.6, color=RED, rotation=90, va="bottom")
-ax.text(.993, .2, "DataRobot drop", fontsize=5.6, color=RED, rotation=90, va="bottom")
-ax.text(.787, .2, "H2O notify .80", fontsize=5.8, color=GREY, rotation=90, va="bottom")
-ax.text(.956, 27.6, "H2O detect .95", fontsize=5.8, color=GREY, rotation=90, va="top")
-ax.text(.565, 27.6, "probe SILENT\n(every deployed threshold)", fontsize=6.6, color=RED, va="top", weight="bold")
-ax.set_xlabel("industrial probe: max single-feature AUC")
+ax.scatter(ok_x, ok_y, s=30, marker="o", facecolors="none", edgecolors=GRN, linewidths=1.0,
+           label="correct code", zorder=6)
+
+for x_, txt, col in [(.792, "H2O .80", GREY), (.917, "DataRobot .925", RED),
+                     (.942, "H2O .95", GREY), (.9795, "DataRobot .99", RED)]:
+    ax.text(x_, 26.5, txt, fontsize=6.0, color=col, rotation=90, va="top", ha="right")
+ax.text(.565, 27.0, "probe SILENT here", fontsize=7.4, color=RED, va="top", weight="bold")
+ax.annotate("correct code, inflation 0:\nH2O warns right of .80", xy=(.848, -.5),
+            xytext=(.86, -6.2), fontsize=6.6, color=GRN, weight="bold", ha="center",
+            va="center", arrowprops=dict(arrowstyle="->", color=GRN, lw=.9))
+ax.set_xlabel("univariate probe: best single-feature AUC")
 ax.set_ylabel("true AUC inflation, pp")
-ax.set_xlim(.55, 1.02); ax.set_ylim(-1.5, 29)
-ax.legend(frameon=False, fontsize=6.4, loc="upper left", bbox_to_anchor=(0.015, .86))
+ax.set_xlim(.55, 1.02); ax.set_ylim(-8.5, 28)
+ax.legend(frameon=False, fontsize=6.1, ncol=3, loc="lower left", borderaxespad=0,
+          bbox_to_anchor=(-.02, 1.0, 1.04, .14), mode="expand",
+          handletextpad=.25, columnspacing=.8, borderpad=0)
 fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig4_blind.pdf"); fig.savefig(_ROOT + "/fig/fig4_blind.png", dpi=220)
-print("figures written")
+# Статья собирается из paper/fig, а не из fig в корне. Держим копии
+# синхронными: рассинхрон уже один раз стоил нам вёрстки со старым рисунком.
+import shutil, glob as _glob
+_PF = _os.path.join(_ROOT, "paper", "fig")
+if _os.path.isdir(_PF):
+    for _f in _glob.glob(_os.path.join(_ROOT, "fig", "*.pdf")):
+        shutil.copy2(_f, _os.path.join(_PF, _os.path.basename(_f)))
+    print("figures written and synced to paper/fig")
+else:
+    print("figures written")
