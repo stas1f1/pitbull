@@ -27,3 +27,5 @@ prestudy/p1_repro/
 prestudy/p3_out/pilot/
 # demo run log is regenerable but keep it: unignore
 !demo/run.log
+# внешние базы для расширения (RelBench и т.п.): скачиваются, см. README
+PITFALL_ext_data/

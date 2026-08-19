@@ -1,0 +1,50 @@
+file,dataset,task,seed,phase,verdict,columns,columns_nondet,cells,n_rows,seconds
+stack_post-votes.sql,stack,post-votes,2009-04-16 00:00:00,determinism,DETERMINISTIC,,,0,1,2.9
+stack_post-votes.sql,stack,post-votes,2015-04-09 00:00:00,determinism,NONDETERMINISTIC,post_ordinal,,8,45964,28.1
+stack_post-votes.sql,stack,post-votes,2021-01-01 00:00:00,determinism,NONDETERMINISTIC,post_ordinal,,65,160903,95.7
+stack_post-votes.sql,stack,post-votes,2021-01-01 00:00:00,negative_control,CLEAN,,post_ordinal,51,160903,94.6
+stack_post-votes.sql,stack,post-votes,2009-04-16 00:00:00,main,LEAK,user_age_months,,1,1,1.5
+stack_post-votes.sql,stack,post-votes,2015-04-09 00:00:00,main,LEAK,user_age_months,post_ordinal,49,45964,17.5
+stack_post-votes.sql,stack,post-votes,2021-01-01 00:00:00,main,LEAK,user_age_months,post_ordinal,98,160903,84.0
+stack_user-badge.sql,stack,user-badge,2010-10-14 00:00:00,determinism,DETERMINISTIC,,,0,1093,0.3
+stack_user-badge.sql,stack,user-badge,2015-10-08 00:00:00,determinism,NONDETERMINISTIC,last_badge_name;last_badge_rarity;avg_days_since_last_post_q;avg_days_since_last_post_a,,450,61054,3.1
+stack_user-badge.sql,stack,user-badge,2021-01-01 00:00:00,determinism,NONDETERMINISTIC,last_badge_name;last_badge_rarity;avg_days_since_last_post_q;avg_days_since_last_post_a,,92,255360,7.0
+stack_user-badge.sql,stack,user-badge,2021-01-01 00:00:00,negative_control,CLEAN,,last_badge_name;last_badge_rarity;avg_days_since_last_post_q;avg_days_since_last_post_a,2053,255360,6.3
+stack_user-badge.sql,stack,user-badge,2010-10-14 00:00:00,main,LEAK,badge_score;max_rarity;avg_rarity;rarest_badge_age_weeks;badge_momentum;last_q_avg_commenter_badge_score;avg_commenter_badge_score_q;last_a_avg_commenter_badge_score;avg_commenter_badge_score_a,last_badge_name;last_badge_rarity,4939,1093,0.3
+stack_user-badge.sql,stack,user-badge,2015-10-08 00:00:00,main,LEAK,badge_score;max_rarity;avg_rarity;rarest_badge_age_weeks;badge_momentum;last_q_avg_commenter_badge_score;avg_commenter_badge_score_q;last_a_avg_commenter_badge_score;avg_commenter_badge_score_a,last_badge_name;last_badge_rarity;avg_days_since_last_post_q;avg_days_since_last_post_a,198318,61054,2.4
+stack_user-badge.sql,stack,user-badge,2021-01-01 00:00:00,main,LEAK,badge_score;max_rarity;avg_rarity;rarest_badge_age_weeks;badge_momentum;last_q_num_comments;last_q_avg_commenter_badge_score;avg_commenter_badge_score_q;last_a_avg_commenter_badge_score;avg_commenter_badge_score_a,last_badge_name;last_badge_rarity;avg_days_since_last_post_q;avg_days_since_last_post_a,345938,255360,5.8
+stack_user-engagement.sql,stack,user-engagement,2009-04-16 00:00:00,determinism,ERROR,"BinderException: Binder Error: Referenced column ""AcceptedAnswerId"" not found in FROM clause!
+Candidate bindings: ""ContentLicense"", ""OwnerUserId"", ""Id"", ""ParentId""
+
+LINE 115:     where AcceptedAnswerId is not null
+   ",,0,0,0.0
+stack_user-engagement.sql,stack,user-engagement,2015-04-09 00:00:00,determinism,ERROR,"BinderException: Binder Error: Referenced column ""AcceptedAnswerId"" not found in FROM clause!
+Candidate bindings: ""ContentLicense"", ""OwnerUserId"", ""Id"", ""ParentId""
+
+LINE 115:     where AcceptedAnswerId is not null
+   ",,0,0,0.0
+stack_user-engagement.sql,stack,user-engagement,2021-01-01 00:00:00,determinism,ERROR,"BinderException: Binder Error: Referenced column ""AcceptedAnswerId"" not found in FROM clause!
+Candidate bindings: ""ContentLicense"", ""OwnerUserId"", ""Id"", ""ParentId""
+
+LINE 115:     where AcceptedAnswerId is not null
+   ",,0,0,0.0
+stack_user-engagement.sql,stack,user-engagement,2021-01-01 00:00:00,negative_control,ERROR,"BinderException: Binder Error: Referenced column ""AcceptedAnswerId"" not found in FROM clause!
+Candidate bindings: ""ContentLicense"", ""OwnerUserId"", ""Id"", ""ParentId""
+
+LINE 115:     where AcceptedAnswerId is not null
+   ",,0,0,0.0
+stack_user-engagement.sql,stack,user-engagement,2009-04-16 00:00:00,main,ERROR,"BinderException: Binder Error: Referenced column ""AcceptedAnswerId"" not found in FROM clause!
+Candidate bindings: ""ContentLicense"", ""OwnerUserId"", ""Id"", ""ParentId""
+
+LINE 115:     where AcceptedAnswerId is not null
+   ",,0,0,0.0
+stack_user-engagement.sql,stack,user-engagement,2015-04-09 00:00:00,main,ERROR,"BinderException: Binder Error: Referenced column ""AcceptedAnswerId"" not found in FROM clause!
+Candidate bindings: ""ContentLicense"", ""OwnerUserId"", ""Id"", ""ParentId""
+
+LINE 115:     where AcceptedAnswerId is not null
+   ",,0,0,0.0
+stack_user-engagement.sql,stack,user-engagement,2021-01-01 00:00:00,main,ERROR,"BinderException: Binder Error: Referenced column ""AcceptedAnswerId"" not found in FROM clause!
+Candidate bindings: ""ContentLicense"", ""OwnerUserId"", ""Id"", ""ParentId""
+
+LINE 115:     where AcceptedAnswerId is not null
+   ",,0,0,0.0

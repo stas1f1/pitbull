@@ -55,6 +55,37 @@ cd ../fig && python3 make_figs.py && python3 make_figs2.py
 
 Сводка всех чисел — `rel/RESULTS.md`.
 
+## Расширение на другие базы
+
+Общий слой позволяет прогнать тот же набор экспериментов на любой базе: новая база —
+один файл в `rel/adapters/` по образцу `_template.py`. Результаты и вердикты по всем
+предзарегистрированным критериям — `docs/EXTENSION_RESULTS.md`, план — `docs/EXTENSION_plan.md`.
+
+```bash
+cd rel   # интерпретатор — ../.venv/bin/python
+python3 verify_olist.py       # ворота на сам общий слой: 156 значений Olist знак в знак
+python3 gate.py f1            # ворота приёмки базы (объём, побочная ось, оракул, контроль)
+python3 suite.py f1           # весь набор ячеек   → out/f1_auc.csv, _oracle.csv, _summary.md
+python3 paired.py f1          # парный бутстрэп разницы AUC → out/f1_paired.csv
+python3 sqloracle.py          # оракул по чужому опубликованному SQL из audit/
+python3 sqlcost.py f1_driver-dnf f1_driver-top3 stack_user-badge   # цена нарушения в нём
+```
+
+Данные внешних баз (RelBench) кладутся в `PITFALL_ext_data/` и в репозиторий не входят:
+
+```bash
+mkdir -p PITFALL_ext_data && cd PITFALL_ext_data
+for d in rel-f1 rel-stack; do curl -L -o $d.zip https://relbench.stanford.edu/download/$d/db.zip && unzip -q $d.zip -d $d; done
+mkdir -p tasks && for t in driver-dnf driver-top3 driver-position; do
+  curl -L -o tasks/rel-f1__$t.zip https://relbench.stanford.edu/download/rel-f1/tasks/$t.zip
+  unzip -q tasks/rel-f1__$t.zip -d tasks/rel-f1__$t; done
+```
+
+Ворота приёмки обязательны до любых измерений на новой базе: они проверяют объём,
+наличие временной опасности, непроверяемые колонки, размер задач и — главное — что
+корректная программа даёт ЧИСТО, а наивная протекает. На Olist ворота поймали
+неверно поставленный отрицательный контроль и вторую непроверяемую колонку.
+
 ## Статья
 
 ```bash
