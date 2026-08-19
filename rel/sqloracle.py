@@ -122,6 +122,20 @@ def run_sql(con, sql_text, label_parquets, label_table, tcol, seed, out_table):
     return con.execute(f'SELECT * FROM "{out_table}"').fetch_df()
 
 
+#: Допуск для чисел с плавающей точкой. Усечённая база — это другой план запроса,
+#: а сложение float не ассоциативно, поэтому одна и та же сумма собирается в другом
+#: порядке и даёт другой последний бит. Порог не выбран «на глаз»: он снят с
+#: отрицательного контроля на rel-amazon (351 885 строк, 32 колонки), где усечение
+#: по построению не убирает ни одной строки, так что любое расхождение там — шум.
+#: Наблюдённый потолок шума: 1.7e-11 относительно и 1.4e-08 абсолютно (колонки
+#: avg_price_trend и avg_user_bias_trend — разности почти равных чисел). Допуск
+#: взят с запасом примерно в сто раз выше шума и остаётся на много порядков ниже
+#: любого реального нарушения, которое меняет NULL на число или величину целиком.
+#: Прежний вариант — round(9) — тоже был допуском, только абсолютным, и на суммах
+#: масштаба 10^2 он оказывался жёстче машинной точности.
+FLOAT_RTOL, FLOAT_ATOL = 1e-9, 1e-12
+
+
 def compare(a, b, keys):
     """Возврат: (есть ли расхождение, список колонок, число расходящихся ячеек)."""
     if a is None or b is None:
@@ -137,11 +151,14 @@ def compare(a, b, keys):
     for c in a.columns:
         x, y = a[c], b[c]
         if pd.api.types.is_float_dtype(x) and pd.api.types.is_float_dtype(y):
-            x, y = x.round(9), y.round(9)
-        # x == y на nullable-типах даёт NA, а NA в sum() пропускается — расхождение
-        # молча теряется. Тот же класс, что баг frames_equal(None, None) в оракуле.
-        same = (x.isna() & y.isna()) | x.eq(y).fillna(False)
-        k = int((~same.astype(bool)).sum())
+            xv = x.to_numpy(dtype="float64", na_value=np.nan)
+            yv = y.to_numpy(dtype="float64", na_value=np.nan)
+            same = np.isclose(xv, yv, rtol=FLOAT_RTOL, atol=FLOAT_ATOL, equal_nan=True)
+        else:
+            # x == y на nullable-типах даёт NA, а NA в sum() пропускается — расхождение
+            # молча теряется. Тот же класс, что баг frames_equal(None, None) в оракуле.
+            same = (x.isna() & y.isna()) | x.eq(y).fillna(False)
+        k = int((~np.asarray(same, dtype=bool)).sum())
         if k:
             cols[c] = k
     return bool(cols), cols, sum(cols.values())
@@ -160,6 +177,35 @@ def seeds_for(label_parquets, tcol, n):
         return list(v)
     idx = np.linspace(0, len(v) - 1, n).round().astype(int)
     return list(v[idx])
+
+
+def removed_rows(db_dir, ds, cutoff):
+    """Сколько строк усечение вообще убирает на этом моменте.
+
+    Нужно вот зачем. Момент, на котором за отсечкой не лежит ни одной строки, —
+    это тот же отрицательный контроль: сравниваются две одинаковые базы, и ЧИСТО
+    получается по построению, а не потому, что код корректен. Такой момент не
+    несёт информации, и вердикт по нему надо помечать отдельно, иначе он попадёт
+    в статистику как подтверждение корректности.
+
+    Случай не гипотетический: `seeds_for` раскладывает моменты равномерно и
+    последний берёт всегда, а у rel-event последний момент меток совпадает с
+    концом базы. Три файла rel-event получали на нём ЧИСТО при том, что на
+    предыдущем моменте течёт половина строк."""
+    con = duckdb.connect()
+    con.execute("SET TimeZone='UTC'")
+    total = 0
+    for f in sorted(glob.glob(_os.path.join(db_dir, "*.parquet"))):
+        t = _os.path.basename(f)[:-8]
+        tcol = TIME_COLS[ds].get(t)
+        if tcol is None:
+            continue
+        src = "read_parquet('" + f.replace("'", "''") + "')"
+        total += con.execute(
+            f'SELECT COUNT(*) FROM {src} WHERE "{tcol}" > TIMESTAMP \'{ts(cutoff)}\''
+        ).fetchone()[0]
+    con.close()
+    return int(total)
 
 
 def db_tmax(db_dir, ds):
@@ -208,8 +254,14 @@ def check_file(path, n_seeds=3, verbose=True):
             net = {c: k for c, k in cols.items() if c not in set(nondet)}
             if phase == "determinism":
                 v = "NONDETERMINISTIC" if cols else "DETERMINISTIC"
+            elif net:
+                v = "LEAK"
+            elif phase == "main" and removed_rows(db_dir, ds, cutoff) == 0:
+                # за отсечкой нет ни одной строки: это отрицательный контроль,
+                # а не проверка. ЧИСТО здесь ничего не доказывает
+                v = "VACUOUS"
             else:
-                v = "LEAK" if net else "CLEAN"
+                v = "CLEAN"
             # cells считаются ТОЛЬКО по колонкам, попавшим в вердикт: расхождения
             # в недетерминированных колонках к утечке отношения не имеют
             r = dict(file=name, dataset=ds, task=task, seed=ts(seed), phase=phase,
