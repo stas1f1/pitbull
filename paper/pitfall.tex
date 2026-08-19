@@ -310,15 +310,21 @@ regimes.
 \texttt{bytedance-seed/seed-2.0-code}, for a
 Python function computing features for task C, giving the schema and the seed-time column
 and nothing else; the words ``leakage'' and ``point-in-time'' do not appear. Verdicts
-come from the checker; five flagged programs were read by hand and confirmed. Under the neutral prompt $53.3\%$ and $35.3\%$ of the programs
-that ran were incorrect (30 and 17 of 40 ran; failures to execute are excluded, which may
-bias the rate either way). The failure mode is the
+come from the checker; five flagged programs were read by hand and confirmed. Of $233$
+generations under the neutral prompt, $132$ run at all, and $61$ of those are incorrect:
+$61.7\%$ [$50.8$, $71.6$] for the first model and $21.6\%$ [$12.5$, $34.6$] for the
+second. Roughly half the generations crash on the data before producing a feature table,
+mostly on column names that do not exist, and that share is stable as the sample grows,
+so it is a property of the models rather than of our sampling. Conditioning on the
+programs that run therefore needs a bound: if every crashed generation were correct the
+pooled rate is $26.2\%$, if every one were incorrect it is $69.5\%$, and the measured
+$46.2\%$ sits between. The failure mode is the
 same in every case examined: the model filters the entity's own history by the primary
 event timestamp and ignores the later timestamp of the joined entity. We make no claim
 about models in general. Task construction is decisive: on a second task with a single
 seed time per entity and no secondary time axis, both models produce $0$ violations in 24
 and 28 running programs. Prompt guards help partially but not to zero: a reminder and then a
-per-aggregate requirement cut the pooled rate from $46.8\%$ to $14.6\%$.
+per-aggregate requirement cut the pooled rate from $46.2\%$ to $14.6\%$.
 
 \subsection{Cost of a violation is task-dependent}
 The same defect in the same code costs $3.09$ to $5.26$ points on task B, while on task

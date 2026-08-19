@@ -186,8 +186,9 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
   <div class="two" style="margin-top:10px">
     <div class="card"><div class="note">code written by language models</div>
       <p class="small" style="margin:10px 0 0">We asked two code models, <code>deepseek-v4-flash</code> and <code>bytedance-seed/seed-2.0-code</code>, for feature functions for one of our tasks, giving them the schema and nothing about leakage.
-      Of the generations that ran, <b>53%</b> from the first and <b>35%</b> from the second peeked, every case we examined in the same way as <code>average_review</code> above:
-      filter the orders by order date, ignore the review date. Warning the model in the prompt lowered the pooled rate from 47% to 41% to 15%, never to zero;
+      Of the generations that ran, <b>62%</b> from the first and <b>22%</b> from the second peeked, every case we examined in the same way as <code>average_review</code> above:
+      filter the orders by order date, ignore the review date. About half the generations crash before producing a table at all, so the honest read is a range: between 26% and 70% of everything the two models wrote.
+      Warning the model in the prompt lowered the pooled rate from 46% to 41% to 15%, never to zero;
       on a task with no second time axis both models produced zero violations. When an agent writes features nobody reads, this is the failure mode to expect.</p></div>
     <div class="card"><div class="note">published expert SQL</div>
       <p class="small" style="margin:10px 0 0">We also executed the hand-written feature SQL of the RelBench user study against its public databases.

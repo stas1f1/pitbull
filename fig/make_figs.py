@@ -24,9 +24,12 @@ axes[0].set_ylabel("AUC inflation, pp"); axes[0].legend(frameon=False, fontsize=
 fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig2_delta.pdf"); fig.savefig(_ROOT + "/fig/fig2_delta.png", dpi=220)
 
 # ── Рис. 3: дозозависимость ──────────────────────────────────────────────────
-DOSE = {"deepseek-v4-flash":            [(53.3, 36.1, 69.8), (48.0, 30.0, 66.5), (19.2, 8.5, 37.9)],
-        "bytedance-seed/seed-2.0-code": [(35.3, 17.3, 58.7), (22.2, 6.3, 54.7), (6.7, 1.2, 29.8)],
-        "both pooled":                  [(46.8, 33.3, 60.8), (41.2, 26.4, 57.8), (14.6, 6.9, 28.4)]}
+# Доли и интервалы Уилсона среди ЗАПУСТИВШИХСЯ программ; знаменатели и границы
+# без допущений — в prestudy/p3_out/llm_generated_ran_violating.csv.
+# G0 пересчитан на утроенной выборке (233 генерации, 132 запуска), G1 и G2 прежние.
+DOSE = {"deepseek-v4-flash":            [(61.7, 50.8, 71.6), (48.0, 30.0, 66.5), (19.2, 8.5, 37.9)],
+        "bytedance-seed/seed-2.0-code": [(21.6, 12.5, 34.6), (22.2, 6.3, 54.7), (6.7, 1.2, 29.8)],
+        "both pooled":                  [(46.2, 37.9, 54.7), (41.2, 26.4, 57.8), (14.6, 6.9, 28.4)]}
 fig, ax = plt.subplots(figsize=(3.45, 2.5))
 x = np.arange(3); w = .26
 for k, (name, vals) in enumerate(DOSE.items()):
@@ -38,7 +41,7 @@ for k, (name, vals) in enumerate(DOSE.items()):
 ax.set_xticks(x); ax.set_xticklabels(["G0\nneutral", "G1\nmention", "G2\nper-aggregate"], fontsize=7.5)
 ax.set_ylabel("programs violating PIT, %"); ax.set_ylim(0, 75)
 ax.legend(frameon=False, fontsize=6.8, loc="upper right")
-ax.set_title("Wilson 95% CI over programs that ran (n = 9–30 per cell)", fontsize=7.2, color=GREY, pad=4)
+ax.set_title("Wilson 95% CI over programs that ran (n = 9–81 per cell)", fontsize=7.2, color=GREY, pad=4)
 fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig3_dose.pdf"); fig.savefig(_ROOT + "/fig/fig3_dose.png", dpi=220)
 
 # ── Рис. 4: проверка ошибается в обе стороны ─────────────────────────────────
