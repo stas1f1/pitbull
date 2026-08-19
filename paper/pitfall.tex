@@ -132,8 +132,8 @@ The same primitive localises the leak. The database has a finite set of
 column $c$ becoming known after $t$. Truncating one channel at a time identifies the
 channels on which the output changes and the output columns each affects (seven runs in
 our database); masking exactly those channels and re-checking confirms that no other
-channel contributes. The mask is a diagnostic, not a fix, since any program passes on a
-pre-truncated input.
+channel contributes. Masking diagnoses; it does not repair, since any program passes on
+a pre-truncated input.
 
 \emph{Why check rather than always truncate?} With one seed time per call, truncating
 the input is itself a fix; but in training tables each row has its own seed time, so
@@ -165,17 +165,22 @@ false, and no reading of the checked code would have found it.
 
 \section{Evidence}
 
-\textbf{Setup.} Two databases. Olist~\cite{olist}, a public Brazilian marketplace
-database: 7 tables, 112{,}650 order line items, 2016--2018; three tasks in
-RelBench~\cite{relbench} form (seller activity, A; seller review quality, B;
-product demand, C), three seed times in 2018, 90-day horizon, 750--870 sellers and
-4{,}500--5{,}800 products per seed time.
-\mbox{rel-f1}~\cite{relbench}, the Ergast Formula~1 database: 9 tables, 26{,}080
-driver-race results, 1950--2023; task \emph{will this driver retire from the next race},
-seed time at midnight of race day, three test seasons of 1{,}042--1{,}203 rows, ten
-preceding seasons for training. One LightGBM configuration with a fixed seed everywhere.
-Intervals are paired percentile bootstraps of the AUC \emph{difference} on the same test
-rows (2{,}000 resamples).
+\textbf{Olist}~\cite{olist} is a public Brazilian marketplace database of 7 tables and
+$112{,}650$ order line items. We use three tasks in RelBench~\cite{relbench} form, seller
+activity (A), seller review quality (B) and product demand (C), at three seed times in
+2018 with a 90-day horizon. Two columns arrive after the row they belong to, the review
+score and the delivery outcome.
+
+\textbf{\mbox{rel-f1}}~\cite{relbench} is the Ergast Formula~1 database, 9 tables and
+$26{,}080$ driver-race results over 1950--2023, with the task \emph{will this driver
+retire from the next race} and the seed time at midnight of race day. Race stamps change
+granularity inside this one database, which lets a boundary error be priced twice under
+otherwise identical conditions (Section~\ref{sec:granularity}).
+
+\textbf{Model and intervals.} One LightGBM configuration with a fixed seed is used
+everywhere, so differences come from the features alone. Intervals are paired percentile
+bootstraps of the AUC \emph{difference} on the same test rows ($2{,}000$ resamples),
+removing the noise the two conditions share.
 
 \begin{figure}[t]\centering
 \includegraphics[width=.96\columnwidth]{fig/fig2_delta.pdf}
@@ -240,24 +245,25 @@ with no cutoff (the violation the audit did find), where the checker names eight
 columns against the audit's two; on \texttt{stack/post-votes}, which the audit cleared,
 the output depends on $2{,}730$ \texttt{users} rows dated after the posts they own. The
 file that does not execute reads \texttt{posts.AcceptedAnswerId}, a mutable field with no
-history that RelBench itself deletes with the comment \emph{remove time leakage columns}
---- an independent party reaching our Section~II-B verdict on the same column.
+history that RelBench itself deletes with the comment \emph{remove time leakage
+columns}, an independent party reaching our Section~II-B verdict on the same column.
 
 \textbf{How much a clean verdict is worth.} The three \mbox{rel-event} files join
 \texttt{users} without a cutoff, so six demographic columns read rows of users who
 registered after the seed time. Over five seed times per file the oracle returns 12 leak
 verdicts and 3 clean, and all three clean verdicts fall on one date. Counting directly,
 the violation reaches $87.5\%$ of label rows and is present at 23 of the task's 24 seed
-times --- absent at exactly one, $2012\mbox{-}11\mbox{-}29$, RelBench's own test seed
-time. Training labels are contaminated almost everywhere and test labels are clean: no
+times. It is absent at exactly one, $2012\mbox{-}11\mbox{-}29$, which is RelBench's own
+test seed time. Training labels are contaminated almost everywhere and test labels are clean: no
 inflated test score, but train and test built by different rules. The date is not a
 coincidence. The latest registration among \emph{labelled} users is
 $2012\mbox{-}11\mbox{-}28$, because a user joining in the last two weeks has no future
 window left in the data and receives no label; the last seed time therefore lies past
 every labelled registration. Data beyond a seed time decreases monotonically in that seed
 time, which makes a benchmark's test seed the least sensitive one available for this
-check --- the validation seed already retains only 52 affected rows. Seed times must come
-from the middle of the training split, not from the split the benchmark scores on.
+check; the validation seed already retains only 52 affected rows. Seed times must come
+from the middle of the training split rather than from the split the benchmark scores
+on.
 
 \textbf{An agent-written corpus.} The 37 distinct queries an LLM agent wrote across 32
 trials on \texttt{stack/user-engagement} had only a static scan: 5 candidates, no
@@ -266,8 +272,8 @@ and 32 are clean; 2 build a Cartesian product of three histories per user and ex
 $300$\,s budget, 1 names a table that does not exist. Both violations are the same
 missing cutoff on the join to \texttt{users}, giving account ages down to $-2{,}021$ days
 on 57 of $25{,}233$ label rows; the query carrying it appears in 31 of the 32 trials.
-Against execution the scan errs both ways: 3 of its 5 candidates are false and 2 real,
-correcting our own earlier reading of that corpus.
+Against execution the scan errs both ways: 3 of its 5 candidates are false and 2 real.
+This corrects our own earlier reading of that corpus.
 
 \subsection{What the industrial probe reports}\label{sec:blind}
 Across every run, no value of the probe separates leaking runs from clean ones. The
@@ -284,7 +290,8 @@ the executed expert SQL the probe is identical to six significant figures in bot
 regimes.
 
 \subsection{Generated feature code}
-\textbf{We asked two code models} --- \texttt{deepseek-v4-flash} and \texttt{bytedance-seed/seed-2.0-code} --- for a
+\textbf{We asked two code models}, \texttt{deepseek-v4-flash} and
+\texttt{bytedance-seed/seed-2.0-code}, for a
 Python function computing features for task C, giving the schema and the seed-time column
 and nothing else; the words ``leakage'' and ``point-in-time'' do not appear. Verdicts
 come from the checker; five flagged programs were read by hand and confirmed. Under the neutral prompt $53.3\%$ and $35.3\%$ of the programs
@@ -338,7 +345,7 @@ Mutable fields kept without history cannot be checked by execution. \emph{(iii) 
 availability map.} A wrong timestamp means the wrong thing is checked, and the map is a
 modelling decision: RelBench's \texttt{time\_col} places the \mbox{rel-f1} race calendar
 after the seed time, though a practitioner may consider it published in advance; the
-check decides code against a declared relation, not against intent. \emph{(iv) Scope.} Two databases, four tasks; the expert-SQL corpus
+check decides code against a declared relation rather than against intent. \emph{(iv) Scope.} Two databases, four tasks; the expert-SQL corpus
 executes on 14 of 15 files, and audit and checker disagree on 7 of those 14, always with
 the checker finding more. \emph{(v) Determinism.} Columns that differ between identical reruns carry no
 verdict. \emph{(vi) Final-program metric undercounts:} validation-driven selection can discard
