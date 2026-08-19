@@ -88,7 +88,7 @@ a row timestamp $\mathrm{time}(r)$; a column $c$ of $r$ may in addition have its
 availability timestamp $\mathrm{avail}_c(r)\ge\mathrm{time}(r)$. Write $D|_t$ for the
 database in which rows with $\mathrm{time}(r)>t$ are removed and values with
 $\mathrm{avail}_c(r)>t$ are replaced by NULL. Then $\varphi$ is \emph{point-in-time
-correct at $t$} iff
+correct at $t$} if and only if
 \begin{equation}
 \varphi(D,t)=\varphi(D|_t,t).
 \label{eq:pit}
@@ -198,10 +198,10 @@ $+27.0$ (A) and $+18.0$ (B).}
 
 \subsection{The cost of a shifted cutoff}
 $I(\delta)$ increases monotonically over $\delta\in[0,90]$ days on Olist tasks A and B
-at all three seed times (Fig.~\ref{fig:dose}). On task C, controlling the cutoff
+at all three seed times (Fig.~\ref{fig:dose}). On task C, where the cutoff is controlled
 separately for the entity's own history and for aggregates reached through a join to the
-seller, leaking only through the join costs $+3.0$ [$+2.2$, $+3.9$] to $+5.1$
-[$+4.0$, $+6.1$] points and is invisible to the probe (Section~\ref{sec:blind}).
+seller, leaking only through the join costs $+3.0$ to $+5.1$ points and is invisible to
+the probe (Section~\ref{sec:blind}).
 
 \subsection{When an off-by-one costs everything and when it costs nothing}
 \label{sec:granularity}
@@ -209,121 +209,100 @@ Whether a boundary error matters is decided by the timestamps, not by the code, 
 \mbox{rel-f1} settles this inside one database: race stamps carry no time of day before
 2005 and carry the start time from 2005 on. An outcome is available strictly after the
 race starts, so the inclusive cutoff \mbox{$\le t$} admits the race being predicted in
-the first era and nothing in the second. The checker separates the eras before any model
-is fitted, in $0.02$\,s per seed time: $65$--$68$ diverging cells on 1996, 2000
-and 2004, clean on 2010 and 2015. The same one-character error then costs $-0.45$,
-$+2.45$ and $+3.27$ [$+1.20$, $+5.50$] points on the three day-stamped cells and exactly
-$0.00$ on all three second-stamped cells. On Olist, where events carry seconds, this
+the first era and nothing in the second. In $0.02$\,s per seed time, before any model is
+fitted, the checker diverges on every day-stamped seed time and is clean on every
+second-stamped one. The same one-character error then costs $-0.45$,
+$+2.45$ and $+3.27$ points on the day-stamped cells and exactly $0.00$ on all three
+second-stamped cells. On Olist, where events carry seconds, this
 error also cost $0.00$; without \mbox{rel-f1} we could not have told whether that
 generalises.
 
-Leaking only through the join path replicates at $+0.72$ to $+1.49$ points while the
-probe moves by at most $0.009$; removing the cutoff altogether costs $-1.9$ to $-7.0$
-points here, because aggregating a driver's whole career destroys the recency structure
-the task relies on.
+Leaking only through the join path replicates here at $+0.72$ to $+1.49$ points.
+Removing the cutoff altogether costs $-1.9$ to $-7.0$ points, because aggregating a
+driver's whole career destroys the recency structure the task relies on.
 
 
 \subsection{Sources of violation}\label{sec:sources}
 Five sources, none constructed by us; the univariate probe stays below DataRobot's
 warning threshold on every one.
-
 \textbf{A library default.} \texttt{featuretools}~\cite{dfs} 1.31.0 with \texttt{ft.dfs}
 and no cutoff-time table, the form of its introductory example~\cite{ftdocs}, supports
-cutoff times but does not indicate that they are needed: 11 columns and $19{,}334$ cells
-diverge at all three seed times, worth $14.8$--$16.3$ points.
+cutoff times but does not indicate that they are needed: 11 columns diverge at all three
+seed times, worth $14.8$--$16.3$ points.
 
-\textbf{Our own reference code.} It filtered history by order time and took all columns
-of the admitted rows, including the two that carry their own later timestamps; the
-checker flagged exactly the four review and delivery aggregates ($\sim\!2{,}000$ cells)
-and no other column, worth $0.2$ points on task A and $3.1$--$5.3$ on task B.
+\textbf{Our own reference code.} It filtered history by order time and took all columns of
+the admitted rows, including the two carrying their own later timestamps; the checker
+flagged exactly the four review and delivery aggregates, worth $0.2$ points on task A and
+$3.1$--$5.3$ on task B.
 
-\textbf{Published expert SQL, executed.} In the hand-written feature SQL of the RelBench
-user study~\cite{relbench} (15 files, 172 joins) a manual audit had found two violations,
-with six of eight scanner candidates false. Each file is a \textsc{dbt}/Jinja template
-over DuckDB; the availability relation comes from RelBench's own \texttt{time\_col}
-declarations and truncation is a predicate pushed into the Parquet scan. Fourteen files
-execute; \textbf{8 diverge} and 6 are clean at every seed time, the latter under
-truncations removing $2.7\!\times\!10^{5}$ to $2.1\!\times\!10^{7}$ rows. The three
-\mbox{rel-f1} files share one cause, a block reading \texttt{races} rows dated after the
-seed time; on \texttt{stack/user-badge} it is a global frequency over \texttt{badges}
-with no cutoff (the violation the audit did find), where the checker names nine affected
-columns against the audit's two; on \texttt{stack/post-votes}, which the audit cleared,
-the output depends on $2{,}730$ \texttt{users} rows dated after the posts they own. The
-file that does not execute reads \texttt{posts.AcceptedAnswerId}, a mutable field with no
-history that RelBench itself deletes with the comment \emph{remove time leakage
-columns}, an independent party reaching our Section~II-B verdict on the same column.
+\textbf{Published expert SQL, executed.} In the hand-written feature SQL of the RelBench user
+study~\cite{relbench}, 15 files over 172 joins, a manual audit had found two violations
+and six of eight scanner candidates false. Each file is a \textsc{dbt}/Jinja template
+over DuckDB, run unchanged. Fourteen files execute; \textbf{8 diverge} and 6 are clean at every seed time, the latter under
+truncations removing up to $2\!\times\!10^{7}$ rows. The three \mbox{rel-f1} files read
+\texttt{races} rows dated after the seed time; \texttt{stack/user-badge} takes a global
+frequency over \texttt{badges} with no cutoff, the violation the audit did find, where
+the checker names nine affected columns against its two; on \texttt{stack/post-votes}, which the audit cleared,
+the output depends on $2{,}730$ \texttt{users} rows dated after the posts they own. The file that
+does not execute reads \texttt{posts.AcceptedAnswerId}, a mutable field with no history
+that RelBench itself deletes with the comment \emph{remove time leakage columns}: an
+independent party reaching our Section~II-B verdict on the same column.
 
 \textbf{How much a clean verdict is worth.} The three \mbox{rel-event} files join
 \texttt{users} without a cutoff, so six demographic columns read rows of users who
-registered after the seed time. Over five seed times per file the oracle returns 12 leak
-verdicts and 3 clean, and all three clean verdicts fall on one date. Counting directly,
-the violation reaches $87.5\%$ of label rows and is present at 23 of the task's 24 seed
-times. It is absent at exactly one, $2012\mbox{-}11\mbox{-}29$, which is RelBench's own
-test seed time. Training labels are contaminated almost everywhere and test labels are clean: no
-inflated test score, but train and test built by different rules. The date is not a
-coincidence. The latest registration among \emph{labelled} users is
-$2012\mbox{-}11\mbox{-}28$, because a user joining in the last two weeks has no future
-window left in the data and receives no label; the last seed time therefore lies past
-every labelled registration. Data beyond a seed time decreases monotonically in that seed
-time, which makes a benchmark's test seed the least sensitive one available for this
-check; the validation seed already retains only 52 affected rows. Seed times must come
-from the middle of the training split rather than from the split the benchmark scores
-on.
+registered after the seed time. The violation reaches $87.5\%$ of label rows and is
+present at 23 of the task's 24 seed times; it is absent at exactly one, which is
+RelBench's own test seed time. Training labels are contaminated almost everywhere and
+test labels are clean, so train and test are built by different rules. The date is not a
+coincidence: joining in the last two weeks leaves no future window and earns no label, so
+no labelled user registers in the final fortnight. Data beyond a seed time only shrinks
+as that seed time grows, which makes a benchmark's test seed the least sensitive one
+available. Seed times must come
+from the middle of the training split rather than from the split the benchmark scores on.
 
 \textbf{An agent-written corpus.} The 37 distinct queries an LLM agent wrote across 32
 trials on \texttt{stack/user-engagement} had only a static scan: 5 candidates, no
-executed verdict. Running them takes $19$ minutes: 34 execute, of which \textbf{2 diverge}
-and 32 are clean; 2 build a Cartesian product of three histories per user and exceed a
-$300$\,s budget, 1 names a table that does not exist. Both violations are the same
-missing cutoff on the join to \texttt{users}, giving account ages down to $-2{,}021$ days
-on 57 of $25{,}233$ label rows; the query carrying it appears in 31 of the 32 trials.
-Against execution the scan errs both ways: 3 of its 5 candidates are false and 2 real.
-This corrects our own earlier reading of that corpus.
+executed verdict. Running them takes $19$ minutes: 34 execute, of which \textbf{2 diverge}; the rest
+exceed a $300$\,s budget or name a table that does not exist. Both violations are the
+same missing cutoff on the join to \texttt{users}, giving account ages down to
+$-2{,}021$ days on 57 of $25{,}233$ label rows, and the query carrying it appears in 31
+of the 32 trials. Against execution the scan errs both ways: 3 of its 5 candidates are
+false and 2 real, correcting our own earlier reading of that corpus.
 
 \begin{figure}[t]\centering
 \includegraphics[width=\columnwidth]{fig/fig4_blind.pdf}
 \caption{The univariate probe, the highest AUC any single feature reaches ($x$), against
-the true inflation of
-the model ($y$), one point per run. It fails in both directions: the shaded region is
-silent at every deployed threshold yet contains violations worth up to $17$ points, while
-correct pipelines, at inflation $0$ by construction, extend past H2O's notification line.
-No vertical cut separates leaking runs from clean ones.}
+the true inflation of the model ($y$), one point per run. The shaded region is silent at
+every deployed threshold yet holds violations worth up to $17$ points, while correct
+pipelines, at inflation $0$ by construction, extend past H2O's notification line.}
 \label{fig:blind}
 \end{figure}
 
 \subsection{What the univariate probe reports}\label{sec:blind}
-No value of the probe separates leaking runs from clean ones (Fig.~\ref{fig:blind}). The
-clearest case is leakage through a join: the
-probe returns $0.714/0.722/0.717$ under a correct cutoff and the same values under
-leakage, while the model gains $3.0$--$5.1$ points. On task B no condition, including the
-complete absence of a cutoff ($+18.0$ points), reaches the DataRobot threshold, and only
-shifts of two months or more reach H2O's $0.80$; the sensitive threshold errs the other
-way, as the correct task-A pipeline scores $0.837/0.861/0.833$, above $0.80$ at every
+No value of the probe separates leaking runs from clean ones (Fig.~\ref{fig:blind}).
+Leakage through a join moves it not at all: the probe returns the same $0.71$ with and
+without the leak while the model gains $3.0$ to $5.1$ points. On task B nothing reaches
+DataRobot's threshold, not even the complete absence of a cutoff, worth $+18.0$ points.
+H2O's lower threshold errs the other way, firing on the correct task-A pipeline at every
 seed time, because recency is a legitimate predictor of churn. Both errors replicate on
-\mbox{rel-f1} (maximum probe $0.820$, movement at most $0.015$ between correct and
-violating, H2O firing on the correct pipeline as often as on the violating one), and on
-the executed expert SQL the probe is identical to six significant figures in both
-regimes.
+\mbox{rel-f1}, where the probe moves by at most $0.015$, and on the executed expert SQL,
+where it is identical to six significant figures in both regimes.
 
 \subsection{Generated feature code}
 \textbf{We asked two code models}, \texttt{deepseek-v4-flash} and
-\texttt{bytedance-seed/seed-2.0-code}, for a
-Python function computing features for task C, giving the schema and the seed-time column
-and nothing else; the words ``leakage'' and ``point-in-time'' do not appear. Verdicts
-come from the checker; five flagged programs were read by hand and confirmed. Of $233$
+\texttt{bytedance-seed/seed-2.0-code}, for a Python function computing features for task
+C, giving the schema and the seed-time column and nothing else; the words ``leakage'' and
+``point-in-time'' do not appear. Verdicts come from the checker, with five flagged
+programs read by hand and confirmed. Of $233$
 generations under the neutral prompt, $132$ run at all, and $61$ of those are incorrect:
-$61.7\%$ [$50.8$, $71.6$] for the first model and $21.6\%$ [$12.5$, $34.6$] for the
-second. Roughly half the generations crash on the data before producing a feature table,
-mostly on column names that do not exist, and that share is stable as the sample grows,
-so it is a property of the models rather than of our sampling. Conditioning on the
-programs that run therefore needs a bound: if every crashed generation were correct the
-pooled rate is $26.2\%$, if every one were incorrect it is $69.5\%$, and the measured
-$46.2\%$ sits between. The failure mode is the
+$62\%$ for the first model and $22\%$ for the second. Roughly half the generations crash
+before producing a feature table, a share that does not fall as the sample grows, so the
+rate among those that run needs a bound: over all $233$ generations it lies between
+$26\%$ and $70\%$. The failure mode is the
 same in every case examined: the model filters the entity's own history by the primary
-event timestamp and ignores the later timestamp of the joined entity. We make no claim
-about models in general. Task construction is decisive: on a second task with a single
-seed time per entity and no secondary time axis, both models produce $0$ violations in 24
-and 28 running programs. Prompt guards help partially but not to zero: a reminder and then a
+event timestamp and ignores the later timestamp of the joined entity. We make no claim about
+models in general. Task construction is decisive: on a second task with one seed time per
+entity and no secondary time axis, both models produce $0$ violations. Prompt guards help partially but not to zero: a reminder and then a
 per-aggregate requirement cut the pooled rate from $46.2\%$ to $14.6\%$.
 
 \subsection{Cost of a violation is task-dependent}
@@ -333,14 +312,12 @@ model-generated programs the median inflation is $0.11$ points. The expert SQL m
 same point on code we did not write: rebuilding its features on a per-row truncated
 database and refitting the same model, the violations cost $-0.33$ on
 \texttt{f1/driver-dnf}, $+0.95$ on \texttt{f1/driver-top3} and $-0.02$ on
-\texttt{stack/user-badge}, the last over more than $2\!\times\!10^{5}$ diverging cells in
-$255{,}360$ test rows. Neither the fact of a violation nor its size predicts its cost, so correctness has to be
-tested separately from the quality metric.
+\texttt{stack/user-badge}, the last despite more than $2\!\times\!10^{5}$ diverging cells. Neither the fact of a violation nor its size predicts its cost.
 
 \section{Demonstration}
 
 \begin{figure}[t]\centering
-\includegraphics[width=.50\columnwidth]{fig/fig5_demo.png}
+\includegraphics[width=.44\columnwidth]{fig/fig5_demo.png}
 \caption{The demonstration page: program and seed-date selectors, and the verdict with a
 plain-language summary. Below it, not shown, the outputs side by side.}
 \label{fig:demo}
@@ -350,10 +327,8 @@ The demonstration is a self-contained interactive page built from live runs
 (Fig.~\ref{fig:demo}) plus a console runner, \texttt{python3 demo.py}. A visitor drags
 the seed date over one seller's real orders and watches a na\"ive ``average review''
 feature change; compares programs side by side; plays ``fool the checker''; moves the
-cutoff and the probe threshold; and submits a feature function of their own. The console
-scenes replay Section~\ref{sec:sources} live, from \texttt{ft.dfs} without cutoffs
-(\textsc{violation} in $7$\,s, both probe thresholds silent) through the repaired
-program (\textsc{clean}) to per-channel localisation of each diverging column.
+cutoff and the probe threshold; and submits a feature function of their own. The console scenes replay Section~\ref{sec:sources} live, ending in per-channel
+localisation of each diverging column.
 
 \section{Limitations}
 
@@ -390,6 +365,7 @@ unedited. Code, data and all reported numbers:
 \url{https://github.com/stas1f1/pitfall}.
 
 \begin{thebibliography}{99}\scriptsize
+\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}\setlength{\parsep}{0pt}
 \bibitem{kaufman2011} S.~Kaufman, S.~Rosset, and C.~Perlich, ``Leakage in data mining: formulation, detection, and avoidance,'' in \emph{Proc. KDD}, 2011.
 \bibitem{kapoor2023} S.~Kapoor and A.~Narayanan, ``Leakage and the reproducibility crisis in machine-learning-based science,'' \emph{Patterns}, vol.~4, no.~9, 2023.
 \bibitem{yang2022} C.~Yang \emph{et al.}, ``Data leakage in notebooks,'' in \emph{Proc. ASE}, 2022.

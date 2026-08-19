@@ -65,44 +65,56 @@ ok_y = [0.0] * len(ok_x)
 
 # Широкий формат на обе колонки: по горизонтали умещаются четыре порога с
 # подписями, легенда уходит вправо и не наезжает на точки.
-# Одна колонка. Легенда вынесена полосой над осями в два столбца: внутри поля
-# она накрывала самую плотную группу точек слева.
-fig, ax = plt.subplots(figsize=(3.5, 2.95))
+# Рисунок остаётся на одну колонку, но холст сделан широким намеренно: в вёрстке
+# он ужимается до ширины колонки, и вместе с шириной пропорционально падает
+# высота. При прежних 3.5x2.95 дюйма он съедал почти три дюйма по вертикали;
+# при 5.4x2.3 после сжатия остаётся около полутора.
+#
+# K=1 намеренно: шрифты и маркеры уменьшаются ВМЕСТЕ с холстом, как в рис. 1
+# (тот сделан 7 дюймов и ставится в 0.86 колонки). Попытка компенсировать сжатие
+# множителем K=1.58 давала на бумаге кегль 8 pt против 3.3 pt у рис. 1 — подписи
+# выглядели непропорционально крупными и загромождали поле.
+K = 1.0
+fig, ax = plt.subplots(figsize=(5.4, 2.30))
 ax.axvspan(.55, .80, color="#fbdcd8", zorder=0)         # молчит при любом развёрнутом пороге
 ax.axvspan(.80, .925, color="#fdecea", zorder=0)        # DataRobot молчит, H2O уведомляет
-ax.axvline(.925, color=RED, lw=.9, ls="--"); ax.axvline(.9875, color=RED, lw=.7, ls=":")
-ax.axvline(.80, color=GREY, lw=.8, ls="--"); ax.axvline(.95, color=GREY, lw=.7, ls=":")
-ax.axhline(0, color="#9aa4c0", lw=.6, zorder=1)
+ax.axvline(.925, color=RED, lw=.9*K, ls="--"); ax.axvline(.9875, color=RED, lw=.7*K, ls=":")
+ax.axvline(.80, color=GREY, lw=.8*K, ls="--"); ax.axvline(.95, color=GREY, lw=.7*K, ls=":")
+ax.axhline(0, color="#9aa4c0", lw=.6*K, zorder=1)
 
-ax.scatter(M.макс_AUC_признака, M.завышение, s=11, color=GREY, alpha=.7, lw=0,
+ax.scatter(M.макс_AUC_признака, M.завышение, s=11*K*K, color=GREY, alpha=.7, lw=0,
            label="cutoff shift, Olist", zorder=3)
 viol = F1[F1["mode"].isin(["naive", "join_only", "both60"])]
-ax.scatter(viol.probe, viol.inflation_pp, s=11, color="#5c6a99", alpha=.85, lw=0,
+ax.scatter(viol.probe, viol.inflation_pp, s=11*K*K, color="#5c6a99", alpha=.85, lw=0,
            label="violations, rel-f1", zorder=3)
 c2 = C[C.режим == "утечка только через соединение"]
-ax.scatter(c2.макс_AUC_признака, c2.завышение, s=34, marker="D", color=RED, lw=0,
+ax.scatter(c2.макс_AUC_признака, c2.завышение, s=34*K*K, marker="D", color=RED, lw=0,
            label="join-path leak", zorder=5)
 ftl = ft[ft.режим == "туториал"]
-ax.scatter(ftl.макс_AUC_признака, ftl.завышение, s=52, marker="*", color=NAVY, lw=0,
+ax.scatter(ftl.макс_AUC_признака, ftl.завышение, s=52*K*K, marker="*", color=NAVY, lw=0,
            label="featuretools", zorder=5)
-ax.scatter([.623, .687, .657], [3.09, 5.26, 3.78], s=28, marker="^", color=AMB, lw=0,
+ax.scatter([.623, .687, .657], [3.09, 5.26, 3.78], s=28*K*K, marker="^", color=AMB, lw=0,
            label="our reference code", zorder=5)
-ax.scatter(ok_x, ok_y, s=30, marker="o", facecolors="none", edgecolors=GRN, linewidths=1.0,
-           label="correct code", zorder=6)
+ax.scatter(ok_x, ok_y, s=30*K*K, marker="o", facecolors="none", edgecolors=GRN,
+           linewidths=1.0*K, label="correct code", zorder=6)
 
 for x_, txt, col in [(.792, "H2O .80", GREY), (.917, "DataRobot .925", RED),
                      (.942, "H2O .95", GREY), (.9795, "DataRobot .99", RED)]:
-    ax.text(x_, 26.5, txt, fontsize=6.0, color=col, rotation=90, va="top", ha="right")
-ax.text(.565, 27.0, "probe SILENT here", fontsize=7.4, color=RED, va="top", weight="bold")
-ax.annotate("correct code, inflation 0:\nH2O warns right of .80", xy=(.848, -.5),
-            xytext=(.86, -6.2), fontsize=6.6, color=GRN, weight="bold", ha="center",
-            va="center", arrowprops=dict(arrowstyle="->", color=GRN, lw=.9))
-ax.set_xlabel("univariate probe: best single-feature AUC")
-ax.set_ylabel("true AUC inflation, pp")
-ax.set_xlim(.55, 1.02); ax.set_ylim(-8.5, 28)
-ax.legend(frameon=False, fontsize=6.1, ncol=3, loc="lower left", borderaxespad=0,
+    ax.text(x_, 26.6, txt, fontsize=5.8*K, color=col, rotation=90, va="top", ha="right")
+ax.text(.565, 27.0, "probe SILENT here", fontsize=7.4*K, color=RED, va="top", weight="bold")
+ax.annotate("correct code, inflation 0: H2O warns right of .80", xy=(.845, -1.2),
+            xytext=(.845, -10.5), fontsize=6.4*K, color=GRN, weight="bold", ha="center",
+            va="center", arrowprops=dict(arrowstyle="->", color=GRN, lw=.9*K))
+ax.set_xlabel("univariate probe: best single-feature AUC", fontsize=8*K)
+ax.set_ylabel("true AUC inflation, pp", fontsize=8*K)
+ax.tick_params(labelsize=7.5*K, width=.7*K, length=3.5*K)
+ax.set_xlim(.55, 1.02); ax.set_ylim(-13.5, 28)
+ax.set_yticks([0, 10, 20])
+ax.legend(frameon=False, fontsize=6.1*K, ncol=3, loc="lower left", borderaxespad=0,
           bbox_to_anchor=(-.02, 1.0, 1.04, .14), mode="expand",
           handletextpad=.25, columnspacing=.8, borderpad=0)
+for sp in ax.spines.values():
+    sp.set_linewidth(.7*K)
 fig.tight_layout(); fig.savefig(_ROOT + "/fig/fig4_blind.pdf"); fig.savefig(_ROOT + "/fig/fig4_blind.png", dpi=220)
 # Статья собирается из paper/fig, а не из fig в корне. Держим копии
 # синхронными: рассинхрон уже один раз стоил нам вёрстки со старым рисунком.
