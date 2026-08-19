@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Did the feature peek? — PITFALL</title>
+<title>Did the feature peek? · PITFALL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -54,9 +54,9 @@ pre .hl{background:var(--red2);display:inline-block;width:100%}
 .card{background:#f7f8f4;border:1px solid var(--rule);padding:18px 22px;box-shadow:0 1px 0 var(--rule),0 12px 24px -18px rgba(20,33,61,.35)}
 .stamp{display:inline-block;font:700 14px var(--mono);letter-spacing:.2em;padding:6px 12px;border:2px solid currentColor;border-radius:3px;transform:rotate(-3deg);text-transform:uppercase;background:rgba(255,255,255,.6)}
 .stamp.leak{color:var(--red)} .stamp.clean{color:var(--green)}
-.seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--ink);margin:6px 0 16px}
-.seg button{font:13px var(--mono);letter-spacing:.06em;padding:9px 14px;background:transparent;border:0;border-right:1.5px solid var(--ink);color:var(--ink);cursor:pointer}
-.seg button:last-child{border-right:0} .seg button.on{background:var(--ink);color:var(--paper)}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 16px}
+.seg button{font:13px var(--mono);letter-spacing:.06em;padding:9px 14px;background:transparent;border:1.5px solid var(--ink);color:var(--ink);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper)}
 .seg button:hover:not(.on){background:rgba(0,0,0,.06)}
 table{border-collapse:collapse;width:100%;font:14px var(--mono)}
 th{font-weight:500;text-align:left;color:var(--mute);border-bottom:1px solid var(--ink);padding:6px 8px;letter-spacing:.04em}
@@ -101,21 +101,23 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 
 <header class="hero wrap" id="top">
   <h1>Did the feature <em>peek</em>?</h1>
-  <p class="dek">A two-run test that catches machine-learning features built from information that did not exist yet —
-  and four places we found them: a popular library's defaults, our own code, expert SQL, and code written by language models.</p>
+  <p class="dek">A two-run test that catches machine-learning features built from information that did not exist yet,
+  and the four places we found them: a popular library's defaults, our own code, published expert SQL, and code written by language models.</p>
   <div class="byline">ITMO University · ICDM 2026 demo track · everything on this page is computed from a real marketplace database</div>
   <div class="tldr"><h3>In one breath</h3>
     <p>When you predict something about a customer or a seller <i>as of a date</i>, the features must only use what was known on that date.
     In databases with several tables that rule is easy to break without noticing: a review is attached to an order, but written weeks later.
-    We run the feature code twice — once on the whole database, once on a copy with everything after the date physically removed —
-    and compare. If the numbers differ, the code peeked. No parsing, no guessing.</p></div>
+    We run the feature code twice, once on the whole database and once on a copy with everything after the date physically removed,
+    and compare. If the numbers differ, the code peeked. No parsing, no guessing.
+    Feature code is increasingly written by AutoML libraries and coding agents rather than by a person you can ask,
+    which makes a check that works on the running program, without reading it, the natural gate.</p></div>
   <div class="btns"><a class="btn primary" href="#check">Try the check</a><a class="btn" href="#game">Play “fool the checker”</a><a class="btn" href="../paper/pitfall.pdf">Read the paper</a></div>
 </header>
 
 <!-- 1 ─────────────────────────────────────────────────────────── -->
 <section id="idea"><div class="wrap">
   <h2><span class="secnum">1</span>What “peeking” looks like</h2>
-  <p class="lede">One real seller from the Olist marketplace. Each mark is an order; the star is the review the customer wrote — usually a couple of weeks later.
+  <p class="lede">One real seller from the Olist marketplace. Each mark is an order; the star is the review the customer wrote, usually a couple of weeks later.
   Drag <b>the date</b> and watch what a naïve “average review score” feature would compute.</p>
   <div class="card">
     <div id="tl"></div>
@@ -127,7 +129,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
     </div>
   </div>
   <p style="margin-top:22px">The orders were placed before the date, so they pass a filter like <code>order_date &lt;= date</code>. Their reviews had not been written yet.
-  A feature that averages review scores over “orders so far” quietly includes complaints that arrive later — and the model learns from them.
+  A feature that averages review scores over “orders so far” quietly includes complaints that arrive later, and the model learns from them.
   In this database a review comes a median of <b>10 days</b> after the order (90% within 23, the slowest 147);
   on 1 April 2018 about <b>5%</b> of past orders had a review still to come. Delivery dates behave the same way.</p>
 </div></section>
@@ -135,7 +137,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 <!-- 2 ─────────────────────────────────────────────────────────── -->
 <section id="check"><div class="wrap">
   <h2><span class="secnum">2</span>The check: run it twice</h2>
-  <p class="lede">Take any feature program — a library call, an agent's output, a colleague's script. We do not read it.
+  <p class="lede">Take any feature program: a library call, an agent's output, a colleague's script. We do not read it.
   We run it on the full database, then on a copy where every row and every value dated after the seed date has been deleted, and compare the two outputs.
   Same program, less information, different answer ⇒ it used the future.</p>
   <div class="two">
@@ -148,12 +150,11 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
     <div class="card" id="verdict-card"></div>
   </div>
   <h3>Side by side</h3>
-  <p class="small">A few of the entities, a few of the numbers the program produced. Left value: computed on everything. Right value: computed on the past only.
-  Where they differ, the program peeked.</p>
+  <p class="small" id="diff-note"></p>
   <div style="overflow:auto"><table id="diff-table"></table></div>
   <details style="margin-top:16px"><summary class="note" style="cursor:pointer">show the program's source</summary><pre id="prog-src" style="margin-top:10px"></pre></details>
   <div class="callout" style="margin-top:22px"><b>Why not just always run on the past-only copy?</b> With one seed date per call, that is a fix.
-  But real training tables have a different date on every row, so the program itself has to cut per row — that is what the check verifies.
+  But real training tables have a different date on every row, so the program itself has to cut per row; that is what the check verifies.
   And a program that peeks is a defect you want to know about, not one you want to mask once.</div>
 </div></section>
 
@@ -173,6 +174,18 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
   </div>
   <p class="small" style="margin-top:20px">All eight filter by order date. Three still peek through a value that was not known yet; one peeks through a statistic fitted on the whole table, with no join at all.
   You can also try your own function on the command line: <span class="kbd">python3 demo.py --program try_me.py</span>.</p>
+  <h3>The same trap in the wild</h3>
+  <div class="two" style="margin-top:10px">
+    <div class="card"><div class="note">code written by language models</div>
+      <p class="small" style="margin:10px 0 0">We asked two code models for feature functions for one of our tasks, giving them the schema and nothing about leakage.
+      Of the generations that ran, <b>53%</b> from one model and <b>35%</b> from the other peeked, every case we examined in the same way as <code>average_review</code> above:
+      filter the orders by order date, ignore the review date. Warning the model in the prompt lowered the pooled rate from 47% to 41% to 15%, never to zero;
+      on a task with no second time axis both models produced zero violations. When an agent writes features nobody reads, this is the failure mode to expect.</p></div>
+    <div class="card"><div class="note">published expert SQL</div>
+      <p class="small" style="margin:10px 0 0">We also executed the hand-written feature SQL of the RelBench user study against its public databases.
+      Six of fifteen files ran, and <b>all six diverged</b> at every date tested, through future rows of a race schedule and through frequency tables computed over the whole history.
+      A careful manual audit of the same corpus had found two violations; the check flags all six files it can run, including one the audit had cleared.</p></div>
+  </div>
 </div></section>
 
 <!-- 4 ─────────────────────────────────────────────────────────── -->
@@ -188,8 +201,8 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
     <div id="dose-chart"></div>
   </div>
   <p style="margin-top:22px">The same defect can be cheap or expensive depending on what is being predicted. Our own leaky code (reviews and delivery dates read too early)
-  inflated AUC by <b>3–5 points</b> when the target was review quality, and by <b>0.2 points</b> when the target was seller activity — same code, same leak.
-  You cannot tell the cost from the fact of the leak, which is why correctness has to be tested on its own, not inferred from the score.</p>
+  inflated AUC by <b>3–5 points</b> when the target was review quality, and by <b>0.2 points</b> when the target was seller activity. Same code, same leak, a twenty-fold difference in damage.
+  So the score cannot tell you whether the features peek; the check has to run either way.</p>
 </div></section>
 
 <!-- 5 ─────────────────────────────────────────────────────────── -->
@@ -201,10 +214,12 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
     <div class="two"><div><div class="note">warning threshold: single-feature AUC ≥ <b id="thr-v">0.925</b></div><input type="range" id="thr" min="0.60" max="1.0" step="0.005" value="0.925"></div>
       <div class="note" id="thr-txt"></div></div>
     <div id="blind-chart"></div>
-    <div class="legend"><span style="--c:#9aa1b0">cutoff shifted, tasks A/B</span><span style="--c:#c8501f">leak only through a join</span><span style="--c:#14213d">featuretools without cutoff</span><span style="--c:#4a5d8a">our own code</span></div>
+    <div class="legend"><span style="--c:#157a6e">no shift at all (correct code)</span><span style="--c:#67748e">cutoff shifted, task A</span><span style="--c:#aab1c0">cutoff shifted, task B</span><span style="--c:#c8501f">leak only through a join</span><span style="--c:#14213d">featuretools without cutoff</span><span style="--c:#4a5d8a">our own code</span></div>
   </div>
-  <p style="margin-top:22px">Two things go wrong. Leaks that spread over many aggregate features never make any one of them look suspicious — the featuretools run is inflated by 16 points while its best single feature scores 0.81.
-  And on the churn-like task, the honest strongest feature (“days since last order”) scores 0.83–0.86 on <i>correct</i> code, so a threshold low enough to catch the leaks also flags the clean pipeline. Move the slider: no position separates the two.</p>
+  <p style="margin-top:22px">The two grey bands are the two tasks, and the gap between them is the point. On task B even a two-month shift barely clears 0.8;
+  on task A the honest strongest feature (“days since last order”) scores 0.83–0.86 on <i>correct</i> code (the green dots), because recency genuinely predicts churn.
+  So a threshold low enough to catch B's leaks flags A's clean pipeline. Leaks that spread across many aggregate features are worse still:
+  the featuretools run is inflated by 16 points while its best single feature scores 0.81, and the join-only leak (red) does not move the probe at all. Move the slider: no position separates leaky from clean.</p>
 </div></section>
 
 <!-- 6 ─────────────────────────────────────────────────────────── -->
@@ -214,7 +229,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
   Delete one channel at a time, re-run, and see which output columns move.</p>
   <div class="seg" id="loc-seg"></div>
   <div class="card" id="loc-card"></div>
-  <p class="small" style="margin-top:16px">Deleting exactly the channels found and re-running gives a clean result — which confirms nothing else contributed. It is a diagnosis, not a repair: any program is clean on a pre-cut input.
+  <p class="small" style="margin-top:16px">Deleting exactly the channels found and re-running gives a clean result, which confirms nothing else contributed. This locates the defect; it does not repair it, because any program looks clean on a pre-cut input.
   The repair is in the code (compare the two versions of our reference code in section 2: the fix is two lines).</p>
 </div></section>
 
@@ -222,7 +237,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 <section id="limits"><div class="wrap">
   <h2><span class="secnum">7</span>What it cannot do</h2>
   <div class="two">
-    <div><h3>It proves peeking, not its absence</h3><p class="small">A leak that happens to make no difference on the tested date is not seen on that date. Zero divergence on three dates is evidence, not a certificate.</p>
+    <div><h3>It proves peeking, not its absence</h3><p class="small">A peek that made no difference on the tested date is not seen on that date. Zero divergence on the dates we test makes peeking unlikely but cannot rule it out.</p>
       <h3>Some columns are undecidable</h3><p class="small">A status field that gets overwritten with no history (“cancelled”) has no timestamp for when it changed. The past-only copy looks identical to the full one, so no execution-based test can decide it. We drop such columns rather than call them clean.</p></div>
     <div><h3>It trusts the availability map</h3><p class="small">Somebody has to say which column dates each value: the review is known at <code>review_creation_date</code>, the delivery at <code>delivered_customer_date</code>. If that map is wrong, the check tests the wrong thing. Today the map is a short hand-written declaration.</p>
       <h3>One database, three tasks</h3><p class="small">All numbers come from Olist. The language-model rates are two models on one task with wide intervals. Read them as “this happens”, not as “this is how often”.</p></div>
@@ -230,7 +245,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 </div></section>
 
 <footer><div class="wrap">
-  <p><b>PITFALL</b> — point-in-time correctness of multi-table feature pipelines by differential execution.
+  <p><b>PITFALL</b>: point-in-time correctness of multi-table feature pipelines by differential execution.
   Paper: <a href="../paper/pitfall.pdf">pitfall.pdf</a>. Code and data: <a href="https://github.com/stas1f1/pitfall">github.com/stas1f1/pitfall</a>.
   Everything here is regenerated by <span class="kbd">python3 build_site_data.py && python3 build_site.py</span> from the Olist public dataset (Kaggle, CC BY-NC-SA 4.0): 98,666 orders, 3,095 sellers, 32,951 products, Sept 2016 – Oct 2018.</p>
 </div></footer>
@@ -315,7 +330,7 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
     const mean = a => a.length? a.reduce((s,v)=>s+v,0)/a.length : null;
     const late = past.filter(o=>o.review_ts&&o.review_ts!=='NaT'&&day(o.review_ts)>cur);
     $('#tl-naive').textContent = naive.length? mean(naive).toFixed(2)+' ★' : '—';
-    $('#tl-naive-x').textContent = naive.length? `${past.length} orders so far, ${naive.length} of them with a review in the table — including ${late.length} written after this date` : 'no orders yet';
+    $('#tl-naive-x').textContent = naive.length? `${past.length} orders so far, ${naive.length} of them with a review in the table, including ${late.length} written after this date` : 'no orders yet';
     $('#tl-true').textContent = known.length? mean(known).toFixed(2)+' ★' : (past.length? 'no review yet' : '—');
     $('#tl-true-x').textContent = known.length? `${known.length} review${known.length>1?'s':''} actually written by this date` : '';
     for (const m of marks){ const after = day(m.o.review_ts)>cur; m.star.setAttribute('fill', after? '#c8501f':'#b8860b'); m.star.setAttribute('opacity', after? .9:1); }
@@ -342,31 +357,44 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
     [...ps.children].forEach((b,i)=>b.classList.toggle('on', keys[i]===pk));
     [...ss.children].forEach(b=>b.classList.toggle('on', b.textContent===seed));
     const p = P[pk]; const v = p.verdicts.find(x=>x.seed===seed);
-    const ncols = p.cols.length; const ent = p.entity;
+    const ent = p.entity;
     const total = v.n * (pk.startsWith('ft')? 13 : 16);
     const card = $('#verdict-card'); card.innerHTML='';
     card.append(el('div',{class:'note'}, `${p.title} · ${v.n} ${ent}s · ${v.seconds}s`));
     const st = el('div',{style:'margin:10px 0 14px'}, el('span',{class:'stamp '+(v.leak?'leak':'clean')}, v.leak?'peeked':'clean'));
     card.append(st);
     if (v.leak){
-      card.append(el('p',{style:'margin:0 0 6px'}, `Of the ${pk.startsWith('ft')?13:16} numbers computed per ${ent}, `, el('b',{}, `${v.columns.length}`), ` came out different when the future was removed — in `, el('b',{}, `${v.cells.toLocaleString('en')}`), ` ${ent}-by-number cells. Those numbers depend on things that had not happened yet.`));
+      card.append(el('p',{style:'margin:0 0 6px'}, `Of the ${pk.startsWith('ft')?13:16} numbers computed per ${ent}, `, el('b',{}, `${v.columns.length}`), ` came out different when the future was removed, touching `, el('b',{}, `${v.cells.toLocaleString('en')}`), ` ${ent}-by-number cells. Those numbers depend on things that had not happened yet.`));
       card.append(el('div',{class:'note',style:'margin-top:8px'}, 'changed: ' + v.columns.join(', ')));
     } else {
       card.append(el('p',{style:'margin:0'}, `All ${pk.startsWith('ft')?13:16} numbers for all ${v.n} ${ent}s came out identical with and without the future. Nothing in this program depends on what happened after the date.`));
     }
     const sr = sceneRow(pk, seed);
-    if (sr && sr.row){ const r=sr.row; card.append(el('p',{class:'small',style:'margin:12px 0 0'}, `Model trained on these features: AUC ${r.auc.toFixed(3)}` + (sr.infl? ` — ${sr.infl>0?'+':''}${sr.infl.toFixed(1)} points more than the honest version.` : ' (this is the honest version).') + ` Best single feature: ${r.probe.toFixed(3)} (${r.probe>=0.925?'DataRobot warns':'DataRobot silent'}, ${r.probe>=0.8?'H2O notifies':'H2O silent'}).`)); }
-    // table
+    if (sr && sr.row){ const r=sr.row; card.append(el('p',{class:'small',style:'margin:12px 0 0'}, `Model trained on these features: AUC ${r.auc.toFixed(3)}` + (sr.infl? `, ${sr.infl>0?'+':''}${sr.infl.toFixed(1)} points above the honest version.` : ' (this is the honest version).') + ` Best single feature: ${r.probe.toFixed(3)} (${r.probe>=0.925?'DataRobot warns':'DataRobot silent'}, ${r.probe>=0.8?'H2O notifies':'H2O silent'}).`)); }
+    // table: changed columns first (red headers), review_score_min hidden, unchanged capped so nothing scrolls
     const t = $('#diff-table'); t.innerHTML='';
-    const thead = el('tr',{}, el('th',{}, ent)); p.cols.forEach(c=>thead.append(el('th',{class:'n'}, c))); t.append(thead);
-    // sample only computed at 2018-04-01
+    const same2 = (a,b) => (a==null&&b==null) || (a!=null&&b!=null&&Math.abs(a-b)<1e-9);
+    const isDiff = c => p.sample.some(s=>!same2(s.full[c], s.trunc[c]));
+    const shown = p.cols.filter(c=>c!=='review_score_min');
+    const chg = shown.filter(isDiff), rest = shown.filter(c=>!isDiff(c));
+    const kept = rest.slice(0, Math.max(2, 5-chg.length));
+    const cols = chg.concat(kept), hid = rest.length - kept.length;
+    const note = $('#diff-note');
+    if (chg.length){
+      note.innerHTML = `Each red cell reads <b>full&nbsp;→&nbsp;past-only</b>: the value the program computed on everything, then on the past alone. ` +
+        `The <b style="color:var(--red)">${chg.length} column${chg.length>1?'s':''} in red</b> changed when the future was removed; ` +
+        `${kept.length} unchanged column${kept.length>1?'s follow':' follows'} for contrast${hid>0?`, ${hid} more identical column${hid>1?'s':''} not shown`:''}. Sample computed at seed date 2018-04-01.`;
+    } else {
+      note.innerHTML = `Nothing to highlight: every number this program produced is identical with and without the future, so each cell holds a single value` +
+        `${hid>0?` (${hid} further identical column${hid>1?'s':''} not shown)`:''}. Sample computed at seed date 2018-04-01.`;
+    }
+    const thead = el('tr',{}, el('th',{}, ent)); cols.forEach(c=>thead.append(el('th',{class:'n',style:isDiff(c)?'color:var(--red);font-weight:700':''}, c))); t.append(thead);
     p.sample.forEach(s=>{
       const tr = el('tr',{}, el('td',{}, s.entity+'…'));
-      p.cols.forEach(c=>{ const a=s.full[c], b=s.trunc[c]; const same = (a==null&&b==null) || (a!=null&&b!=null&&Math.abs(a-b)<1e-9);
-        const td = el('td',{class:'n'}); if(same) td.textContent = fmt(a); else { const dg = (fmt(a)===fmt(b))?3:2; td.append(el('span',{}, fmt(a,dg)), el('span',{class:'arrow'},'→'), el('span',{class:'diff'}, fmt(b,dg))); } tr.append(td); });
+      cols.forEach(c=>{ const a=s.full[c], b=s.trunc[c];
+        const td = el('td',{class:'n'}); if(same2(a,b)) td.textContent = fmt(a); else { const dg = (fmt(a)===fmt(b))?3:2; td.append(el('span',{}, fmt(a,dg)), el('span',{class:'arrow'},'→'), el('span',{class:'diff'}, fmt(b,dg))); } tr.append(td); });
       t.append(tr);
     });
-    t.append(el('tr',{}, el('td',{colspan:ncols+1,class:'note'}, 'sample computed at seed date 2018-04-01 · full → past-only, red where they differ')));
     $('#prog-src').textContent = p.source;
   }
   render();
@@ -378,8 +406,8 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
   const why = {order_count:'Orders are dated by their own timestamp; nothing about them changes later.',
     average_review:'The orders are old, but their reviews were written up to weeks later. Filtering by order date lets the later scores in.',
     average_review_known:'Same feature, but it also asks when the review was written. Only reviews that existed on the date are used.',
-    late_share:'“Late” is only known once the parcel arrives — often after the seed date. Before that the honest value is “unknown”, not 0.',
-    price_zscore:'No join, no late column — but the mean and std are taken over the whole table, including orders that come later. A statistic fitted on the future is a peek too.',
+    late_share:'“Late” is only known once the parcel arrives, often after the seed date. Before that the honest value is “unknown”, not 0.',
+    price_zscore:'No join, no late column, but the mean and std are taken over the whole table, including orders that come later. A statistic fitted on the future is a peek too.',
     days_since_last:'Uses only order timestamps up to the date.',
     recent_orders:'A window that ends at the date; order timestamps only.',
     delivered_count:'Whether an order “has a delivery date” depends on when you look. Orders delivered after the seed date count as delivered.'};
@@ -433,15 +461,18 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
   svg.append(svgEl('text',{x:(L+W-R)/2,y:H-6,'font-size':12,'text-anchor':'middle',fill:'#3f4a63'},'best single feature, AUC (what the usual test sees)'));
   svg.append(svgEl('text',{x:14,y:H/2,'font-size':12,'text-anchor':'middle',fill:'#3f4a63',transform:`rotate(-90 14 ${H/2})`},'true inflation of the model, AUC points'));
   const line=svgEl('line',{x1:0,x2:0,y1:T,y2:H-B,stroke:'#c8501f','stroke-width':2,'stroke-dasharray':'6 4'}); svg.append(line);
-  const col={shift:'#9aa1b0',join:'#c8501f',ft:'#14213d',ours:'#4a5d8a'};
+  const colOf = p => (p.kind==='shift' && p.d===0) ? '#157a6e'
+    : p.kind==='shift' ? (p.task==='A' ? '#67748e' : '#aab1c0')
+    : {join:'#c8501f', ft:'#14213d', ours:'#4a5d8a'}[p.kind];
   const tip=el('div',{style:'font:12.5px var(--mono);color:#3f4a63;min-height:20px;margin-top:6px'}, 'hover a dot');
-  pts.forEach(p=>{ const c=svgEl('circle',{cx:x(p.probe),cy:y(p.infl),r:p.kind==='shift'?4.5:7,fill:col[p.kind],opacity:p.kind==='shift'?.75:1,style:'cursor:crosshair'});
-    c.addEventListener('mouseenter',()=>{ tip.textContent = `${{shift:'cutoff shifted',join:'leak through the join only',ft:'featuretools without cutoff',ours:'our own reference code'}[p.kind]} · task ${p.task} · ${p.seed}${p.d!=null?' · δ='+p.d+'d':''} → best single feature ${p.probe.toFixed(3)}, model inflated by ${p.infl.toFixed(1)} points`; });
+  pts.forEach(p=>{ const c=svgEl('circle',{cx:x(p.probe),cy:y(p.infl),r:p.kind==='shift'?4.5:7,fill:colOf(p),opacity:p.kind==='shift'&&p.d!==0?.8:1,style:'cursor:crosshair'});
+    c.addEventListener('mouseenter',()=>{ const kind = p.kind==='shift' ? (p.d===0?'no shift, correct pipeline':'cutoff shifted') : {join:'leak through the join only',ft:'featuretools without cutoff',ours:'our own reference code'}[p.kind];
+      tip.textContent = `${kind} · task ${p.task} · ${p.seed}${p.d?' · δ='+p.d+'d':''} → best single feature ${p.probe.toFixed(3)}, model inflated by ${p.infl.toFixed(1)} points`; });
     svg.append(c); });
   $('#blind-chart').append(svg, tip);
   const upd=()=>{ const t=+$('#thr').value; $('#thr-v').textContent=t.toFixed(3); line.setAttribute('x1',x(t)); line.setAttribute('x2',x(t)); shade.setAttribute('width',Math.max(0,x(t)-L));
     const leaks=pts.filter(p=>p.infl>0.5); const missed=leaks.filter(p=>p.probe<t).length; const clean=pts.filter(p=>p.infl<=0.5); const fa=clean.filter(p=>p.probe>=t).length;
-    $('#thr-txt').innerHTML = `misses <b>${missed}</b> of ${leaks.length} leaky runs · flags <b>${fa}</b> of ${clean.length} clean runs` + (t===0.925?' — DataRobot default':'') + (Math.abs(t-0.8)<1e-9?' — H2O default':''); };
+    $('#thr-txt').innerHTML = `misses <b>${missed}</b> of ${leaks.length} leaky runs · flags <b>${fa}</b> of ${clean.length} clean runs` + (t===0.925?' (DataRobot default)':'') + (Math.abs(t-0.8)<1e-9?' (H2O default)':''); };
   $('#thr').oninput=upd; upd();
 })();
 
@@ -457,7 +488,7 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
       el('td',{}, f? f.columns.slice(0,6).join(', ')+(f.columns.length>6?' …':'') : el('span',{class:'note'},'nothing moves')), el('td',{class:'n'}, f? String(f.cells):'0')); t.append(tr); });
     card.append(t);
     card.append(el('p',{class:'small',style:'margin:14px 0 0'}, k==='seller_v1' ? 'The two review aggregates move only when review scores that were written after the date are hidden; the two delivery aggregates only when the delivery date is hidden. Nothing else in the database matters to this program.' :
-      'Every one of the eleven featuretools columns is fed by order lines that appear after the date. Reviews and orders as tables contribute nothing here — the leak is entirely “future rows”.'));
+      'Every one of the eleven featuretools columns is fed by order lines that appear after the date. Reviews and orders as tables contribute nothing here; the leak is entirely “future rows”.'));
   }
   render();
 })();
