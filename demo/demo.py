@@ -50,7 +50,7 @@ S = {
     proof="a proof, not a suspicion: same inputs, different answer",
     same="output identical on the full and on the truncated database",
     hdr=("seed", "AUC", "correct", "inflation", "probe"), pp="pp",
-    probe="industrial probe «max single-feature AUC»: {a:.3f}  (strongest: {who})",
+    probe="univariate probe «best single-feature AUC»: {a:.3f}  (strongest: {who})",
     thr="DataRobot (Gini Norm 0.85/0.975 = AUC {d0}/{d1}) → {ds};   H2O DAI {h0}/{h1}/{h2} → {hs}",
     s1=("featuretools with default settings",
         "ft.dfs without a cutoff-time table — the form of the library's introductory example"),
@@ -66,7 +66,7 @@ S = {
     loc="localisation {a:.1f} s, re-check {b:.1f} s", cellsn="({n} cells)",
     summary="SUMMARY", shdr=("scene", "checker", "DataRobot / H2O", "inflation"),
     miss="MISSED", caught="caught", ok="correct", fa="FALSE ALARM", patchto="patch → ",
-    tail1="The checker fires where the industrial probe is silent, and stays silent where the code",
+    tail1="The checker fires where the univariate probe is silent, and stays silent where the code",
     tail2="is correct. It parses nothing — it only compares outputs.",
  ),
  "ru": dict(
@@ -125,7 +125,7 @@ def probe_line(a, who):
     print(f"  {S['thr'].format(d0=DATAROBOT[0], d1=DATAROBOT[1], ds=cd + C['b'] + ds.upper() + C['r'], h0=H2O[0], h1=H2O[1], h2=H2O[2], hs=ch + C['b'] + hs.upper() + C['r'])}")
 
 def evaluate(program, db, labeler, train_seeds, test_seeds):
-    """Fixed-model AUC and the industrial probe value at every test seed time."""
+    """Fixed-model AUC and the univariate probe value at every test seed time."""
     out = []
     for ts in test_seeds:
         Xtr, ytr = [], []

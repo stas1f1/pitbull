@@ -74,7 +74,7 @@
 ],
 "cells": 1478,
 "n": 763,
-"seconds": 0.1
+"seconds": 0.11
 },
 {
 "seed": "2018-04-01",
@@ -87,7 +87,7 @@
 ],
 "cells": 2014,
 "n": 852,
-"seconds": 0.13
+"seconds": 0.14
 },
 {
 "seed": "2018-07-01",
@@ -100,7 +100,7 @@
 ],
 "cells": 1618,
 "n": 867,
-"seconds": 0.15
+"seconds": 0.16
 }
 ],
 "source": "def seller_v1(db, seed, sellers):\n    \"\"\"Наш первый эталон. Фильтр по времени ЗАКАЗА, колонки строки берутся целиком.\"\"\"\n    ev = db.tables[\"flat\"]\n    return _seller_feats(ev[ev.ts <= seed], seed, sellers)\n",
@@ -252,7 +252,7 @@
 "columns": [],
 "cells": 0,
 "n": 763,
-"seconds": 0.11
+"seconds": 0.14
 },
 {
 "seed": "2018-04-01",
@@ -268,7 +268,7 @@
 "columns": [],
 "cells": 0,
 "n": 867,
-"seconds": 0.17
+"seconds": 0.18
 }
 ],
 "source": "def seller_v2(db, seed, sellers):\n    \"\"\"Исправленный эталон: у отзыва и факта доставки своя метка доступности.\"\"\"\n    ev = db.tables[\"flat\"].copy()\n    ev.loc[~(ev.review_ts <= seed), \"review_score\"] = np.nan\n    ev.loc[~(ev.deliv_ts <= seed), [\"late\", \"delay_days\"]] = np.nan\n    return _seller_feats(ev[ev.ts <= seed], seed, sellers)\n",
@@ -432,7 +432,7 @@
 ],
 "cells": 19188,
 "n": 4490,
-"seconds": 5.37
+"seconds": 5.85
 },
 {
 "seed": "2018-04-01",
@@ -452,7 +452,7 @@
 ],
 "cells": 19334,
 "n": 5478,
-"seconds": 5.76
+"seconds": 6.03
 },
 {
 "seed": "2018-07-01",
@@ -472,7 +472,7 @@
 ],
 "cells": 13940,
 "n": 5842,
-"seconds": 6.34
+"seconds": 6.83
 }
 ],
 "source": "def ft_tutorial(db, seed, entities):\n    \"\"\"Как в туториале: dfs без cutoff_time. Это поведение библиотеки по умолчанию.\"\"\"\n    import featuretools as ft\n    fm, _ = ft.dfs(entityset=_es(db), target_dataframe_name=\"products\", agg_primitives=AGG,\n                   trans_primitives=[], max_depth=2, verbose=0)\n    return fm.reindex(entities).select_dtypes(include=[np.number])\n",
@@ -585,7 +585,7 @@
 "columns": [],
 "cells": 0,
 "n": 4490,
-"seconds": 4.83
+"seconds": 5.77
 },
 {
 "seed": "2018-04-01",
@@ -593,7 +593,7 @@
 "columns": [],
 "cells": 0,
 "n": 5478,
-"seconds": 5.44
+"seconds": 6.46
 },
 {
 "seed": "2018-07-01",
@@ -601,7 +601,7 @@
 "columns": [],
 "cells": 0,
 "n": 5842,
-"seconds": 6.1
+"seconds": 7.17
 }
 ],
 "source": "def ft_cutoff(db, seed, entities):\n    \"\"\"То же самое плюс таблица моментов предсказания.\"\"\"\n    import featuretools as ft\n    ct = pd.DataFrame({\"product_id\": entities, \"time\": seed})\n    fm, _ = ft.dfs(entityset=_es(db), target_dataframe_name=\"products\", agg_primitives=AGG,\n                   trans_primitives=[], max_depth=2, cutoff_time=ct, cutoff_time_in_index=False,\n                   verbose=0)\n    return fm.reindex(entities).select_dtypes(include=[np.number])\n",
@@ -2102,5 +2102,373 @@
 5.01,
 2.0
 ]
+},
+"beyond": {
+"granularity": [
+{
+"task": "day",
+"seed": "1996-1998",
+"d": -0.45,
+"lo": -3.5,
+"hi": 2.7
+},
+{
+"task": "day",
+"seed": "1999-2001",
+"d": 2.45,
+"lo": 1.04,
+"hi": 3.98
+},
+{
+"task": "day",
+"seed": "2002-2004",
+"d": 3.27,
+"lo": 1.2,
+"hi": 5.5
+},
+{
+"task": "second",
+"seed": "2008-2010",
+"d": 0.0,
+"lo": 0.0,
+"hi": 0.0
+},
+{
+"task": "second",
+"seed": "2013-2015",
+"d": 0.0,
+"lo": 0.0,
+"hi": 0.0
+},
+{
+"task": "second",
+"seed": "2018-2020",
+"d": 0.0,
+"lo": 0.0,
+"hi": 0.0
+}
+],
+"corpus": [
+{
+"file": "amazon_item-churn",
+"db": "amazon",
+"verdict": "CLEAN",
+"seeds": 3,
+"leaks": 0,
+"cols": []
+},
+{
+"file": "amazon_item-ltv",
+"db": "amazon",
+"verdict": "CLEAN",
+"seeds": 3,
+"leaks": 0,
+"cols": []
+},
+{
+"file": "amazon_user-churn",
+"db": "amazon",
+"verdict": "CLEAN",
+"seeds": 3,
+"leaks": 0,
+"cols": []
+},
+{
+"file": "amazon_user-ltv",
+"db": "amazon",
+"verdict": "CLEAN",
+"seeds": 3,
+"leaks": 0,
+"cols": []
+},
+{
+"file": "event_user-attendance",
+"db": "event",
+"verdict": "LEAK",
+"seeds": 5,
+"leaks": 4,
+"cols": [
+"age",
+"days_on_app",
+"gender",
+"locale",
+"location",
+"timezone"
+]
+},
+{
+"file": "event_user-ignore",
+"db": "event",
+"verdict": "LEAK",
+"seeds": 5,
+"leaks": 4,
+"cols": [
+"age",
+"days_on_app",
+"gender",
+"locale",
+"location",
+"timezone"
+]
+},
+{
+"file": "event_user-repeat",
+"db": "event",
+"verdict": "LEAK",
+"seeds": 5,
+"leaks": 4,
+"cols": [
+"age",
+"days_on_app",
+"gender",
+"locale",
+"location",
+"timezone"
+]
+},
+{
+"file": "f1_driver-dnf",
+"db": "f1",
+"verdict": "LEAK",
+"seeds": 3,
+"leaks": 3,
+"cols": [
+"upcoming_1_circuit_id",
+"upcoming_1_round",
+"upcoming_2_circuit_id",
+"upcoming_2_round",
+"upcoming_3_circuit_id",
+"upcoming_3_round"
+]
+},
+{
+"file": "f1_driver-position",
+"db": "f1",
+"verdict": "LEAK",
+"seeds": 3,
+"leaks": 3,
+"cols": [
+"upcoming_1_circuit_id",
+"upcoming_1_round",
+"upcoming_2_circuit_id",
+"upcoming_2_round",
+"upcoming_3_circuit_id",
+"upcoming_3_round"
+]
+},
+{
+"file": "f1_driver-top3",
+"db": "f1",
+"verdict": "LEAK",
+"seeds": 3,
+"leaks": 3,
+"cols": [
+"upcoming_1_circuit_id",
+"upcoming_1_round",
+"upcoming_2_circuit_id",
+"upcoming_2_round",
+"upcoming_3_circuit_id",
+"upcoming_3_round"
+]
+},
+{
+"file": "hm_item-sales",
+"db": "hm",
+"verdict": "CLEAN",
+"seeds": 3,
+"leaks": 0,
+"cols": []
+},
+{
+"file": "hm_user-churn",
+"db": "hm",
+"verdict": "CLEAN",
+"seeds": 3,
+"leaks": 0,
+"cols": []
+},
+{
+"file": "stack_post-votes",
+"db": "stack",
+"verdict": "LEAK",
+"seeds": 3,
+"leaks": 3,
+"cols": [
+"user_age_months"
+]
+},
+{
+"file": "stack_user-badge",
+"db": "stack",
+"verdict": "LEAK",
+"seeds": 3,
+"leaks": 3,
+"cols": [
+"avg_commenter_badge_score_a",
+"avg_commenter_badge_score_q",
+"avg_rarity",
+"badge_momentum",
+"badge_score",
+"last_a_avg_commenter_badge_score"
+]
+},
+{
+"file": "stack_user-engagement",
+"db": "stack",
+"verdict": "ERROR",
+"seeds": 3,
+"leaks": 0,
+"cols": [
+"BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n   "
+]
+}
+],
+"event": [
+{
+"date": "2012-06-20 00:00:00",
+"n": 16,
+"fut": 14,
+"share": 87.5
+},
+{
+"date": "2012-06-27 00:00:00",
+"n": 7,
+"fut": 6,
+"share": 85.7
+},
+{
+"date": "2012-07-04 00:00:00",
+"n": 53,
+"fut": 46,
+"share": 86.8
+},
+{
+"date": "2012-07-11 00:00:00",
+"n": 228,
+"fut": 149,
+"share": 65.4
+},
+{
+"date": "2012-07-18 00:00:00",
+"n": 344,
+"fut": 209,
+"share": 60.8
+},
+{
+"date": "2012-07-25 00:00:00",
+"n": 394,
+"fut": 209,
+"share": 53.0
+},
+{
+"date": "2012-08-01 00:00:00",
+"n": 351,
+"fut": 169,
+"share": 48.1
+},
+{
+"date": "2012-08-08 00:00:00",
+"n": 340,
+"fut": 144,
+"share": 42.4
+},
+{
+"date": "2012-08-15 00:00:00",
+"n": 386,
+"fut": 171,
+"share": 44.3
+},
+{
+"date": "2012-08-22 00:00:00",
+"n": 421,
+"fut": 190,
+"share": 45.1
+},
+{
+"date": "2012-08-29 00:00:00",
+"n": 402,
+"fut": 162,
+"share": 40.3
+},
+{
+"date": "2012-09-05 00:00:00",
+"n": 325,
+"fut": 145,
+"share": 44.6
+},
+{
+"date": "2012-09-12 00:00:00",
+"n": 488,
+"fut": 256,
+"share": 52.5
+},
+{
+"date": "2012-09-19 00:00:00",
+"n": 757,
+"fut": 477,
+"share": 63.0
+},
+{
+"date": "2012-09-26 00:00:00",
+"n": 1060,
+"fut": 442,
+"share": 41.7
+},
+{
+"date": "2012-10-03 00:00:00",
+"n": 1185,
+"fut": 445,
+"share": 37.6
+},
+{
+"date": "2012-10-10 00:00:00",
+"n": 1052,
+"fut": 339,
+"share": 32.2
+},
+{
+"date": "2012-10-17 00:00:00",
+"n": 1167,
+"fut": 396,
+"share": 33.9
+},
+{
+"date": "2012-10-24 00:00:00",
+"n": 2546,
+"fut": 1246,
+"share": 48.9
+},
+{
+"date": "2012-10-31 00:00:00",
+"n": 3108,
+"fut": 1127,
+"share": 36.3
+},
+{
+"date": "2012-11-07 00:00:00",
+"n": 2437,
+"fut": 253,
+"share": 10.4
+},
+{
+"date": "2012-11-14 00:00:00",
+"n": 2172,
+"fut": 138,
+"share": 6.4
+},
+{
+"date": "2012-11-21 00:00:00",
+"n": 2013,
+"fut": 52,
+"share": 2.6
+},
+{
+"date": "2012-11-29 00:00:00",
+"n": 1958,
+"fut": 0,
+"share": 0.0
+}
+],
+"event_test_seed": "2012-11-29 00:00:00"
 }
 }

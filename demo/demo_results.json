@@ -19,7 +19,7 @@
    "SUM(items.price)"
   ],
   "cells": 19334,
-  "seconds": 8.28,
+  "seconds": 7.27,
   "rows": [
    {
     "seed": "2018-01-01",
@@ -62,7 +62,7 @@
    "delay_days_mean"
   ],
   "cells": 2014,
-  "seconds": 0.16,
+  "seconds": 0.14,
   "rows": [
    {
     "seed": "2018-01-01",
@@ -100,7 +100,7 @@
   "verdict": "CLEAN",
   "columns": [],
   "cells": 0,
-  "seconds": 0.19,
+  "seconds": 0.17,
   "rows": [
    {
     "seed": "2018-01-01",
@@ -134,7 +134,7 @@
    {
     "program": "scene 2: our reference code, v1",
     "key": "p2",
-    "seconds": 0.7,
+    "seconds": 0.64,
     "blame": [
      {
       "channel": [
@@ -181,7 +181,7 @@
    {
     "program": "scene 1: featuretools defaults",
     "key": "p1",
-    "seconds": 33.21,
+    "seconds": 32.74,
     "blame": [
      {
       "channel": [

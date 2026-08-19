@@ -208,5 +208,69 @@ out["facts"] = dict(n_items=int(len(ev)), n_orders=int(o.order_id.nunique()), n_
                     review_lag_max=int(lag.max()), deliv_lag_median=int(dl.median()), deliv_lag_max=int(dl.max()),
                     share_review_after=[round(float((( (ev.ts <= pd.Timestamp(s)) & (ev.review_ts > pd.Timestamp(s))).sum() / (ev.ts <= pd.Timestamp(s)).sum()) * 100), 2) for s in SEEDS])
 
+# ── 8. за пределами Olist: вторая база и чужой код ───────────────────────────
+# Читается из готовых выгрузок rel/out, а не считается заново: эти прогоны идут
+# минуты-часы и требуют скачанных баз RelBench. Если выгрузок нет, блок
+# опускается и страница просто не показывает последнюю секцию.
+def _beyond():
+    import glob
+    R = _ROOT + "/rel/out/"
+    b = {}
+
+    # 8.1 одна и та же ошибка на единицу, оценённая дважды внутри одной базы
+    fp = R + "f1_paired.csv"
+    if _os.path.isfile(fp):
+        P = pd.read_csv(fp)
+        P = P[P.contrast == "naive - pit"]
+        b["granularity"] = [dict(task=("day" if "day" in r.task else "second"),
+                                 seed=r.test_seed, d=round(float(r.delta_pp), 2),
+                                 lo=round(float(r.lo_pp), 2), hi=round(float(r.hi_pp), 2))
+                            for r in P.itertuples()]
+
+    # 8.2 корпус опубликованного экспертного SQL: вердикт на файл
+    # порядок по времени записи: если один и тот же файл прогонялся дважды,
+    # берётся последний прогон, а не оба сразу (на этом уже один раз обожглись)
+    files = sorted(glob.glob(R + "sql_oracle_*.csv"), key=_os.path.getmtime)
+    if files:
+        A = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
+        A = A[A.phase == "main"].drop_duplicates(subset=["file", "seed"], keep="last")
+        rows = []
+        for name, g in A.groupby("file"):
+            v = ("ERROR" if (g.verdict == "ERROR").all()
+                 else ("LEAK" if (g.verdict == "LEAK").any() else "CLEAN"))
+            rows.append(dict(file=name.replace(".sql", ""), db=str(g.dataset.iloc[0]),
+                             verdict=v, seeds=int(len(g)),
+                             leaks=int((g.verdict == "LEAK").sum()),
+                             cols=sorted({c for s_ in g["columns"] if isinstance(s_, str)
+                                          for c in s_.split(";")})[:6]))
+        b["corpus"] = sorted(rows, key=lambda r: (r["db"], r["file"]))
+
+    # 8.3 rel-event: доля строк меток, ссылающихся на пользователя из будущего
+    ev_dir = _os.environ.get("PITFALL_EXT_DATA", _ROOT + "/PITFALL_ext_data")
+    up = ev_dir + "/rel-event/db/users.parquet"
+    lab = sorted(glob.glob(ev_dir + "/tasks/rel-event__user-attendance/user-attendance/*.parquet"))
+    if _os.path.isfile(up) and lab:
+        import duckdb
+        con = duckdb.connect(); con.execute("SET TimeZone='UTC'")
+        fl = ", ".join("'" + x + "'" for x in lab)
+        q = con.execute(f'''SELECT e."timestamp"::DATE d, COUNT(*) n,
+              SUM(CASE WHEN u.joinedAt > e."timestamp" THEN 1 ELSE 0 END) fut
+              FROM read_parquet([{fl}], union_by_name=true) e
+              LEFT JOIN read_parquet('{up}') u ON e."user" = u.user_id
+              GROUP BY 1 ORDER BY 1''').fetch_df()
+        con.close()
+        b["event"] = [dict(date=str(r.d), n=int(r.n), fut=int(r.fut),
+                           share=round(100.0 * r.fut / r.n, 1)) for r in q.itertuples()]
+        b["event_test_seed"] = str(q.d.iloc[-1])
+    return b
+
+try:
+    bey = _beyond()
+    if bey:
+        out["beyond"] = bey
+        print("beyond:", {k: (len(v) if hasattr(v, "__len__") else v) for k, v in bey.items()})
+except Exception as e:
+    print("beyond пропущен:", type(e).__name__, e)
+
 json.dump(out, open(_HERE + "/site_data.json", "w"), ensure_ascii=False, indent=0, default=jl)
 print("ok", _HERE + "/site_data.json")

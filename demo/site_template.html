@@ -95,15 +95,15 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 <nav><div class="wrap">
   <a class="brand" href="#top">PITFALL</a>
   <a href="#idea">The idea</a><a href="#check">Try it</a><a href="#game">Fool it</a><a href="#cost">The cost</a>
-  <a href="#blind">The blind spot</a><a href="#where">Where it leaks</a><a href="#limits">Limits</a>
+  <a href="#blind">The blind spot</a><a href="#where">Where it leaks</a><a href="#beyond">Beyond Olist</a><a href="#limits">Limits</a>
   <a class="paper" href="../paper/pitfall.pdf">Paper</a>
 </div></nav>
 
 <header class="hero wrap" id="top">
   <h1>Did the feature <em>peek</em>?</h1>
   <p class="dek">A two-run test that catches machine-learning features built from information that did not exist yet,
-  and the four places we found them: a popular library's defaults, our own code, published expert SQL, and code written by language models.</p>
-  <div class="byline">ITMO University · ICDM 2026 demo track · everything on this page is computed from a real marketplace database</div>
+  and the five places we found them: a popular library's defaults, our own code, published expert SQL, code written by language models, and SQL written by an autonomous agent.</p>
+  <div class="byline">ITMO University · ICDM 2026 demo track · every number on this page is computed from real public databases, none of it mocked up</div>
   <div class="tldr"><h3>In one breath</h3>
     <p>When you predict something about a customer or a seller <i>as of a date</i>, the features must only use what was known on that date.
     In databases with several tables that rule is easy to break without noticing: a review is attached to an order, but written weeks later.
@@ -183,8 +183,8 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
       on a task with no second time axis both models produced zero violations. When an agent writes features nobody reads, this is the failure mode to expect.</p></div>
     <div class="card"><div class="note">published expert SQL</div>
       <p class="small" style="margin:10px 0 0">We also executed the hand-written feature SQL of the RelBench user study against its public databases.
-      Six of fifteen files ran, and <b>all six diverged</b> at every date tested, through future rows of a race schedule and through frequency tables computed over the whole history.
-      A careful manual audit of the same corpus had found two violations; the check flags all six files it can run, including one the audit had cleared.</p></div>
+      Fourteen of fifteen files run; <b>eight diverge</b>, through future rows of a race schedule, through frequency tables computed over the whole history, and through joins to people who had not signed up yet.
+      A careful manual audit of the same corpus had found two violations, and had cleared two of the files the check flags. Section 7 has every verdict.</p></div>
   </div>
 </div></section>
 
@@ -234,20 +234,58 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 </div></section>
 
 <!-- 7 ─────────────────────────────────────────────────────────── -->
+<section id="beyond"><div class="wrap">
+  <h2><span class="secnum">7</span>Does this hold beyond Olist?</h2>
+  <p class="lede">Everything above is one database and code we wrote ourselves, which is the weakest possible evidence.
+  So we ran the same check, unchanged, against five more public databases and against SQL nobody on this project wrote:
+  the hand-written feature code released with the RelBench benchmark, by its own authors, for its own tasks.
+  Each file gets one verdict. Nothing here is a mock-up.</p>
+
+  <div class="card">
+    <div class="note">published expert SQL — 15 files, 5 databases, hover a file</div>
+    <div id="corpus-strip"></div>
+    <div class="note" id="corpus-tip" style="margin-top:10px">hover a file</div>
+  </div>
+
+  <p style="margin-top:22px">Six files come back clean, and that is not an absence of evidence: on those runs the past-only copy dropped
+  between 270 thousand and 21 million rows and not one output cell moved. Eight diverge. One cannot be run at all, and it is the most interesting of the fifteen:
+  it reads a column that the benchmark's own authors deleted from the published database, with the comment <span class="kbd">remove time leakage columns</span>.
+  That column is exactly the undecidable kind from section 8 — a field that gets overwritten with no record of when. Three parties reached the same conclusion about it independently.</p>
+
+  <h3 style="margin-top:30px">A clean verdict is only as strong as the date you tested</h3>
+  <p>The three <span class="kbd">rel-event</span> files join a users table without a cutoff, so the demographic columns can describe people who had not signed up yet.
+  Below is every prediction date in that task, and the share of rows whose user registered <i>after</i> the date.</p>
+  <div class="card">
+    <div id="event-chart"></div>
+    <div class="note" id="event-tip" style="margin-top:6px">hover a bar</div>
+  </div>
+  <p style="margin-top:18px">The defect is present on 23 of the 24 dates, on some of them for half the rows. It is absent on exactly one — and that one is the date the benchmark uses for its test set.
+  Test on that date alone and the file looks clean. This is why the check proves peeking rather than its absence, and why dates should be drawn from the middle of the training period rather than from the date the score is reported on.</p>
+
+  <h3 style="margin-top:30px">The same one-character mistake, priced twice</h3>
+  <p>A second database, Formula&nbsp;1 race results, settles a question Olist could not. Races before 2005 are stamped with the day only; from 2005 on they carry the start time.
+  So the same off-by-one — writing “on or before the date” where “strictly before” was meant — lets the race being predicted into its own features in the first era and nothing at all in the second.</p>
+  <div class="card"><div id="gran-chart"></div></div>
+  <p class="small" style="margin-top:12px">Same code, same task, same database, one character. Whether it costs anything is decided by the timestamps, not by the code — which is why it has to be tested rather than reasoned about.</p>
+</div></section>
+
+<!-- 8 ─────────────────────────────────────────────────────────── -->
 <section id="limits"><div class="wrap">
-  <h2><span class="secnum">7</span>What it cannot do</h2>
+  <h2><span class="secnum">8</span>What it cannot do</h2>
   <div class="two">
     <div><h3>It proves peeking, not its absence</h3><p class="small">A peek that made no difference on the tested date is not seen on that date. Zero divergence on the dates we test makes peeking unlikely but cannot rule it out.</p>
       <h3>Some columns are undecidable</h3><p class="small">A status field that gets overwritten with no history (“cancelled”) has no timestamp for when it changed. The past-only copy looks identical to the full one, so no execution-based test can decide it. We drop such columns rather than call them clean.</p></div>
     <div><h3>It trusts the availability map</h3><p class="small">Somebody has to say which column dates each value: the review is known at <code>review_creation_date</code>, the delivery at <code>delivered_customer_date</code>. If that map is wrong, the check tests the wrong thing. Today the map is a short hand-written declaration.</p>
-      <h3>One database, three tasks</h3><p class="small">All numbers come from Olist. The language-model rates are two models on one task with wide intervals. Read them as “this happens”, not as “this is how often”.</p></div>
+      <h3>Narrow where it counts</h3><p class="small">Costs in AUC come from two databases and four tasks; the verdicts in section 7 cover five more databases but carry no cost measurement. The language-model rates are two models on one task with wide intervals. Read them as “this happens”, not as “this is how often”.</p></div>
   </div>
 </div></section>
 
 <footer><div class="wrap">
   <p><b>PITFALL</b>: point-in-time correctness of multi-table feature pipelines by differential execution.
   Paper: <a href="../paper/pitfall.pdf">pitfall.pdf</a>. Code and data: <a href="https://github.com/stas1f1/pitfall">github.com/stas1f1/pitfall</a>.
-  Everything here is regenerated by <span class="kbd">python3 build_site_data.py && python3 build_site.py</span> from the Olist public dataset (Kaggle, CC BY-NC-SA 4.0): {{n_orders}} orders, {{n_sellers}} sellers, {{n_products}} products, Sept 2016 – Oct 2018.</p>
+  Everything here is regenerated by <span class="kbd">python3 build_site_data.py && python3 build_site.py</span>.
+  Sections 1–6 use the Olist public dataset (Kaggle, CC BY-NC-SA 4.0): {{n_orders}} orders, {{n_sellers}} sellers, {{n_products}} products, Sept 2016 – Oct 2018.
+  Section 7 uses the rel-f1, rel-stack, rel-event, rel-hm and rel-amazon databases and the expert SQL released with RelBench.</p>
 </div></footer>
 
 <script>
@@ -260,7 +298,10 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
 
 /* ── receipt strips ─────────────────────────────────────────── */
 (function strips(){
-  const box = $('#strips'); const W = document.documentElement.clientWidth, H = 5200;
+  const box = $('#strips'); const W = document.documentElement.clientWidth;
+  // высота страницы, а не константа: с добавлением секции 7 страница выросла
+  // и полоски переставали доходить до низа
+  const H = Math.max(5200, document.documentElement.scrollHeight);
   const ev = D.timeline.orders; const T = D.timeline.t;
   const rows = [];
   for (const o of ev){
@@ -491,6 +532,88 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
       'Every one of the eleven featuretools columns is fed by order lines that appear after the date. Reviews and orders as tables contribute nothing here; the leak is entirely “future rows”.'));
   }
   render();
+})();
+
+/* ── 7. за пределами Olist ──────────────────────────────────── */
+(function beyond(){
+  const B = D.beyond;
+  if(!B){ const sec=$('#beyond'); if(sec) sec.remove(); return; }
+
+  /* 7a. полоса вердиктов по корпусу чужого SQL */
+  if(B.corpus){
+    const wrap=el('div',{style:'display:flex;flex-wrap:wrap;gap:6px'});
+    const tip=()=>$('#corpus-tip');
+    const col={LEAK:'#c8501f',CLEAN:'#157a6e',ERROR:'#7c8496'};
+    const word={LEAK:'peeks',CLEAN:'clean',ERROR:'cannot run'};
+    B.corpus.forEach(r=>{
+      const chip=el('span',{style:`font:12px var(--mono);padding:5px 9px;border-radius:4px;cursor:crosshair;`
+        +`color:#fff;background:${col[r.verdict]}`}, r.file);
+      chip.addEventListener('mouseenter',()=>{
+        tip().innerHTML = r.verdict==='ERROR'
+          ? `<b>${r.file}</b> — cannot run: it reads a column the published database does not contain`
+          : `<b>${r.file}</b> — ${word[r.verdict]} on ${r.leaks} of ${r.seeds} dates tested`
+            + (r.cols.length?` · columns that move: ${r.cols.slice(0,4).join(', ')}${r.cols.length>4?' …':''}`:'');
+      });
+      wrap.append(chip);
+    });
+    const c=$('#corpus-strip'); c.append(wrap);
+    const k=v=>B.corpus.filter(r=>r.verdict===v).length;
+    c.append(el('div',{class:'note',style:'margin-top:10px'},
+      `${k('LEAK')} peek · ${k('CLEAN')} clean · ${k('ERROR')} cannot run`));
+  }
+
+  /* 7b. rel-event: доля строк, ссылающихся на пользователя из будущего */
+  if(B.event){
+    const rows=B.event, W=900,H=250,L=46,R=14,T=18,Bo=52;
+    const mx=Math.max(...rows.map(r=>r.share));
+    const y=v=>T+(1-v/mx)*(H-T-Bo);
+    const bw=(W-L-R)/rows.length;
+    const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+    [0,10,20,30,40,50,60,70,80,90].filter(v=>v<=mx).forEach(v=>{
+      svg.append(svgEl('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:'#dfe2da'}));
+      svg.append(svgEl('text',{x:L-8,y:y(v)+4,'font-size':11,'text-anchor':'end',fill:'#7c8496'},v+'%'));});
+    const tip=()=>$('#event-tip');
+    rows.forEach((r,i)=>{
+      const last=i===rows.length-1;
+      const b=svgEl('rect',{x:L+i*bw+1.5,y:y(r.share),width:bw-3,height:Math.max(1,y(0)-y(r.share)),
+        fill:last?'#157a6e':'#c8501f',opacity:last?1:.82,style:'cursor:crosshair'});
+      b.addEventListener('mouseenter',()=>{ tip().innerHTML =
+        `<b>${r.date.slice(0,10)}</b> — ${r.fut} of ${r.n} rows (${r.share}%) name a user who signed up later`
+        + (last?' · <b>this is the benchmark\u2019s test date</b>':''); });
+      svg.append(b);
+      if(i%4===0||last) svg.append(svgEl('text',{x:L+i*bw+bw/2,y:H-Bo+16,'font-size':10,
+        'text-anchor':'end',fill:last?'#157a6e':'#7c8496',
+        transform:`rotate(-40 ${L+i*bw+bw/2} ${H-Bo+16})`}, r.date.slice(5,10)));
+    });
+    svg.append(svgEl('text',{x:14,y:H/2,'font-size':11.5,'text-anchor':'middle',fill:'#3f4a63',
+      transform:`rotate(-90 14 ${H/2})`},'rows naming a future user'));
+    const lx=L+(rows.length-1)*bw+bw/2;
+    svg.append(svgEl('text',{x:lx-8,y:y(mx*0.55),'font-size':11.5,'text-anchor':'end',fill:'#157a6e',
+      'font-weight':'600'},'test date: 0%'));
+    $('#event-chart').append(svg);
+  }
+
+  /* 7c. одна и та же ошибка на единицу при двух гранулярностях */
+  if(B.granularity){
+    const g=B.granularity, W=900,H=210,L=196,R=90,T=16,Bo=34;
+    const lo=Math.min(0,...g.map(r=>r.lo)), hi=Math.max(...g.map(r=>r.hi),1);
+    const x=v=>L+(v-lo)/(hi-lo)*(W-L-R);
+    const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+    const rh=(H-T-Bo)/g.length;
+    svg.append(svgEl('line',{x1:x(0),x2:x(0),y1:T,y2:H-Bo,stroke:'#3f4a63','stroke-dasharray':'4 4'}));
+    g.forEach((r,i)=>{
+      const cy=T+i*rh+rh/2, c=r.task==='day'?'#c8501f':'#157a6e';
+      svg.append(svgEl('text',{x:L-12,y:cy+4,'font-size':11.5,'text-anchor':'end',fill:'#3f4a63'},
+        `${r.seed} · ${r.task==='day'?'day only':'day + time'}`));
+      svg.append(svgEl('line',{x1:x(r.lo),x2:x(r.hi),y1:cy,y2:cy,stroke:c,'stroke-width':2.5}));
+      svg.append(svgEl('circle',{cx:x(r.d),cy:cy,r:5,fill:c}));
+      svg.append(svgEl('text',{x:W-R+8,y:cy+4,'font-size':11.5,fill:c,'font-weight':'600'},
+        (r.d>0?'+':'')+r.d.toFixed(2)+' pts'));
+    });
+    svg.append(svgEl('text',{x:(L+W-R)/2,y:H-8,'font-size':11.5,'text-anchor':'middle',fill:'#3f4a63'},
+      'what the one-character mistake costs, AUC points (95% interval)'));
+    $('#gran-chart').append(svg);
+  }
 })();
 </script>
 </body>
