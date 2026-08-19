@@ -253,7 +253,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 <script>
 const D = /*DATA*/{}/*END*/;
 const $ = s => document.querySelector(s);
-const fmt = (v, d=2) => v==null ? '—' : (Number.isInteger(v) ? String(v) : Number(v).toFixed(d));
+const fmt = (v, d=2) => v==null ? '·' : (Number.isInteger(v) ? String(v) : Number(v).toFixed(d));
 const el = (tag, attrs={}, ...kids) => { const e = document.createElementNS(tag==='svg'||attrs.ns ? 'http://www.w3.org/2000/svg' : 'http://www.w3.org/1999/xhtml', tag);
   for (const [k,v] of Object.entries(attrs)) if(k!=='ns') e.setAttribute(k, v); for (const k of kids) e.append(k); return e; };
 const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
@@ -329,9 +329,9 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
     const known = past.filter(o=>o.score!=null && day(o.review_ts)<=cur).map(o=>o.score);
     const mean = a => a.length? a.reduce((s,v)=>s+v,0)/a.length : null;
     const late = past.filter(o=>o.review_ts&&o.review_ts!=='NaT'&&day(o.review_ts)>cur);
-    $('#tl-naive').textContent = naive.length? mean(naive).toFixed(2)+' ★' : '—';
+    $('#tl-naive').textContent = naive.length? mean(naive).toFixed(2)+' ★' : '·';
     $('#tl-naive-x').textContent = naive.length? `${past.length} orders so far, ${naive.length} of them with a review in the table, including ${late.length} written after this date` : 'no orders yet';
-    $('#tl-true').textContent = known.length? mean(known).toFixed(2)+' ★' : (past.length? 'no review yet' : '—');
+    $('#tl-true').textContent = known.length? mean(known).toFixed(2)+' ★' : (past.length? 'no review yet' : '·');
     $('#tl-true-x').textContent = known.length? `${known.length} review${known.length>1?'s':''} actually written by this date` : '';
     for (const m of marks){ const after = day(m.o.review_ts)>cur; m.star.setAttribute('fill', after? '#c8501f':'#b8860b'); m.star.setAttribute('opacity', after? .9:1); }
   };

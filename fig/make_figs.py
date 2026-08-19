@@ -60,7 +60,7 @@ ftl = ft[ft.режим == "туториал"]
 ax.scatter(ftl.макс_AUC_признака, ftl.завышение, s=52, marker="*", color=NAVY, lw=0,
            label="featuretools defaults", zorder=5)
 ax.scatter([.623, .687, .657], [3.09, 5.26, 3.78], s=34, marker="^", color=AMB, lw=0,
-           label="our own expert code", zorder=5)
+           label="our reference code", zorder=5)
 ax.text(.931, .2, "DataRobot warn (Gini .85 = AUC .925)", fontsize=5.6, color=RED, rotation=90, va="bottom")
 ax.text(.993, .2, "DataRobot drop", fontsize=5.6, color=RED, rotation=90, va="bottom")
 ax.text(.787, .2, "H2O notify .80", fontsize=5.8, color=GREY, rotation=90, va="bottom")
