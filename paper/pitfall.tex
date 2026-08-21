@@ -93,7 +93,7 @@ asking a language model directly reaches $0.19$ precision at $0.52$ recall~\cite
 \node[mute,anchor=south,inner sep=1pt] at (2.8,0.22) {no review};
 \node[ink,anchor=north west,inner sep=1pt,align=left] at (0.0,-0.4)
   {$\blacksquare$ order \quad \textcolor{amber}{$\bigstar$} review known at $t$ \quad \textcolor{rust}{$\bigstar$} review written after $t$\\
-   \textbf{program:} keep orders with order date $\le t$ and average their review scores;\\ the review date is never checked};
+   \textbf{program:} joins reviews to orders, keeps orders with order date $\le t$,\\ builds the feature ``average review''; the review date is never checked};
 \node[draw=ink,thick,fill=white,align=left,anchor=north west,inner sep=4pt,text width=3.55cm] (r1) at (0,-1.55)
   {\textbf{run 1: full database}\\ $(4+5+\textcolor{rust}{2}+\textcolor{rust}{1}+\textcolor{rust}{5})/5 = \textbf{3.40}$\\ \textcolor{rust}{three reviews unknown at $t$}};
 \node[draw=ink,thick,fill=white,align=left,anchor=north east,inner sep=4pt,text width=3.55cm] (r2) at (8.6,-1.55)
@@ -131,8 +131,7 @@ correct at $t$} if and only if
 \end{equation}
 In the code the boundary is a \emph{cutoff}; a shift $\delta\ge 0$ means the program
 reads up to $t+\delta$. $I(\delta)$ is the AUC of a \emph{fixed} learner on features
-computed with cutoff $t+\delta$ minus its AUC at $\delta=0$ (swapping the learner alone
-can move AUC by $11.5$ points~\cite{relagent}).
+computed with cutoff $t+\delta$ minus its AUC at $\delta=0$.
 
 \subsection{Availability relation and channels}
 Equation~(\ref{eq:pit}) generalises by replacing the time predicate with an
@@ -147,9 +146,6 @@ database is then identical to the full one and no execution-based check can deci
 (we exclude \texttt{order\_status} throughout). The class is easy to under-count: a
 negative control revealed a second instance, the \texttt{late} flag of never-delivered
 orders.
-
-\emph{Why univariate probes miss this.} A leak spread over many aggregates is
-invisible to any single-feature statistic while a multivariate model still uses it.
 
 \subsection{Differential execution, guarantee, localisation}
 The check follows from~(\ref{eq:pit}): run $\varphi$ twice and compare:
@@ -221,9 +217,9 @@ fixed model gains $5.3$ points.
 aggregates move only when review scores written after the date are hidden, two delivery
 aggregates only when the delivery date is hidden; nothing else in the database matters
 to this program. The tool locates; the repair is two lines, shown as ``our code, fixed'',
-which is clean. For visitors who ask, the page also holds the cost curve of a shifted
-cutoff, the expert-SQL verdicts file by file and the \mbox{rel-event} and \mbox{rel-f1}
-charts of Section~\ref{sec:evidence}.
+which is clean. The page also holds the cost curve of a shifted cutoff, the expert-SQL
+verdicts file by file and the \mbox{rel-event} and \mbox{rel-f1} charts of
+Section~\ref{sec:evidence}.
 
 \section{Data and Setup}
 
@@ -414,7 +410,9 @@ wrong timestamp means the wrong thing is checked, and the map is a modelling dec
 the check decides code against the declared relation, and whether the relation matches
 intent is a separate question. \emph{(iv) Scope.} Cost is measured on
 two databases and four tasks; the corpus verdicts span five more databases but carry no
-cost. \emph{(v) Determinism.} Columns that differ between identical
+cost. We measure how much a violation inflates the offline estimate (train and test both
+leaking against both correct); the further loss from training on leaking features and
+serving on correct ones, where the future does not yet exist, is not measured here. \emph{(v) Determinism.} Columns that differ between identical
 reruns carry no verdict. \emph{(vi) Final-program counts undercount.} An agent that
 selects trials by validation score can discard a leaking intermediate trial (observed
 once).
@@ -445,7 +443,6 @@ reported numbers:
 \bibitem{datarobot} DataRobot documentation, ``Data quality assessment: target leakage,'' docs.datarobot.com, 2026.
 \bibitem{h2o} H2O.ai, Driverless AI 1.11 User Guide, ``Data leakage and shift detection,'' docs.h2o.ai, 2026.
 \bibitem{relbench} J.~Robinson \emph{et al.}, ``RelBench: a benchmark for deep learning on relational databases,'' \emph{NeurIPS D\&B}, 2024.
-\bibitem{relagent} ``RelAgent: agentic feature engineering for relational data,'' arXiv:2605.07840, 2026.
 \bibitem{dfs} J.~M.~Kanter and K.~Veeramachaneni, ``Deep feature synthesis,'' in \emph{Proc. DSAA}, 2015.
 \bibitem{ftdocs} Featuretools 1.31 documentation, ``Handling time,'' featuretools.alteryx.com, 2026.
 \bibitem{autogluon} N.~Erickson \emph{et al.}, ``AutoGluon-Tabular,'' arXiv:2003.06505, 2020.
