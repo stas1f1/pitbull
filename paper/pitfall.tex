@@ -405,8 +405,7 @@ correctness has to be tested separately from the score.
 \section{Limitations}
 
 \emph{(i) One-sided.} The check proves violation and cannot prove correctness, and only
-with respect to the observed database, the chosen mask and the seed times tested; the \mbox{rel-event}
-case shows that gap is not hypothetical. \emph{(ii) Undecidable columns.} Mutable fields
+with respect to the observed database, the chosen mask and the seed times tested. \emph{(ii) Undecidable columns.} Mutable fields
 kept without history cannot be checked by execution. \emph{(iii) The availability map.} A
 wrong timestamp means the wrong thing is checked, and the map is a modelling decision;
 the check decides code against the declared relation, and whether the relation matches
