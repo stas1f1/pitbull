@@ -48,35 +48,6 @@ feature engineering, LLM-generated code
 
 \section{Introduction}
 
-\begin{figure}[t]\centering
-\begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
-\fill[rust!8] (6.0,-0.3) rectangle (8.6,1.35);
-\draw[rust,dashed,thick] (6.0,-0.3) -- (6.0,1.35);
-\node[rust,anchor=south,font=\scriptsize\bfseries,inner sep=1pt] at (6.0,1.37) {seed time $t$ = 1 Apr 2018};
-\draw[->,ink] (0,0) -- (8.6,0);
-\foreach \x/\m in {0/Jan,2.07/Feb,3.93/Mar,6.0/Apr} {\draw[mute] (\x,-0.07)--(\x,0.07); \node[mute,below,inner sep=2pt] at (\x,-0.05) {\m};}
-\foreach \ox/\rx/\s/\h in {0.67/1.73/4/0.45, 2.33/4.6/5/0.8, 4.2/6.27/2/0.8, 4.2/6.4/1/1.15, 5.67/6.13/5/0.42}{
-  \fill[ink] (\ox-0.09,-0.09) rectangle (\ox+0.09,0.09);
-  \draw[mute,dashed] (\ox,0.1) .. controls (\ox,\h) and (\rx,\h) .. (\rx,\h);
-  \node[anchor=south west,inner sep=1pt] at (\rx-0.05,\h-0.04) {\textcolor{amber}{$\bigstar$}\,\s};
-}
-\fill[ink] (2.8-0.09,-0.09) rectangle (2.8+0.09,0.09);
-\node[mute,anchor=south,inner sep=1pt] at (2.8,0.22) {no review};
-\node[ink,anchor=west,inner sep=1pt] at (0.0,-0.5) {$\blacksquare$ order \quad \textcolor{amber}{$\bigstar$} review, written later};
-\node[draw=ink,thick,fill=white,align=left,anchor=north west,inner sep=4pt,text width=3.55cm] (r1) at (0,-0.8)
-  {\textbf{run 1: full database}\\ average review of orders $\le t$\\ $= (4+5+2+1+5)/5 = \textbf{3.40}$};
-\node[draw=ink,thick,fill=white,align=left,anchor=north east,inner sep=4pt,text width=3.55cm] (r2) at (8.6,-0.8)
-  {\textbf{run 2: truncated at $t$}\\ same program, same call\\ $= (4+5)/2 = \textbf{4.50}$};
-\node[font=\large,ink] at (4.3,-1.4) {$\neq$};
-\node[draw=rust,thick,rust,font=\scriptsize\bfseries,inner sep=3pt,rotate=-3,anchor=north] at (4.3,-2.12) {VIOLATION};
-\end{tikzpicture}
-\caption{One seller from the Olist database; two of the five reviews were written after
-the seed time. PITFALL does not infer leakage from code or from feature statistics: it
-tests whether the executed program depends on information that was unavailable at
-prediction time, by running it twice and comparing.}
-\label{fig:tworuns}
-\end{figure}
-
 Consider one seller on a marketplace (Fig.~\ref{fig:tworuns}). An order is placed on
 5~March and reviewed on 5~April. Predicting something about the seller \emph{as of}
 1~April, a feature may use the order but not the review, although the review is attached
@@ -105,6 +76,35 @@ for DataRobot and AUC $0.80$ for H2O~\cite{datarobot,h2o}. Notebook
 analyzers~\cite{yang2022} and pipeline instrumentation~\cite{mlinspect} target
 preprocessing order and train/test contamination and do not cover temporal leakage;
 asking a language model directly reaches $0.19$ precision at $0.52$ recall~\cite{peerj2025}.
+
+\begin{figure}[t]\centering
+\begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+\fill[rust!8] (6.0,-0.3) rectangle (8.6,1.35);
+\draw[rust,dashed,thick] (6.0,-0.3) -- (6.0,1.35);
+\node[rust,anchor=south,font=\scriptsize\bfseries,inner sep=1pt] at (6.0,1.37) {seed time $t$ = 1 Apr 2018};
+\draw[->,ink] (0,0) -- (8.6,0);
+\foreach \x/\m in {0/Jan,2.07/Feb,3.93/Mar,6.0/Apr} {\draw[mute] (\x,-0.07)--(\x,0.07); \node[mute,below,inner sep=2pt] at (\x,-0.05) {\m};}
+\foreach \ox/\rx/\s/\h in {0.67/1.73/4/0.45, 2.33/4.6/5/0.8, 4.2/6.27/2/0.8, 4.2/6.4/1/1.15, 5.67/6.13/5/0.42}{
+  \fill[ink] (\ox-0.09,-0.09) rectangle (\ox+0.09,0.09);
+  \draw[mute,dashed] (\ox,0.1) .. controls (\ox,\h) and (\rx,\h) .. (\rx,\h);
+  \node[anchor=south west,inner sep=1pt] at (\rx-0.05,\h-0.04) {\textcolor{amber}{$\bigstar$}\,\s};
+}
+\fill[ink] (2.8-0.09,-0.09) rectangle (2.8+0.09,0.09);
+\node[mute,anchor=south,inner sep=1pt] at (2.8,0.22) {no review};
+\node[ink,anchor=west,inner sep=1pt] at (0.0,-0.5) {$\blacksquare$ order \quad \textcolor{amber}{$\bigstar$} review, written later};
+\node[draw=ink,thick,fill=white,align=left,anchor=north west,inner sep=4pt,text width=3.55cm] (r1) at (0,-0.8)
+  {\textbf{run 1: full database}\\ average review of orders $\le t$\\ $= (4+5+2+1+5)/5 = \textbf{3.40}$};
+\node[draw=ink,thick,fill=white,align=left,anchor=north east,inner sep=4pt,text width=3.55cm] (r2) at (8.6,-0.8)
+  {\textbf{run 2: truncated at $t$}\\ same program, same call\\ $= (4+5)/2 = \textbf{4.50}$};
+\node[font=\large,ink] at (4.3,-1.4) {$\neq$};
+\node[draw=rust,thick,rust,font=\scriptsize\bfseries,inner sep=3pt,rotate=-3,anchor=north] at (4.3,-2.12) {VIOLATION};
+\end{tikzpicture}
+\caption{One seller from the Olist database; two of the five reviews were written after
+the seed time. PITFALL does not infer leakage from code or from feature statistics: it
+tests whether the executed program depends on information that was unavailable at
+prediction time, by running it twice and comparing.}
+\label{fig:tworuns}
+\end{figure}
 
 \textbf{Contributions.} (i) An execution-based check for feature programs in the spirit
 of metamorphic testing: one-sided, language-agnostic, with per-column availability and
