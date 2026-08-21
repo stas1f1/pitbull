@@ -8,6 +8,37 @@
 
 ---
 
+## −2. Обновление 21 августа (ветка demo_upd) — подача по критике critique/v3
+
+Сделано без новых экспериментов, только перестановка и таблицы из уже напечатанных чисел:
+
+- **Fig. 1 «два прогона» на реальном продавце** (TikZ в `paper/pitfall.tex`, данные
+  `demo/site_data.json::timeline`, продавец 0d85bbda, seed 2018-04-01: 3.40 против 4.50).
+  Стоит до Eq. (1). Подпись: «PITFALL does not infer leakage from code or from feature
+  statistics: it tests whether the executed program depends on information that was
+  unavailable at prediction time».
+- **Введение начинается с примера**, термины вводятся после него; «availability channel»
+  определён в II-B; обозначения: cutoff (в коде), seed time t, δ (сдвиг).
+- **Гарантия переформулирована** (II-C и абстракт): «a detected divergence is a witness
+  of a violation under the declared availability map; one-sided; tolerance from the
+  negative control 1.7e-11, without it four rel-amazon verdicts would be false». Фраза
+  «no false positives by construction» убрана везде.
+- **Scatter слепоты (fig4_blind) и дозовая кривая (fig2_delta) из статьи убраны**; вместо
+  них Table II(b) «probe fails in both directions» и числа в тексте VI-A. Интерактивные
+  версии остались на сайте.
+- **Три таблицы**: Table I источники (5 строк), Table II(a) детекторы на 14 исполненных
+  файлах экспертного SQL + II(b), Table III размер ≠ цена. Заполненные «?» из критики:
+  проба reference code на B = 0.62–0.69 (rel/fix_ab_probe.csv, H2O молчит), featuretools
+  проба 0.76–0.83 (H2O срабатывает на 2 из 3 моментов), «no cutoff, task B» проба
+  0.80–0.83 (H2O 2 из 3), ячеек у reference code 2 014. Ручной аудит на 14 исполненных
+  файлах нашёл 1 из 8 (второй его файл, user-engagement, не исполняется).
+- **Секция Demonstration = walkthrough**: Fig. 2 — скриншот раздела 2 сайта с номерами
+  1 дата → 2 два прогона → 3 расхождение → 4 локализация (`paper/fig/fig_walk.png`,
+  собран из полного скриншота index.html), текст — три акта по ~20 с; сценарий
+  продублирован в `demo/README.md`.
+- Contributions сведены к трём; limitation (vi) раскрыта одним предложением; «---» и
+  антитезы «X, not Y» вычищены. 4 страницы, overfull нет. Резерв: `paper/pitfall_before_v3.tex.bak`.
+
 ## −1. Обновление 19 августа — расширение на вторую базу и чужой SQL
 
 Полные результаты и вердикты по всем предзарегистрированным критериям:
