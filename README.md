@@ -1,114 +1,129 @@
 # PITFALL
 
-Проверка корректности признаков по времени **дифференциальным исполнением**
-для многотабличных задач машинного обучения.
+Point-in-time correctness of feature pipelines for multi-table machine learning,
+checked by **differential execution**.
 
 ```
 φ(D, t) = φ(D|t, t),   D|t = { r ∈ D : avail(r) ≤ t }
 ```
 
-Программа признаков вызывается дважды: на полной базе и на базе, физически усечённой
-на момент предсказания. Расхождение — доказательство нарушения, а не подозрение.
-Код не разбирается: программа — чёрный ящик. Ложных срабатываний нет по построению.
+The feature program is run twice: on the full database and on a copy physically
+truncated at the prediction time. A divergence is a witness of a violation under the
+declared availability map, not a suspicion. The code is never parsed: the program is a
+black box. The guarantee is one-sided (no divergence at the tested seed times does not
+prove correctness), and floating-point aggregates need a tolerance, which is set from the
+noise floor of a negative control.
 
-**Начните с `HANDOVER.md`** — там состояние проекта, все числа с источниками,
-методические правила и открытые вопросы.
+- Paper (ICDM 2026 demo track, 4 pages): [`paper/pitfall.pdf`](paper/pitfall.pdf)
+- Interactive demo: <https://stas1f1.github.io/pitfall/>
+- Project state, every number with its source, methodological rules and open questions:
+  [`HANDOVER.md`](HANDOVER.md) (in Russian). Plain-language walkthrough of the paper:
+  [`docs/PAPER_EXPLAINED.md`](docs/PAPER_EXPLAINED.md).
 
-## Быстрый старт
+## Quick start
 
 ```bash
 uv venv --python 3.11 .venv && uv pip install --python .venv/bin/python -r requirements.txt
-#   (или: python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt)
-cd demo && ../.venv/bin/python demo.py          # консоль, 4 сцены
+#   (or: python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt)
+cd demo && ../.venv/bin/python demo.py                 # console, four scenes, about a minute on two CPU cores
+../.venv/bin/python demo.py --program try_me.py        # check a feature function of your own
 ../.venv/bin/python build_site_data.py && ../.venv/bin/python build_site.py   # → demo/index.html
 ```
 
-Интерактивная страница демо — `demo/index.html` (открыть в браузере).
+The interactive page is `demo/index.html` (open it in a browser; it is self-contained).
+`build_site_data.py` recomputes every number on the page from the real database (~1.5 min).
 
-Данные читаются из `PITFALL_olist_data/` в корне репозитория (входит в репозиторий);
-другой каталог можно указать переменной `PITFALL_DATA`. Все пути в скриптах — относительно
-репозитория, запускать можно из любого каталога.
+Data are read from `PITFALL_olist_data/` at the repository root (included in the
+repository); another location can be given in `PITFALL_DATA`. All paths in the scripts are
+relative to the repository, so they run from any directory.
 
-Три сцены, около минуты на двух ядрах CPU, без сети и без GPU:
+Console scenes (no network, no GPU):
 
-| | сцена | оракул | промышленная проверка (DataRobot / H2O) | завышение |
+| | scene | checker | univariate probe (DataRobot / H2O) | inflation |
 |---|---|---|---|---|
-| 1 | featuretools с настройками по умолчанию | УТЕЧКА, 11 колонок | **пропуск** / уведомление в 2 из 3 (0.809) | +16.3 п.п. |
-| 2 | наш собственный эталон, первая версия | УТЕЧКА, 4 колонки | **пропуск** / **пропуск** (0.687) | +5.3 п.п. |
-| 3 | тот же эталон после исправления | ЧИСТО | верно молчит | 0.00 |
-| 4 | LOCATOR на программах сцен 1–2 | каналы `items` / `review_score`, `late`, `delay_days` | — | патч → ЧИСТО |
+| 1 | featuretools with default settings | VIOLATION, 11 columns | **miss** / notifies at 2 of 3 seed times (0.809) | +16.3 pp |
+| 2 | our own reference code, first version | VIOLATION, 4 columns | **miss** / **miss** (0.687) | +5.3 pp |
+| 3 | the same code after the fix | CLEAN | correctly silent | 0.00 |
+| 4 | LOCATOR on the programs of scenes 1–2 | channels `items` / `review_score`, `late`, `delay_days` | — | patch → CLEAN |
 
-Пороги: DataRobot — Gini Norm 0.85/0.975 (= AUC 0.925/0.9875), H2O DAI — AUC 0.80/0.95/0.999.
+Thresholds: DataRobot — Gini Norm 0.85 / 0.975 (= AUC 0.925 / 0.9875); H2O Driverless AI — AUC 0.80 / 0.95 / 0.999.
 
-## Воспроизведение чисел статьи
+## Reproducing the numbers in the paper
 
 ```bash
-cd rel   # интерпретатор — ../.venv/bin/python
-python3 fix_ab.py        # задачи A и B      → fix_ab_auc.csv, fix_ab_probe.csv
-python3 fix_c.py         # задача C          → fix_c.csv
-python3 delta_sweep.py   # кривая I(δ)       → delta_auc.csv, delta_probe.csv
-python3 oracle_check.py  # прежняя программа против исправленной (сокращённый набор
-                         # признаков: 3 расходящиеся колонки; в демо полный набор — 4)
-cd ../demo && python3 ft_scene.py   # featuretools в трёх режимах → ft_scene.csv
+cd rel   # interpreter: ../.venv/bin/python
+python3 fix_ab.py        # tasks A and B        → fix_ab_auc.csv, fix_ab_probe.csv
+python3 fix_c.py         # task C               → fix_c.csv
+python3 delta_sweep.py   # the I(δ) curve       → delta_auc.csv, delta_probe.csv
+python3 oracle_check.py  # old reference program against the fixed one (reduced feature set:
+                         # 3 diverging columns; the demo uses the full set: 4)
+cd ../demo && python3 ft_scene.py   # featuretools in three regimes → ft_scene.csv
 cd ../fig && python3 make_figs.py && python3 make_figs2.py
 ```
 
-Сводка всех чисел — `rel/RESULTS.md`.
+A summary of all numbers: `rel/RESULTS.md`.
 
-## Расширение на другие базы
+## Other databases and other people's code
 
-Общий слой позволяет прогнать тот же набор экспериментов на любой базе: новая база —
-один файл в `rel/adapters/` по образцу `_template.py`. Результаты и вердикты по всем
-предзарегистрированным критериям — `docs/EXTENSION_RESULTS.md`, план — `docs/EXTENSION_plan.md`.
+A shared layer runs the same set of experiments on any database: a new database is one
+file in `rel/adapters/`, modelled on `_template.py`. Results and verdicts against all
+pre-registered criteria: `docs/EXTENSION_RESULTS.md`; the plan: `docs/EXTENSION_plan.md`.
 
 ```bash
-cd rel   # интерпретатор — ../.venv/bin/python
-python3 verify_olist.py       # ворота на сам общий слой: 156 значений Olist знак в знак
-python3 gate.py f1            # ворота приёмки базы (объём, побочная ось, оракул, контроль)
-python3 suite.py f1           # весь набор ячеек   → out/f1_auc.csv, _oracle.csv, _summary.md
-python3 paired.py f1          # парный бутстрэп разницы AUC → out/f1_paired.csv
-python3 sqloracle.py          # оракул по чужому опубликованному SQL из audit/
-python3 sqlcost.py f1_driver-dnf f1_driver-top3 stack_user-badge   # цена нарушения в нём
+cd rel   # interpreter: ../.venv/bin/python
+python3 verify_olist.py       # gate on the shared layer itself: 156 Olist values reproduced to the digit
+python3 gate.py f1            # acceptance gate for a database (size, secondary time axis, checker, control)
+python3 suite.py f1           # the whole grid of cells   → out/f1_auc.csv, _oracle.csv, _summary.md
+python3 paired.py f1          # paired bootstrap of the AUC difference → out/f1_paired.csv
+python3 sqloracle.py          # the check on the published expert SQL of the RelBench user study (audit/)
+python3 sqlcost.py f1_driver-dnf f1_driver-top3 stack_user-badge   # what those violations cost
+python3 relagent.py           # the check on the 37-query corpus written by an LLM agent (rel-stack)
 ```
 
-Данные внешних баз (RelBench) кладутся в `PITFALL_ext_data/` и в репозиторий не входят:
+External databases (RelBench: rel-f1, rel-stack, rel-event, rel-hm, rel-amazon) go into
+`PITFALL_ext_data/` (or `PITFALL_EXT_DATA`) and are not part of the repository:
 
 ```bash
 mkdir -p PITFALL_ext_data && cd PITFALL_ext_data
-for d in rel-f1 rel-stack; do curl -L -o $d.zip https://relbench.stanford.edu/download/$d/db.zip && unzip -q $d.zip -d $d; done
+for d in rel-f1 rel-stack rel-event rel-hm rel-amazon; do
+  curl -L -o $d.zip https://relbench.stanford.edu/download/$d/db.zip && unzip -q $d.zip -d $d; done
 mkdir -p tasks && for t in driver-dnf driver-top3 driver-position; do
   curl -L -o tasks/rel-f1__$t.zip https://relbench.stanford.edu/download/rel-f1/tasks/$t.zip
   unzip -q tasks/rel-f1__$t.zip -d tasks/rel-f1__$t; done
 ```
 
-Ворота приёмки обязательны до любых измерений на новой базе: они проверяют объём,
-наличие временной опасности, непроверяемые колонки, размер задач и — главное — что
-корректная программа даёт ЧИСТО, а наивная протекает. На Olist ворота поймали
-неверно поставленный отрицательный контроль и вторую непроверяемую колонку.
+The acceptance gate is mandatory before any measurement on a new database: it checks the
+size, the presence of a secondary time axis, the undecidable columns, the task sizes and,
+above all, that the correct program comes out CLEAN while the naive one leaks. On Olist
+the gate caught a mis-specified negative control and a second undecidable column.
 
-## Статья
+## Paper
 
 ```bash
-apt-get install -y texlive-publishers
-cd paper && pdflatex pitfall.tex && pdflatex pitfall.tex
+cd paper && pdflatex pitfall.tex && bibtex pitfall && pdflatex pitfall.tex && pdflatex pitfall.tex
 ```
 
-Четыре страницы, IEEE conference. Перед подачей заполнить авторов и URL репозитория
-(помечен красным в разделе Availability).
+Four pages, IEEE conference format. `IEEEtran.cls` and `IEEEtran.bst` are bundled in
+`paper/`, so no extra TeX packages are needed; references live in `paper/pitfall.bib`.
 
-## Данные
+## Data
 
-Olist — публичный набор бразильского маркетплейса (Kaggle `olistbr/brazilian-ecommerce`,
-CC BY-NC-SA 4.0), 7 таблиц, 112 650 позиций заказов, сентябрь 2016 — октябрь 2018.
-Семь файлов `olist_*.csv` лежат в `PITFALL_olist_data/`. Используются файлы
+Olist is a public Brazilian marketplace dataset (Kaggle `olistbr/brazilian-ecommerce`,
+CC BY-NC-SA 4.0): 7 tables, 112,650 order line items, September 2016 – October 2018.
+The seven `olist_*.csv` files are in `PITFALL_olist_data/`. The scripts use
 `olist_orders_dataset.csv`, `olist_order_items_dataset.csv`,
 `olist_order_reviews_dataset.csv`, `olist_order_payments_dataset.csv`,
-`olist_products_dataset.csv`, `olist_sellers_dataset.csv`,
+`olist_products_dataset.csv`, `olist_sellers_dataset.csv` and
 `olist_customers_dataset.csv`.
 
-## Границы метода
+## Limits of the method
 
-- Колонка без метки доступности (изменяемый статус без истории) **непроверяема**:
-  усечённая база для неё неотличима от полной.
-- Недетерминированная программа даёт расхождение без утечки — нужен фиксированный seed.
-- Гарантия односторонняя: инструмент находит утечки, но не сертифицирует их отсутствие.
+- A column with no availability timestamp (a mutable status kept without history) is
+  **undecidable**: the truncated database is identical to the full one for it.
+- A non-deterministic program diverges without leaking; it needs a fixed seed, and columns
+  that differ between identical reruns carry no verdict.
+- The guarantee is one-sided: the tool finds violations and cannot certify their absence.
+  A clean verdict covers only the seed times that were tested; the rel-event files in the
+  paper are clean at one seed time out of 24.
+- The check decides code against the declared availability map; whether that map matches
+  intent is a modelling question.
