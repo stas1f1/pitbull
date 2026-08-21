@@ -424,7 +424,9 @@ Point-in-time violations occur in library defaults, in published expert code and
 generated code, and the univariate probe used to catch them misses the regimes reported
 here. Their cost is not predictable from their existence or size, so correctness has to
 be tested directly, and the score does not show it; differential execution decides it in
-seconds and localises the leak. A clean verdict is only as strong as the seed times it was taken at.
+seconds and localises the leak. A clean verdict covers only the seed times that were
+tested; at other seed times the same program can still peek, as the \mbox{rel-event}
+files show.
 
 \section*{Data, Ethics and Availability}
 Experiments use public datasets: Olist (Kaggle, CC BY-NC-SA 4.0, anonymised by its
