@@ -150,8 +150,7 @@ available at \texttt{review\_creation\_date}, a median of 10 days after the orde
 column $c$ becoming known after $t$. Some columns have no availability
 timestamp at all, e.g.\ a mutable status field kept without history; the truncated
 database is then identical to the full one and no execution-based check can decide them
-(we exclude \texttt{order\_status} throughout). A leak spread over many aggregates is invisible to any
-single-feature statistic while a multivariate model still uses it.
+(we exclude \texttt{order\_status} throughout).
 
 \subsection{Differential execution, guarantee, localisation}
 The check follows from~(\ref{eq:pit}): run $\varphi$ twice and compare:
@@ -425,19 +424,8 @@ RelBench~\cite{relbench}; no human subjects. Code, data, unedited model outputs 
 reported numbers:
 \url{https://github.com/stas1f1/pitfall}.
 
-\begin{thebibliography}{9}\scriptsize
-\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}\setlength{\parsep}{0pt}
-\bibitem{kaufman2011} S.~Kaufman, S.~Rosset, and C.~Perlich, ``Leakage in data mining: formulation, detection, and avoidance,'' in \emph{Proc. KDD}, 2011.
-\bibitem{kapoor2023} S.~Kapoor and A.~Narayanan, ``Leakage and the reproducibility crisis in machine-learning-based science,'' \emph{Patterns}, vol.~4, no.~9, 2023.
-\bibitem{yang2022} C.~Yang, R.~A.~Brower-Sinning, G.~Lewis, and C.~K\"astner, ``Data leakage in notebooks: static detection and better processes,'' in \emph{Proc. ASE}, 2022.
-\bibitem{mlinspect} S.~Grafberger, S.~Guha, J.~Stoyanovich, and S.~Schelter, ``MLINSPECT: a data distribution debugger for machine learning pipelines,'' in \emph{Proc. SIGMOD}, 2021.
-\bibitem{peerj2025} N.~Alturayeif and J.~Hassine, ``Data leakage detection in machine learning code: transfer learning, active learning, or low-shot prompting?'' \emph{PeerJ Computer Science}, vol.~11, e2730, 2025.
-\bibitem{datarobot} DataRobot documentation, ``Data quality checks: target leakage,'' docs.datarobot.com, 2026.
-\bibitem{h2o} H2O.ai, Driverless AI 1.11 User Guide, ``Data leakage and shift detection,'' docs.h2o.ai, 2026.
-\bibitem{relbench} J.~Robinson \emph{et al.}, ``RelBench: a benchmark for deep learning on relational databases,'' in \emph{NeurIPS D\&B Track}, 2024.
-\bibitem{dfs} J.~M.~Kanter and K.~Veeramachaneni, ``Deep feature synthesis: towards automating data science endeavors,'' in \emph{Proc. IEEE DSAA}, 2015.
-\bibitem{ftdocs} Featuretools 1.31 documentation, ``Handling time,'' featuretools.alteryx.com, 2026.
-\bibitem{olist} Olist, ``Brazilian e-commerce public dataset,'' Kaggle, 2018.
-\end{thebibliography}
+{\let\footnotesize\scriptsize
+\bibliographystyle{IEEEtran}
+\bibliography{pitfall}}
 
 \end{document}
