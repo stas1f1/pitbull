@@ -253,8 +253,8 @@ the corpora are not mutually comparable. What leaks in each: Section~\ref{sec:so
 \toprule
 source & run / diverge & $\Delta$AUC, pp\\
 \midrule
-\texttt{featuretools} 1.31 default, Olist C & 1 / 1, 3 seeds & $+14.8$ to $+16.3$\\
-our reference code, Olist A and B & 1 / 1, 3 seeds & A $+0.2$; B $+3.1$ to $+5.3$\\
+\texttt{featuretools} 1.31 default, Olist C & 1 / 1, 3 seeds & $[+14.8;\,+16.3]$\\
+our reference code, Olist A and B & 1 / 1, 3 seeds & A $+0.2$; B $[+3.1;\,+5.3]$\\
 LLM Python, 2 models, Olist C & 132 / 61 of 233 & median $+0.11$\\
 expert SQL (RelBench study), 5 DBs & 14 / 8 of 15 files & $-0.33$, $+0.95$, $-0.02$\\
 LLM-agent SQL, \mbox{rel-stack} & 34 / 2 of 37 & not measured\\
@@ -359,12 +359,12 @@ univariate probe & identical to 6 s.f.\ with and without the violation\\
 \toprule
 run & $\Delta$AUC, pp & probe & DataRobot & H2O\\
 \midrule
-correct code, A & $0$ & $0.83$--$0.86$ & silent & \textbf{false alarm}\\
-join leak only, C & $+3.0$--$5.1$ & $0.71$ both & \textbf{miss} & \textbf{miss}\\
-featuretools default, C & $+14.8$--$16.3$ & $0.76$--$0.83$ & \textbf{miss} & fires (2/3)\\
-reference code, B & $+3.1$--$5.3$ & $0.62$--$0.69$ & \textbf{miss} & \textbf{miss}\\
-no cutoff at all, B & $+18.0$ & $0.80$--$0.83$ & \textbf{miss} & fires (2/3)\\
-\mbox{$\le t$} vs \mbox{$<t$}, \mbox{rel-f1} & $-0.45$ to $+3.27$ & moves $\le 0.015$ & silent & same\\
+correct code, A & $0$ & $[0.83;\,0.86]$ & silent & \textbf{false alarm}\\
+join leak only, C & $[+3.0;\,+5.1]$ & $0.71$ both & \textbf{miss} & \textbf{miss}\\
+featuretools default, C & $[+14.8;\,+16.3]$ & $[0.76;\,0.83]$ & \textbf{miss} & fires (2/3)\\
+reference code, B & $[+3.1;\,+5.3]$ & $[0.62;\,0.69]$ & \textbf{miss} & \textbf{miss}\\
+no cutoff at all, B & $+18.0$ & $[0.80;\,0.83]$ & \textbf{miss} & fires (2/3)\\
+\mbox{$\le t$} vs \mbox{$<t$}, \mbox{rel-f1} & $[-0.45;\,+3.27]$ & moves $\le 0.015$ & silent & same\\
 \bottomrule
 \end{tabular*}}
 \end{table}
@@ -386,7 +386,7 @@ damage is decided by the task and the timestamps.}
 case & diverging cells & inflation, pp\\
 \midrule
 our reference code, Olist task A & 4 columns, 2{,}014 cells & $+0.2$\\
-our reference code, Olist task B & the same cells & $+3.1$ to $+5.3$\\
+our reference code, Olist task B & the same cells & $[+3.1;\,+5.3]$\\
 expert SQL, \texttt{f1/driver-top3} & \texttt{races} rows after $t$ & $+0.95$\\
 expert SQL, \texttt{f1/driver-dnf} & \texttt{races} rows after $t$ & $-0.33$\\
 expert SQL, \texttt{stack/user-badge} & 9 columns, $345{,}938$ cells & $-0.02$\\
