@@ -140,7 +140,7 @@ for entity $e$ at time $t$. Availability is per column: in our data \texttt{revi
 available at \texttt{review\_creation\_date}, a median of 10 days (maximum 147) after
 the order row it belongs to. The database therefore has a finite set of
 \emph{availability channels}: rows of table $T$ appearing after $t$, and values of
-column $c$ becoming known after $t$ (seven in Olist). Some columns have no availability
+column $c$ becoming known after $t$. Some columns have no availability
 timestamp at all, e.g.\ a mutable status field kept without history; the truncated
 database is then identical to the full one and no execution-based check can decide them
 (we exclude \texttt{order\_status} throughout). The class is easy to under-count: a
@@ -153,9 +153,7 @@ The check follows from~(\ref{eq:pit}): run $\varphi$ twice and compare:
 \texttt{program(db,t,ents) != program(db.truncate(t),t,ents)}
 \vspace{-3pt}\end{center}
 A detected divergence is a witness of a point-in-time violation under the declared
-availability map: the same program, given strictly less information, produced a
-different answer, whether through an aggregate, a join, or a statistic fitted on the
-full table. The test is one-sided: no divergence at the tested seed times does not prove
+availability map: the same program, given strictly less information, produced a different answer. The test is one-sided: no divergence at the tested seed times does not prove
 correctness, and the program must be deterministic. With floating-point aggregates a
 tolerance is required, because truncation changes the query plan and summation is not
 associative; we set it from the noise floor of a negative control ($1.7\!\times\!10^{-11}$
@@ -176,17 +174,16 @@ have none); today it is a small hand-written declaration, which an LLM may propo
 the schema since the answer is independently checkable. \textsc{Builder} is any producer of a feature program: library,
 agent or person. \textsc{Guard} runs the differential check and returns the verdict with
 the diverging columns and cells; on a violation \textsc{Locator} runs the per-channel
-truncation. Clean programs are handed to an unmodified tabular AutoML such as
-AutoGluon~\cite{autogluon}. The core is ${\sim}170$ lines of Python over pandas.
+truncation. Clean programs go to an unmodified tabular AutoML. The core is ${\sim}170$ lines of Python over pandas.
 \textbf{Validation.} On six reference programs
 with known verdicts at three seed times the checker was right on 18 of 18 combinations.
-A negative control with the seed time set past every timestamp caught three defects of
-our own before the measurements that depended on them.
+A negative control (seed time past every timestamp) caught three defects of our own
+before the measurements that depended on them.
 
 \section{Demonstration}
 
 \begin{figure}[t]\centering
-\includegraphics[width=.74\columnwidth]{fig/fig_walk.png}
+\includegraphics[width=.72\columnwidth]{fig/fig_walk.png}
 \caption{The demonstration page. \textbf{1}~choose the seed date; \textbf{2}~choose a
 program and run it twice: verdict, diverging columns, inflation of the fixed model, and
 what the univariate probe would say; \textbf{3}~outputs side by side, full database
@@ -237,14 +234,18 @@ program run under the correct cutoff, with one LightGBM configuration and a fixe
 everywhere; inflation is the paired AUC difference against it, with percentile bootstrap
 intervals on the same test rows ($2{,}000$ resamples). The baseline detectors are the
 univariate probe at both deployed thresholds, the manual audit and our earlier static
-scan (Table~\ref{tab:probe}).
+scan (Table~\ref{tab:probe}). \textbf{Runs.} Olist: 3 tasks $\times$ 3 seed times, plus
+54 cutoff-shift runs (9 values of $\delta$, tasks A and B); \mbox{rel-f1}: one task, 6
+test cells of $1{,}042$--$1{,}203$ rows, three per timestamp era; expert SQL: 15 files
+$\times$ 3 seed times (5 on \mbox{rel-event}); agent corpus: 37 queries $\times$ 2 seed
+times, each with a determinism rerun and a negative control; 233 LLM generations.
 
 \section{Evidence}\label{sec:evidence}
 
 \begin{table}[t]\centering
 \caption{Five sources of point-in-time violations, none constructed by us. Verdicts take
-seconds per program on Olist and \mbox{rel-f1} and $19$\,min for the whole agent corpus;
-the corpora are not mutually comparable; ranges span the three seed times.}
+seconds per program on Olist and \mbox{rel-f1}; the corpora are not mutually comparable;
+ranges span the three seed times.}
 \label{tab:sources}
 {\scriptsize\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{@{}lll@{}}
@@ -263,10 +264,9 @@ LLM-agent SQL, \mbox{rel-stack} & 34 / 2 of 37 & not measured\\
 \subsection{The cost of a shifted cutoff}
 $I(\delta)$ increases monotonically over $\delta\in[0,90]$ days on Olist tasks A and B
 at all three seed times: a one-month error costs $[5.8;\,11.5]$ points, no cutoff at all
-up to $+27.0$ (A) and $+18.0$ (B). On task C, where the cutoff is controlled
-separately for the entity's own history and for aggregates reached through a join to the
-seller, leaking only through the join costs $[+3.0;\,+5.1]$ points and does not move the
-probe at all (Table~\ref{tab:probe}).
+up to $+27.0$ (A) and $+18.0$ (B). On task C, controlling the cutoff separately for the
+entity's own history and for the join to the seller, leaking only through the join costs
+$[+3.0;\,+5.1]$ points and does not move the probe at all (Table~\ref{tab:probe}).
 
 \subsection{What \mbox{$\le t$} instead of \mbox{$<t$} costs depends on the timestamps}
 \label{sec:granularity}
@@ -292,9 +292,7 @@ aggregates, $2{,}014$ cells.
 
 \textbf{Published expert SQL, executed.} The hand-written feature SQL of the RelBench
 user study~\cite{relbench} is 15 files over 172 joins, each a \textsc{dbt}/Jinja
-template over DuckDB, run unchanged. Fourteen files execute; \textbf{8 diverge} and 6
-are clean at every seed time, the latter under truncations removing up to
-$2\!\times\!10^{7}$ rows. The three \mbox{rel-f1} files read \texttt{races} rows dated
+template over DuckDB, run unchanged. Fourteen files execute; \textbf{8 diverge} and 6 are clean at every seed time. The three \mbox{rel-f1} files read \texttt{races} rows dated
 after the seed time; \texttt{stack/user-badge} takes a global frequency over
 \texttt{badges} with no cutoff, the violation the audit did find; on
 \texttt{stack/post-votes}, which the
@@ -307,16 +305,15 @@ our Section~II-B verdict.
 \texttt{users} without a cutoff, so six demographic columns read rows of users who
 registered after the seed time. The violation reaches $87.5\%$ of label rows and is
 present at 23 of the task's 24 seed times and absent at exactly one, RelBench's own
-test seed time. That is no coincidence: users who join in the last two weeks earn no
-label, and data beyond a seed time only shrinks as the seed time grows. Seed times must
-come from the middle of the training split.
+test seed time. That is no coincidence: data beyond a seed time only shrinks as the seed
+time grows. Seed times must come from the middle of the training split.
 
 \textbf{An agent-written corpus.} The 37 distinct queries an LLM agent wrote across 32
-trials on \texttt{stack/user-engagement} had only a static scan, 5 candidates and no
-executed verdict. Running them takes $19$ minutes: 34 execute, \textbf{2 diverge}. Both violations are
-the same missing cutoff on the join to \texttt{users}, giving account ages down to
-$-2{,}021$ days on 57 of $25{,}233$ label rows. Against execution
-the scan errs both ways: 3 of its 5 candidates are false and 2 real.
+trials on \texttt{stack/user-engagement} had only a static scan with 5 candidates.
+Running them takes $19$ minutes: 34 execute, \textbf{2 diverge}, both the same missing
+cutoff on the join to \texttt{users}, giving account ages down to $-2{,}021$ days on 57
+of $25{,}233$ label rows. Against execution the scan errs both ways: 3 of its 5
+candidates are false and 2 real.
 
 \textbf{Generated feature code.} We used \texttt{deepseek-v4-flash} and
 \texttt{bytedance-seed/seed-2.0-code} to generate a Python function computing features
@@ -376,8 +373,7 @@ recency is a legitimate predictor of churn. Both errors replicate on \mbox{rel-f
 the executed expert SQL.
 
 \begin{table}[t]\centering
-\caption{The size of a violation does not predict its cost. Same defect, same code:
-damage is decided by the task and the timestamps.}
+\caption{The size of a violation does not predict its cost; the task and the timestamps do.}
 \label{tab:sizecost}
 {\scriptsize\setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}llr@{}}
@@ -418,9 +414,8 @@ trial, so final-program counts undercount (observed once).
 
 \section{Conclusion}
 
-Point-in-time violations occur in library defaults, in published expert code and in
-generated code, and the univariate probe used to catch them misses the regimes reported
-here. Their cost is not predictable from their existence or size, so correctness has to
+Point-in-time violations occur in library defaults, published expert code and generated
+code; the univariate probe misses the regimes reported here. Their cost is not predictable from their existence or size, so correctness has to
 be tested directly, and the score does not show it; differential execution decides it in
 seconds and localises the leak. A clean verdict covers only the seed times that were
 tested; at other seed times the same program can still peek, as the \mbox{rel-event}
@@ -445,7 +440,6 @@ reported numbers:
 \bibitem{relbench} J.~Robinson \emph{et al.}, ``RelBench: a benchmark for deep learning on relational databases,'' \emph{NeurIPS D\&B}, 2024.
 \bibitem{dfs} J.~M.~Kanter and K.~Veeramachaneni, ``Deep feature synthesis,'' in \emph{Proc. DSAA}, 2015.
 \bibitem{ftdocs} Featuretools 1.31 documentation, ``Handling time,'' featuretools.alteryx.com, 2026.
-\bibitem{autogluon} N.~Erickson \emph{et al.}, ``AutoGluon-Tabular,'' arXiv:2003.06505, 2020.
 \bibitem{olist} Olist, ``Brazilian e-commerce public dataset,'' Kaggle, 2018.
 \end{thebibliography}
 
