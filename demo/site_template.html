@@ -117,7 +117,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
     In databases with several tables that rule is easy to break without noticing: a review is attached to an order, but written weeks later.
     We run the feature code twice, once on the whole database and once on a copy with everything after the date physically removed,
     and compare. If the numbers differ, the code peeked. No parsing, no guessing.
-    Feature code is increasingly written by AutoML libraries and coding agents rather than by a person you can ask,
+    Feature code is increasingly written by AutoML libraries and coding agents instead of a person you can ask,
     which makes a check that works on the running program, without reading it, the natural gate.</p></div>
   <div class="btns"><a class="btn primary" href="#check">Try the check</a><a class="btn" href="#game">Play “guess the peek”</a><a class="btn" href="../paper/pitfall.pdf">Read the paper</a></div>
 </header>
@@ -163,7 +163,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
   <details style="margin-top:16px"><summary class="note" style="cursor:pointer">show the program's source</summary><pre id="prog-src" style="margin-top:10px"></pre></details>
   <div class="callout" style="margin-top:22px"><b>Why not just always run on the past-only copy?</b> With one seed date per call, that is a fix.
   But real training tables have a different date on every row, so the program itself has to cut per row; that is what the check verifies.
-  And a program that peeks is a defect you want to know about, not one you want to mask once.</div>
+  And a program that peeks is a defect worth reporting; masking it once leaves it in the code.</div>
 </div></section>
 
 <!-- 3 ─────────────────────────────────────────────────────────── -->
@@ -278,7 +278,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
       <p style="margin-top:18px">The defect shows up on 23 of the 24 dates, on some of them for half the rows.
       On one date it shows up nowhere, and that is the date the benchmark scores on. Test only there and the file looks clean.
       So a clean verdict says the code did not peek on the dates you tried, and nothing more.
-      Pick dates from the middle of the training period, not the one the score is reported on.</p>
+      Pick dates from the middle of the training period; the date the score is reported on is the least sensitive one.</p>
 
       <h3 style="margin-top:30px">Writing “on or before the date” where “before” was meant</h3>
       <p>The cutoff is one comparison in the code: keep the rows dated <span class="kbd">&lt;= the date</span>, or the rows dated
@@ -289,7 +289,7 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
       <div class="card"><div id="gran-chart"></div></div>
       <p class="small" style="margin-top:12px">Same code, same task, same database; the only difference is
       <span class="kbd">&lt;=</span> instead of <span class="kbd">&lt;</span>. The timestamps decide whether it costs
-      anything. That is why it has to be run rather than argued about.</p>
+      anything. That is why the code has to be run; reading it cannot settle this.</p>
 
     </div>
   </details>
@@ -299,10 +299,10 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
 <section id="limits"><div class="wrap">
   <h2><span class="secnum">8</span>What it cannot do</h2>
   <div class="two">
-    <div><h3>It proves peeking, not its absence</h3><p class="small">A peek that made no difference on the tested date is not seen on that date. Zero divergence on the dates we test makes peeking unlikely but cannot rule it out.</p>
-      <h3>Some columns are undecidable</h3><p class="small">A status field that gets overwritten with no history (“cancelled”) has no timestamp for when it changed. The past-only copy looks identical to the full one, so no execution-based test can decide it. We drop such columns rather than call them clean.</p></div>
+    <div><h3>It proves peeking; it cannot prove there is none</h3><p class="small">A peek that made no difference on the tested date is not seen on that date. Zero divergence on the dates we test makes peeking unlikely but cannot rule it out.</p>
+      <h3>Some columns are undecidable</h3><p class="small">A status field that gets overwritten with no history (“cancelled”) has no timestamp for when it changed. The past-only copy looks identical to the full one, so no execution-based test can decide it. We drop such columns instead of calling them clean.</p></div>
     <div><h3>It trusts the availability map</h3><p class="small">Somebody has to say which column dates each value: the review is known at <code>review_creation_date</code>, the delivery at <code>delivered_customer_date</code>. If that map is wrong, the check tests the wrong thing. Today the map is a short hand-written declaration.</p>
-      <h3>Narrow where it counts</h3><p class="small">Costs in AUC come from two databases and four tasks; the verdicts in section 7 cover five more databases but carry no cost measurement. The language-model rates are two models on one task with wide intervals. Read them as “this happens”, not as “this is how often”.</p></div>
+      <h3>Narrow where it counts</h3><p class="small">Costs in AUC come from two databases and four tasks; the verdicts in section 7 cover five more databases but carry no cost measurement. The language-model rates are two models on one task with wide intervals; read them as “this happens” and nothing more precise. And what we measure is how much a peek inflates the offline score; the extra loss when a model trained on peeking features is served on data where the future does not exist yet is a separate effect we did not measure.</p></div>
   </div>
 </div></section>
 
@@ -473,7 +473,7 @@ const svgEl = (tag, attrs={}, ...kids) => el(tag, {...attrs, ns:1}, ...kids);
   const why = {order_count:'Orders are dated by their own timestamp; nothing about them changes later.',
     average_review:'The orders are old, but their reviews were written up to weeks later. Filtering by order date lets the later scores in.',
     average_review_known:'Same feature, but it also asks when the review was written. Only reviews that existed on the date are used.',
-    late_share:'“Late” is only known once the parcel arrives, often after the seed date. Before that the honest value is “unknown”, not 0.',
+    late_share:'“Late” is only known once the parcel arrives, often after the seed date. Before that the honest value is “unknown”; writing 0 there is a guess.',
     price_zscore:'No join, no late column, but the mean and std are taken over the whole table, including orders that come later. A statistic fitted on the future is a peek too.',
     days_since_last:'Uses only order timestamps up to the date.',
     recent_orders:'A window that ends at the date; order timestamps only.',
