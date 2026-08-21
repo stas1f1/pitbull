@@ -113,8 +113,11 @@ footer{border-top:1px solid var(--rule);padding:40px 0 70px;font-size:16px;color
   and the five places we found them: a popular library's defaults, our own code, published expert SQL, code written by language models, and SQL written by an autonomous agent.</p>
   <div class="byline">ITMO University · ICDM 2026 demo track · all data computed from real public databases</div>
   <div class="tldr"><h3>In one breath</h3>
-    <p>When you predict something about a customer or a seller <i>as of a date</i>, the features must only use what was known on that date.
-    In databases with several tables that rule is easy to break without noticing: a review is attached to an order, but written weeks later.
+    <p>When you predict something about a customer or a seller <i>as of a date</i>, the features are usually aggregates: average review so far, orders in the last month.
+    They must only use what was known on that date, because in training the database already holds what happened afterwards and in production it does not;
+    an aggregate that reads later data looks good offline and differs from what the model will see in use.
+    In databases with several tables that rule is easy to break without noticing: a review is attached to an order, but written weeks later,
+    and an “average review” computed as of the order date quietly includes it.
     We run the feature code twice, once on the whole database and once on a copy with everything after the date physically removed,
     and compare. If the numbers differ, the code peeked. No parsing, no guessing.
     Feature code is increasingly written by AutoML libraries and coding agents instead of a person you can ask,
