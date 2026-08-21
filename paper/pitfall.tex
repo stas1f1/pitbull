@@ -313,11 +313,11 @@ cutoff on the join to \texttt{users}, giving account ages down to $-2{,}021$ day
 of $25{,}233$ label rows. Against execution the scan errs both ways: 3 of its 5
 candidates are false and 2 real.
 
-\textbf{Generated feature code.} We used \texttt{deepseek-v4-flash} and
-\texttt{bytedance-seed/seed-2.0-code} to generate a Python function computing features
-for task C, giving the schema and the seed-time column, not mentioning ``leakage'' or
-``point-in-time''; verdicts come from the checker, with five flagged programs manually
-confirmed. Of $233$ generations $132$ ran and $61$ were incorrect, $62\%$ for the first
+\textbf{Generated feature code.} We asked two code models for a Python function
+computing features for task C, giving the schema and the seed-time column and not
+mentioning ``leakage'' or ``point-in-time'': \texttt{deepseek-v4-flash} and
+\texttt{bytedance-seed/}\allowbreak\texttt{seed-2.0-code}. Verdicts come from the
+checker, with five flagged programs manually confirmed. Of $233$ generations $132$ ran and $61$ were incorrect, $62\%$ for the first
 model and $22\%$ for the second; since roughly half the generations crash before
 producing a feature table, the rate over all $233$ lies in $[26\%;\,70\%]$. Both
 models fail the same way, filtering the entity's own history by the primary event
