@@ -264,10 +264,10 @@ LLM-agent SQL, \mbox{rel-stack} & 34 / 2 of 37 & not measured\\
 
 \subsection{The cost of a shifted cutoff}
 $I(\delta)$ increases monotonically over $\delta\in[0,90]$ days on Olist tasks A and B
-at all three seed times: a one-month error costs $5.8$--$11.5$ points, no cutoff at all
+at all three seed times: a one-month error costs $[5.8;\,11.5]$ points, no cutoff at all
 up to $+27.0$ (A) and $+18.0$ (B). On task C, where the cutoff is controlled
 separately for the entity's own history and for aggregates reached through a join to the
-seller, leaking only through the join costs $+3.0$ to $+5.1$ points and does not move the
+seller, leaking only through the join costs $[+3.0;\,+5.1]$ points and does not move the
 probe at all (Table~\ref{tab:probe}).
 
 \subsection{What \mbox{$\le t$} instead of \mbox{$<t$} costs depends on the timestamps}
@@ -326,7 +326,7 @@ for task C, giving the schema and the seed-time column, not mentioning ``leakage
 ``point-in-time''; verdicts come from the checker, with five flagged programs manually
 confirmed. Of $233$ generations $132$ ran and $61$ were incorrect, $62\%$ for the first
 model and $22\%$ for the second; since roughly half the generations crash before
-producing a feature table, the rate over all $233$ lies between $26\%$ and $70\%$. Both
+producing a feature table, the rate over all $233$ lies in $[26\%;\,70\%]$. Both
 models fail the same way, filtering the entity's own history by the primary event
 timestamp and ignoring the later timestamp of the joined one. We make no claim about
 models in general. Task construction is decisive: on a second task with one seed time per
@@ -395,7 +395,7 @@ expert SQL, \texttt{stack/user-badge} & 9 columns, $345{,}938$ cells & $-0.02$\\
 \end{table}
 
 \subsection{Cost of a violation is task-dependent}
-The same defect in the same code costs $3.09$ to $5.26$ points on task B, while on task
+The same defect in the same code costs $[3.09;\,5.26]$ points on task B, while on task
 A every interval contains zero (Table~\ref{tab:sizecost}); among model-generated programs
 the median inflation is $0.11$ points. The expert SQL makes the same point on code we did
 not write: rebuilt on a per-row truncated database and refitted with the same model, its
