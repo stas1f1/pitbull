@@ -244,7 +244,7 @@ scan (Table~\ref{tab:probe}).
 \begin{table}[t]\centering
 \caption{Five sources of point-in-time violations, none constructed by us. Verdicts take
 seconds per program on Olist and \mbox{rel-f1} and $19$\,min for the whole agent corpus;
-the corpora are not mutually comparable. What leaks in each: Section~\ref{sec:sources}.}
+the corpora are not mutually comparable; ranges span the three seed times.}
 \label{tab:sources}
 {\scriptsize\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{@{}lll@{}}
@@ -333,12 +333,12 @@ partially but not to zero: a reminder and then a per-aggregate requirement cut t
 rate from $46.2\%$ to $41.2\%$ to $14.6\%$.
 
 \begin{table}[t]\centering
-\caption{Baseline detectors compared. (a)~The 14 executed expert-SQL files, 8 of which diverge;
-ground truth is divergence under execution, so the PITFALL row is correct by construction
-and the table measures how far the others fall from it. (b)~Controlled runs on Olist
-(tasks A--C) and \mbox{rel-f1}.}
+\caption{Baseline detectors compared. (a)~The 14 executed expert-SQL files, 8 of which
+diverge; ground truth is divergence under execution, so PITFALL is correct by construction
+there. (b)~Controlled runs on Olist (tasks A--C) and \mbox{rel-f1}; ``by era'': violation
+on day-stamped seed times, clean on second-stamped ones.}
 \label{tab:probe}
-{\scriptsize\setlength{\tabcolsep}{2pt}
+{\scriptsize\setlength{\tabcolsep}{1.5pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}ll@{}}
 \multicolumn{2}{@{}l}{(a) expert SQL, 14 files, 8 violations}\\
 \toprule
@@ -353,16 +353,16 @@ univariate probe & identical to 6 s.f.\ with and without the violation\\
 
 \vspace{4pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lllll@{}}
-\multicolumn{5}{@{}l}{(b) the probe fails in both directions}\\
+\multicolumn{5}{@{}l}{(b) the probe fails in both directions (ranges: three seed times)}\\
 \toprule
-run & $\Delta$AUC, pp & probe & DataRobot & H2O\\
+run & $\Delta$AUC, pp & probe & DataRobot / H2O & PITFALL\\
 \midrule
-correct code, A & $0$ & $[0.83;\,0.86]$ & silent & \textbf{false alarm}\\
-join leak only, C & $[+3.0;\,+5.1]$ & $0.71$ both & \textbf{miss} & \textbf{miss}\\
-featuretools default, C & $[+14.8;\,+16.3]$ & $[0.76;\,0.83]$ & \textbf{miss} & fires (2/3)\\
-reference code, B & $[+3.1;\,+5.3]$ & $[0.62;\,0.69]$ & \textbf{miss} & \textbf{miss}\\
-no cutoff at all, B & $+18.0$ & $[0.80;\,0.83]$ & \textbf{miss} & fires (2/3)\\
-\mbox{$\le t$} vs \mbox{$<t$}, \mbox{rel-f1} & $[-0.45;\,+3.27]$ & moves $\le 0.015$ & silent & same\\
+correct code, A & $0$ & $[0.83;\,0.86]$ & silent / \textbf{false alarm} & clean\\
+join leak only, C & $[+3.0;\,+5.1]$ & $0.71$ both & \textbf{miss} / \textbf{miss} & violation\\
+featuretools, C & $[+14.8;\,+16.3]$ & $[0.76;\,0.83]$ & \textbf{miss} / fires (2/3) & violation\\
+reference code, B & $[+3.1;\,+5.3]$ & $[0.62;\,0.69]$ & \textbf{miss} / \textbf{miss} & violation\\
+no cutoff, B & $+18.0$ & $[0.80;\,0.83]$ & \textbf{miss} / fires (2/3) & violation\\
+\mbox{$\le t$} vs \mbox{$<t$}, \mbox{rel-f1} & $[-0.45;\,+3.27]$ & moves $\le 0.015$ & silent / same & by era\\
 \bottomrule
 \end{tabular*}}
 \end{table}
@@ -408,8 +408,7 @@ correctness has to be tested separately from the score.
 with respect to the observed database, the chosen mask and the seed times tested. \emph{(ii) Undecidable columns.} Mutable fields
 kept without history cannot be checked by execution. \emph{(iii) The availability map.} A
 wrong timestamp means the wrong thing is checked, and the map is a modelling decision;
-the check decides code against the declared relation, and whether the relation matches
-intent is a separate question. \emph{(iv) Scope.} Cost is measured on
+the check decides code against the declared relation only. \emph{(iv) Scope.} Cost is measured on
 two databases and four tasks; the corpus verdicts span five more databases but carry no
 cost. We measure how much a violation inflates the offline estimate (train and test both
 leaking against both correct); the further loss from training on leaking features and
@@ -428,8 +427,7 @@ tested; at other seed times the same program can still peek, as the \mbox{rel-ev
 files show.
 
 \section*{Data, Ethics and Availability}
-Experiments use public datasets: Olist (Kaggle, CC BY-NC-SA 4.0, anonymised by its
-publisher) and the \mbox{rel-f1}, \mbox{rel-stack}, \mbox{rel-event}, \mbox{rel-hm} and
+Experiments use public datasets: Olist (Kaggle, CC BY-NC-SA 4.0) and the \mbox{rel-f1}, \mbox{rel-stack}, \mbox{rel-event}, \mbox{rel-hm} and
 \mbox{rel-amazon} databases with the expert SQL released alongside
 RelBench~\cite{relbench}; no human subjects. Code, data, unedited model outputs and all
 reported numbers:
