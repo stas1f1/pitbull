@@ -21,6 +21,7 @@
 \{svchumakov, doezhov\}@itmo.ru, boukhanovsky@mail.ifmo.ru}}
 
 \maketitle
+\bstctlcite{IEEEexample:BSTcontrol}
 
 \begin{abstract}
 In multi-table prediction tasks, features are typically aggregates over neighbouring
@@ -137,8 +138,7 @@ correct at $t$} if and only if
 \varphi(D,t)=\varphi(D|_t,t).
 \label{eq:pit}
 \end{equation}
-In the code the boundary is a \emph{cutoff}; a shift $\delta\ge 0$ means the program
-reads up to $t+\delta$. $I(\delta)$ is the AUC of a \emph{fixed} learner on features
+A cutoff shift $\delta\ge 0$ means the program reads up to $t+\delta$. $I(\delta)$ is the AUC of a \emph{fixed} learner on features
 computed with cutoff $t+\delta$ minus its AUC at $\delta=0$.
 
 \subsection{Availability relation and channels}
@@ -178,7 +178,7 @@ availability map (which column governs the availability of which field, and whic
 have none); today it is a small hand-written declaration. \textsc{Builder} is any producer of a feature program: library,
 agent or person. \textsc{Guard} runs the differential check and returns the verdict with
 the diverging columns and cells; on a violation \textsc{Locator} runs the per-channel
-truncation. Clean programs go to an unmodified tabular AutoML. The core is ${\sim}170$ lines of Python over pandas.
+truncation. The core is ${\sim}170$ lines of Python over pandas.
 \textbf{Validation.} On six reference programs
 with known verdicts at three seed times the checker was right on 18 of 18 combinations.
 A negative control (seed time past every timestamp) caught three defects of our own
@@ -200,8 +200,7 @@ The demonstration is a self-contained interactive page built from live runs
 (Fig.~\ref{fig:demo}), plus a console runner, \texttt{python3 demo.py}. At the stand it runs in three acts of about
 twenty seconds each.
 
-\textbf{Act 1, catch the bug.} One real seller and a draggable date (the data of
-Fig.~\ref{fig:tworuns}). As the date moves, the na\"ive ``average review'' and the
+\textbf{Act 1, catch the bug.} One real seller and a draggable date (Fig.~\ref{fig:tworuns}). As the date moves, the na\"ive ``average review'' and the
 average of the reviews actually written by that date diverge, and the stars written after
 the line turn red: the order existed, its review did not.
 
@@ -279,8 +278,7 @@ predicted in the first era and nothing in the second. In $0.02$\,s per seed time
 any model is fitted, the checker diverges on every day-stamped seed time and is clean on
 every second-stamped one. The same inclusive cutoff then costs $-0.45$, $+2.45$ and
 $+3.27$ points on the day-stamped cells and exactly $0.00$ on all three second-stamped
-cells. On Olist, where events carry seconds, it also cost $0.00$; without \mbox{rel-f1}
-we could not have told whether that generalises.
+cells. On Olist, where events carry seconds, it also cost $0.00$.
 
 \subsection{Sources of violation}\label{sec:sources}
 Table~\ref{tab:sources} lists the five sources. \texttt{featuretools}~\cite{dfs} with
@@ -415,7 +413,7 @@ trial, so final-program counts undercount (observed once).
 
 Point-in-time violations occur in library defaults, published expert code and generated
 code; the univariate probe misses the regimes reported here. Their cost is not predictable from their existence or size, so correctness has to
-be tested directly, and the score does not show it. A clean verdict covers only the seed times that were tested.
+be tested directly, and the score does not show it.
 
 \section*{Data, Ethics and Availability}
 Experiments use public datasets: Olist (Kaggle, CC BY-NC-SA 4.0) and the \mbox{rel-f1}, \mbox{rel-stack}, \mbox{rel-event}, \mbox{rel-hm} and
