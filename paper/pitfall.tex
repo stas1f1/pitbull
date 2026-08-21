@@ -3,6 +3,7 @@
 \usepackage{cite,amsmath,amssymb,graphicx,booktabs,url,xcolor,tikz}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage[hidelinks,breaklinks]{hyperref}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \setlength{\textfloatsep}{7pt plus 2pt minus 3pt}
 \setlength{\abovecaptionskip}{3pt}
@@ -41,7 +42,8 @@ any divergence. A divergence is a witness of a violation under the declared avai
 map; the check does not parse the program, names the offending columns in seconds,
 and localises the leak by truncating one availability channel at a time. The univariate probe that commercial AutoML platforms deploy against leakage fails in
 both directions: silent on every violation we report at DataRobot's default threshold,
-firing on correct pipelines at H2O's.
+firing on correct pipelines at H2O's. Code and data: \url{https://github.com/stas1f1/pitfall};
+interactive demo: \url{https://stas1f1.github.io/pitfall/}.
 \end{abstract}
 
 \begin{IEEEkeywords}
