@@ -340,8 +340,8 @@ ground truth is divergence under execution, so the PITFALL row is correct by con
 and the table measures how far the others fall from it. (b)~Controlled runs on Olist
 (tasks A--C) and \mbox{rel-f1}.}
 \label{tab:probe}
-{\scriptsize\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}ll@{}}
+{\scriptsize\setlength{\tabcolsep}{2pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}ll@{}}
 \multicolumn{2}{@{}l}{(a) expert SQL, 14 files, 8 violations}\\
 \toprule
 detector & result\\
@@ -351,22 +351,22 @@ static scan (ours, earlier) & 8 candidate joins, 2 real, 6 false\\
 univariate probe & identical to 6 s.f.\ with and without the violation\\
 \textbf{PITFALL} & \textbf{8 of 8}, each traced to the table and column\\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 
 \vspace{4pt}
-\setlength{\tabcolsep}{2pt}\begin{tabular}{@{}lllll@{}}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lllll@{}}
 \multicolumn{5}{@{}l}{(b) the probe fails in both directions}\\
 \toprule
 run & $\Delta$AUC, pp & probe & DataRobot & H2O\\
 \midrule
 correct code, A & $0$ & $0.83$--$0.86$ & silent & \textbf{false alarm}\\
-join leak only, C & $+3.0$ to $+5.1$ & $0.71$ both & \textbf{miss} & \textbf{miss}\\
-featuretools default, C & $+14.8$ to $+16.3$ & $0.76$--$0.83$ & \textbf{miss} & fires, 2/3 seeds\\
-reference code, B & $+3.1$ to $+5.3$ & $0.62$--$0.69$ & \textbf{miss} & \textbf{miss}\\
-no cutoff at all, B & $+18.0$ & $0.80$--$0.83$ & \textbf{miss} & fires, 2/3 seeds\\
+join leak only, C & $+3.0$--$5.1$ & $0.71$ both & \textbf{miss} & \textbf{miss}\\
+featuretools default, C & $+14.8$--$16.3$ & $0.76$--$0.83$ & \textbf{miss} & fires (2/3)\\
+reference code, B & $+3.1$--$5.3$ & $0.62$--$0.69$ & \textbf{miss} & \textbf{miss}\\
+no cutoff at all, B & $+18.0$ & $0.80$--$0.83$ & \textbf{miss} & fires (2/3)\\
 \mbox{$\le t$} vs \mbox{$<t$}, \mbox{rel-f1} & $-0.45$ to $+3.27$ & moves $\le 0.015$ & silent & same\\
 \bottomrule
-\end{tabular}}
+\end{tabular*}}
 \end{table}
 
 \subsection{What the univariate probe reports}\label{sec:blind}
