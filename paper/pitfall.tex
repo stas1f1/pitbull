@@ -217,9 +217,7 @@ fixed model gains $5.3$ points.
 aggregates move only when review scores written after the date are hidden, two delivery
 aggregates only when the delivery date is hidden; nothing else in the database matters
 to this program. The tool locates; the repair is two lines, shown as ``our code, fixed'',
-which is clean. The page also holds the cost curve of a shifted cutoff, the expert-SQL
-verdicts file by file and the \mbox{rel-event} and \mbox{rel-f1} charts of
-Section~\ref{sec:evidence}.
+which is clean. The page also holds the charts behind Section~\ref{sec:evidence}.
 
 \section{Data and Setup}
 
@@ -234,9 +232,12 @@ Section~\ref{sec:sources} run against the databases they were written for:
 \mbox{rel-f1}, \mbox{rel-stack}, \mbox{rel-event}, \mbox{rel-hm} and \mbox{rel-amazon},
 15 tasks, tables of up to $10^{8}$ rows, availability from RelBench's \texttt{time\_col}
 declarations.
-\textbf{Model and intervals.} One LightGBM configuration with a fixed seed everywhere;
-intervals are paired percentile bootstraps of the AUC \emph{difference} on the same test
-rows ($2{,}000$ resamples).
+\textbf{Baseline, model and intervals.} The baseline for every cost figure is the same
+program run under the correct cutoff, with one LightGBM configuration and a fixed seed
+everywhere; inflation is the paired AUC difference against it, with percentile bootstrap
+intervals on the same test rows ($2{,}000$ resamples). The baseline detectors are the
+univariate probe at both deployed thresholds, the manual audit and our earlier static
+scan (Table~\ref{tab:probe}).
 
 \section{Evidence}\label{sec:evidence}
 
@@ -314,7 +315,7 @@ come from the middle of the training split.
 trials on \texttt{stack/user-engagement} had only a static scan, 5 candidates and no
 executed verdict. Running them takes $19$ minutes: 34 execute, \textbf{2 diverge}. Both violations are
 the same missing cutoff on the join to \texttt{users}, giving account ages down to
-$-2{,}021$ days on 57 of $25{,}233$ label rows, in 31 of the 32 trials. Against execution
+$-2{,}021$ days on 57 of $25{,}233$ label rows. Against execution
 the scan errs both ways: 3 of its 5 candidates are false and 2 real.
 
 \textbf{Generated feature code.} We used \texttt{deepseek-v4-flash} and
@@ -332,7 +333,7 @@ partially but not to zero: a reminder and then a per-aggregate requirement cut t
 rate from $46.2\%$ to $41.2\%$ to $14.6\%$.
 
 \begin{table}[t]\centering
-\caption{Detectors compared. (a)~The 14 executed expert-SQL files, 8 of which diverge;
+\caption{Baseline detectors compared. (a)~The 14 executed expert-SQL files, 8 of which diverge;
 ground truth is divergence under execution, so the PITFALL row is correct by construction
 and the table measures how far the others fall from it. (b)~Controlled runs on Olist
 (tasks A--C) and \mbox{rel-f1}.}
@@ -367,11 +368,12 @@ no cutoff at all, B & $+18.0$ & $[0.80;\,0.83]$ & \textbf{miss} & fires (2/3)\\
 \end{table}
 
 \subsection{What the univariate probe reports}\label{sec:blind}
-Table~\ref{tab:probe} summarises. No value of the probe separates leaking runs from clean
-ones: leakage through a join does not move it at all, on task B nothing reaches
-DataRobot's threshold, not even the complete absence of a cutoff, and H2O's lower threshold fires on
-the correct task-A pipeline at every seed time, because recency is a legitimate predictor
-of churn. Both errors replicate on \mbox{rel-f1} and on the executed expert SQL.
+Table~\ref{tab:probe} compares the baseline detectors. No value of the probe separates
+leaking runs from clean ones: leakage through a join does not move it at all, on task B
+nothing reaches DataRobot's threshold, not even the complete absence of a cutoff, and
+H2O's lower threshold fires on the correct task-A pipeline at every seed time, because
+recency is a legitimate predictor of churn. Both errors replicate on \mbox{rel-f1} and on
+the executed expert SQL.
 
 \begin{table}[t]\centering
 \caption{The size of a violation does not predict its cost. Same defect, same code:
@@ -413,9 +415,8 @@ two databases and four tasks; the corpus verdicts span five more databases but c
 cost. We measure how much a violation inflates the offline estimate (train and test both
 leaking against both correct); the further loss from training on leaking features and
 serving on correct ones, where the future does not yet exist, is not measured here. \emph{(v) Determinism.} Columns that differ between identical
-reruns carry no verdict. \emph{(vi) Final-program counts undercount.} An agent that
-selects trials by validation score can discard a leaking intermediate trial (observed
-once).
+reruns carry no verdict. \emph{(vi)} Validation-driven trial selection can discard a leaking intermediate
+trial, so final-program counts undercount (observed once).
 
 \section{Conclusion}
 
