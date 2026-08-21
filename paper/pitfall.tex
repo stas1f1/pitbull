@@ -150,7 +150,8 @@ available at \texttt{review\_creation\_date}, a median of 10 days after the orde
 column $c$ becoming known after $t$. Some columns have no availability
 timestamp at all, e.g.\ a mutable status field kept without history; the truncated
 database is then identical to the full one and no execution-based check can decide them
-(we exclude \texttt{order\_status} throughout).
+(we exclude \texttt{order\_status} throughout). A leak spread over many aggregates is invisible to any
+single-feature statistic while a multivariate model still uses it.
 
 \subsection{Differential execution, guarantee, localisation}
 The check follows from~(\ref{eq:pit}): run $\varphi$ twice and compare:
