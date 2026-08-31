@@ -29,3 +29,9 @@ prestudy/p3_out/pilot/
 !demo/run.log
 # внешние базы для расширения (RelBench и т.п.): скачиваются, см. README
 PITFALL_ext_data/
+
+# local symlinks into ../pitfall (heavy untracked data)
+PITFALL_ext_data
+prestudy/p3_scratch
+prestudy/p2_repos
+prestudy/p3_out/pilot

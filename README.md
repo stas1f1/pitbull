@@ -1,4 +1,26 @@
-# PITFALL
+# PITBULL
+
+**P**oint-**i**n-**T**ime **B**oundary **U**nderstanding & **L**eakage **L**imiter:
+zero-configuration differential checking of generated feature code, and closing the
+loop — the availability map is inferred automatically (boundary understanding), and
+the witness is fed back to the agent that wrote the code until it comes out clean
+(leakage limiter).
+
+Target: **FSE 2027 research track, full-paper deadline October 2, 2026.**
+Research plan: [`proposals/fse2027_proposal.md`](proposals/fse2027_proposal.md);
+literature scan: [`proposals/lit_scan_2026-08.md`](proposals/lit_scan_2026-08.md).
+
+This repository is a fork of [PITFALL](https://github.com/stas1f1/pitfall) (ICDM 2026
+demo, full history preserved, forked at `d65ced9`). Everything below documents the
+inherited core — harness, corpora, data, results — on which the two new modules
+(`mapinfer/`, `repairloop/`) will be built. Heavy untracked data stays in `../pitfall`
+and is reached via local symlinks (`PITFALL_ext_data`, `prestudy/p3_scratch`,
+`prestudy/p2_repos`); recreate them after a fresh clone, and put an OpenRouter key in
+`.env` for generation experiments.
+
+---
+
+## The inherited PITFALL core
 
 Point-in-time correctness of feature pipelines for multi-table machine learning,
 checked by **differential execution**.
