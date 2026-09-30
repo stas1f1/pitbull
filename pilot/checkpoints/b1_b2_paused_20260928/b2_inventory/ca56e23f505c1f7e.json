@@ -1,0 +1,29 @@
+{
+ "program": "amazon_item-churn.sql",
+ "checks": [
+  {
+   "seed": "2008-01-10 00:00:00",
+   "status": "ran",
+   "witness": false,
+   "columns": [],
+   "cells": 0,
+   "rows": 6024
+  },
+  {
+   "seed": "2011-04-07 00:00:00",
+   "status": "ran",
+   "witness": false,
+   "columns": [],
+   "cells": 0,
+   "rows": 49544
+  },
+  {
+   "seed": "2014-07-03 00:00:00",
+   "status": "ran",
+   "witness": false,
+   "columns": [],
+   "cells": 0,
+   "rows": 147259
+  }
+ ]
+}

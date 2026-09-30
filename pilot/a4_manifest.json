@@ -1,6 +1,6 @@
 {
  "experiment": "A4 RQ2b F1 held-out CLEAN@k",
- "status": "complete; in_review",
+ "status": "complete; human_review_required",
  "checkpoint": {
   "stopped_after": "all 3 repeats complete through iteration 5",
   "repeat_1": "complete: 61/62 clean",

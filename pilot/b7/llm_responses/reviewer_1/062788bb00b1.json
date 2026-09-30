@@ -1,0 +1,43 @@
+{
+  "case_id": "062788bb00b1",
+  "reviewer": 1,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "```json\n{\"semantic_repair\": \"yes\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"high\", \"comments\": \"Candidate fixes the leaked unfiltered review merge by filtering on review_creation_date < seed_time, also filters orders/payments by their timestamps and gates delivery status on delivered date < seed_time, while retaining all original feature families and only adding new ones.\"}\n```",
+  "parsed": {
+    "semantic_repair": "yes",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "high",
+    "comments": "Candidate fixes the leaked unfiltered review merge by filtering on review_creation_date < seed_time, also filters orders/payments by their timestamps and gates delivery status on delivered date < seed_time, while retaining all original feature families and only adding new ones."
+  },
+  "usage": {
+    "completion_tokens": 154,
+    "prompt_tokens": 3060,
+    "total_tokens": 3214,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 81,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 320,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.0004976,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.0004976,
+      "upstream_inference_prompt_cost": 0.0004206,
+      "upstream_inference_completions_cost": 7.7e-05
+    }
+  },
+  "wall_seconds": 14.8
+}

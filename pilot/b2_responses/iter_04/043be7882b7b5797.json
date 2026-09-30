@@ -1,0 +1,41 @@
+{
+ "program_uid": "043be7882b7b5797",
+ "program": "amazon_user-churn.sql",
+ "iteration": 4,
+ "repair_model": "z-ai/glm-5.3-flash",
+ "source_sql_sha256": "30e89003ad712345ccf5ecf389b0beaf7473bb13e4063a6289c670ef2d571c5f",
+ "prompt_sha256": "a261f708864dfa7c2feffe5b0352a2ad1d9e959884c2f7dccedab4e7eccdaeb9",
+ "status": "ok",
+ "finish_reason": "length",
+ "raw_response": "",
+ "sql": null,
+ "usage": {
+  "completion_tokens": 16000,
+  "prompt_tokens": 1747,
+  "total_tokens": 17747,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 15991,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.0070227425,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.0070227425,
+   "upstream_inference_prompt_cost": 0.0002227425,
+   "upstream_inference_completions_cost": 0.0068
+  }
+ },
+ "wall_seconds": 149.3
+}

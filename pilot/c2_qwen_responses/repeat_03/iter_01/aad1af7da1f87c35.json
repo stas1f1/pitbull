@@ -1,0 +1,54 @@
+{
+ "program_uid": "aad1af7da1f87c35",
+ "program": "deepseek-v4-flash-0731#63",
+ "repeat": 3,
+ "iteration": 1,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "aad1af7da1f87c35a0be18c1bacfd5159c2d0a753c1c0b0c291d2c764a2b3d63",
+ "prompt_sha256": "c9da367d0f3d26550276f1ef1c8e9fbf7c617aa7b1cc588e87dc2892b6bd11ab",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Распаковываем таблицы\n    orders = db['orders']\n    order_items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    # Создаем пустой DataFrame для признаков\n    features = pd.DataFrame(index=entity_ids)\n    \n    # Фильтруем данные до seed_time\n    # Для order_items используем ts (время покупки)\n    items_mask = (order_items['product_id'].isin(entity_ids)) & (order_items['ts'] <= seed_time)\n    items = order_items[items_mask].copy()\n    \n    # Фильтруем заказы, которые были созданы до seed_time\n    orders_mask = (orders['order_id'].isin(items['order_id'])) & (orders['order_purchase_timestamp'] <= seed_time)\n    relevant_orders = orders[orders_mask]\n    \n    # Оставляем только позиции, относящиеся к этим заказам\n    items = items[items['order_id'].isin(relevant_orders['order_id'])]\n    \n    # Базовые признаки\n    if not items.empty:\n        # Агрегация по продуктам\n        agg = items.groupby('product_id').agg(\n            n_orders=('order_id', 'nunique'),\n            n_items=('price', 'size'),\n            total_sales=('price', 'sum'),\n            avg_price=('price', 'mean'),\n            std_price=('price', 'std'),\n            avg_freight=('freight_value', 'mean'),\n            std_freight=('freight_value', 'std'),\n            n_sellers=('seller_id', 'nunique'),\n            first_purchase=('ts', 'min'),\n            last_purchase=('ts', 'max')\n        ).reset_index()\n        \n        # Временные признаки\n        agg['days_since_first'] = (seed_time - agg['first_purchase']).dt.days\n        agg['days_since_last'] = (seed_time - agg['last_purchase']).dt.days\n        agg['lifetime_days'] = (agg['last_purchase'] - agg['first_purchase']).dt.days\n        agg['has_sales'] = 1\n        \n        # Устанавливаем product_id как индекс\n        agg = agg.set_index('product_id')\n        \n        # Копируем агрегированные признаки в основной DataFrame\n        for col in agg.columns:\n            if col in features.columns:\n                features.loc[agg.index, col] = agg[col]\n            else:\n                features = features.join(agg[col], how='left')\n        \n        # Признаки по отзывам (только отзывы, созданные до seed_time)\n        reviews_filtered = reviews[\n            (reviews['order_id'].isin(relevant_orders['order_id'])) & \n            (reviews['review_creation_date'] <= seed_time)\n        ].copy()\n        \n        if not reviews_filtered.empty:\n            # Соединяем отзывы с позициями\n            items_with_reviews = items[['order_id', 'product_id']].drop_duplicates() \\\n                .merge(reviews_filtered[['order_id', 'review_score']], on='order_id', how='inner')\n            \n            if not items_with_reviews.empty:\n                review_agg = items_with_reviews.groupby('product_id').agg(\n                    avg_review_score=('review_score', 'mean'),\n                    std_review_score=('review_score', 'std'),\n                    n_reviews=('review_score', 'count')\n                )\n                \n                # Добавляем признаки отзывов\n                for col in review_agg.columns:\n                    if col in features.columns:\n                        features.loc[review_agg.index, col] = review_agg[col]\n                    else:\n                        features = features.join(review_agg[col], how='left')\n        \n        # Признаки по периодам\n        for period in [30, 60, 90]:\n            cutoff = seed_time - pd.Timedelta(days=period)\n            period_items = items[items['ts'] >= cutoff]\n            if not period_items.empty:\n                order_counts = period_items.groupby('product_id')['order_id'].nunique()\n                col_name = f'n_orders_last_{period}'\n                features[col_name] = 0  # Инициализируем нулями\n                features.loc[order_counts.index, col_name] = order_counts\n                \n    # Заполняем пропуски нулями\n    features = features.fillna(0)\n    \n    # Убеждаемся, что все entity_ids присутствуют\n    features = features.reindex(entity_ids, fill_value=0)\n    \n    # Приводим все столбцы к числовому типу\n    for col in features.columns:\n        features[col] = pd.to_numeric(features[col], errors='coerce').fillna(0)\n        \n    return features\n```",
+   "usage": {
+    "completion_tokens": 1027,
+    "prompt_tokens": 3654,
+    "total_tokens": 4681,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2384,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.00208036,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.00208036,
+     "upstream_inference_prompt_cost": 0.00053986,
+     "upstream_inference_completions_cost": 0.0015405
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "def get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Распаковываем таблицы\n    orders = db['orders']\n    order_items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    # Создаем пустой DataFrame для признаков\n    features = pd.DataFrame(index=entity_ids)\n    \n    # Фильтруем данные до seed_time\n    # Для order_items используем ts (время покупки)\n    items_mask = (order_items['product_id'].isin(entity_ids)) & (order_items['ts'] <= seed_time)\n    items = order_items[items_mask].copy()\n    \n    # Фильтруем заказы, которые были созданы до seed_time\n    orders_mask = (orders['order_id'].isin(items['order_id'])) & (orders['order_purchase_timestamp'] <= seed_time)\n    relevant_orders = orders[orders_mask]\n    \n    # Оставляем только позиции, относящиеся к этим заказам\n    items = items[items['order_id'].isin(relevant_orders['order_id'])]\n    \n    # Базовые признаки\n    if not items.empty:\n        # Агрегация по продуктам\n        agg = items.groupby('product_id').agg(\n            n_orders=('order_id', 'nunique'),\n            n_items=('price', 'size'),\n            total_sales=('price', 'sum'),\n            avg_price=('price', 'mean'),\n            std_price=('price', 'std'),\n            avg_freight=('freight_value', 'mean'),\n            std_freight=('freight_value', 'std'),\n            n_sellers=('seller_id', 'nunique'),\n            first_purchase=('ts', 'min'),\n            last_purchase=('ts', 'max')\n        ).reset_index()\n        \n        # Временные признаки\n        agg['days_since_first'] = (seed_time - agg['first_purchase']).dt.days\n        agg['days_since_last'] = (seed_time - agg['last_purchase']).dt.days\n        agg['lifetime_days'] = (agg['last_purchase'] - agg['first_purchase']).dt.days\n        agg['has_sales'] = 1\n        \n        # Устанавливаем product_id как индекс\n        agg = agg.set_index('product_id')\n        \n        # Копируем агрегированные признаки в основной DataFrame\n        for col in agg.columns:\n            if col in features.columns:\n                features.loc[agg.index, col] = agg[col]\n            else:\n                features = features.join(agg[col], how='left')\n        \n        # Признаки по отзывам (только отзывы, созданные до seed_time)\n        reviews_filtered = reviews[\n            (reviews['order_id'].isin(relevant_orders['order_id'])) & \n            (reviews['review_creation_date'] <= seed_time)\n        ].copy()\n        \n        if not reviews_filtered.empty:\n            # Соединяем отзывы с позициями\n            items_with_reviews = items[['order_id', 'product_id']].drop_duplicates() \\\n                .merge(reviews_filtered[['order_id', 'review_score']], on='order_id', how='inner')\n            \n            if not items_with_reviews.empty:\n                review_agg = items_with_reviews.groupby('product_id').agg(\n                    avg_review_score=('review_score', 'mean'),\n                    std_review_score=('review_score', 'std'),\n                    n_reviews=('review_score', 'count')\n                )\n                \n                # Добавляем признаки отзывов\n                for col in review_agg.columns:\n                    if col in features.columns:\n                        features.loc[review_agg.index, col] = review_agg[col]\n                    else:\n                        features = features.join(review_agg[col], how='left')\n        \n        # Признаки по периодам\n        for period in [30, 60, 90]:\n            cutoff = seed_time - pd.Timedelta(days=period)\n            period_items = items[items['ts'] >= cutoff]\n            if not period_items.empty:\n                order_counts = period_items.groupby('product_id')['order_id'].nunique()\n                col_name = f'n_orders_last_{period}'\n                features[col_name] = 0  # Инициализируем нулями\n                features.loc[order_counts.index, col_name] = order_counts\n                \n    # Заполняем пропуски нулями\n    features = features.fillna(0)\n    \n    # Убеждаемся, что все entity_ids присутствуют\n    features = features.reindex(entity_ids, fill_value=0)\n    \n    # Приводим все столбцы к числовому типу\n    for col in features.columns:\n        features[col] = pd.to_numeric(features[col], errors='coerce').fillna(0)\n        \n    return features",
+ "usage": {
+  "prompt_tokens": 3654,
+  "completion_tokens": 1027,
+  "total_tokens": 4681,
+  "cost": 0.00208036
+ },
+ "wall_seconds": 13.6
+}

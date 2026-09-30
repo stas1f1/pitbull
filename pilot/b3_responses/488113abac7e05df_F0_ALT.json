@@ -1,0 +1,41 @@
+{
+ "item_id": "488113abac7e05df",
+ "pair_id": "a2-7bd6c053eb5dbb05",
+ "category": "checker_pair",
+ "arm": "F0_ALT",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "7bd6c053eb5dbb05716700f0326c515933d68b2a3f0cd08de64711f0f2ccd9d8",
+ "prompt_sha256": "771e4378552d90b177e7d04d8d6ac1177c8e98bdf8fdc160ceb81ed2c4281998",
+ "status": "ok",
+ "finish_reason": "length",
+ "raw_response": "```json\n{\"verdict\": \"LEAK\", \"rationale\": \"Review scores are merged onto orders filtered only by purchase timestamp, but Olist reviews are created after delivery (often after seed_time), so review_count/avg_review features can incorporate information that did not exist",
+ "usage": {
+  "completion_tokens": 800,
+  "prompt_tokens": 1371,
+  "total_tokens": 2171,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 744,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.00098953,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.00098953,
+   "upstream_inference_prompt_cost": 0.00058953,
+   "upstream_inference_completions_cost": 0.0004
+  }
+ },
+ "wall_seconds": 21.6
+}

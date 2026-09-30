@@ -1,0 +1,252 @@
+{
+  "experiment": "C2 alternate-model F1 held-out CLEAN@k",
+  "status": "complete; human_review_required",
+  "verdict": "positive",
+  "threshold": "CLEAN@5 >= 0.8",
+  "records": 186,
+  "program_clusters": 62,
+  "repeat_summary": [
+    {
+      "repeat": 1,
+      "clean_at_5": 55,
+      "failed_at_5": 7
+    },
+    {
+      "repeat": 2,
+      "clean_at_5": 50,
+      "failed_at_5": 12
+    },
+    {
+      "repeat": 3,
+      "clean_at_5": 54,
+      "failed_at_5": 8
+    }
+  ],
+  "clean_at_k": [
+    {
+      "k": 1,
+      "all": {
+        "clean": 129,
+        "n": 186,
+        "rate": 0.6935483870967742,
+        "wilson95": [
+          0.623935002361342,
+          0.7553288341434347
+        ],
+        "cluster_bootstrap95": [
+          0.6021505376344085,
+          0.7795698924731184
+        ]
+      },
+      "executable_by_k": {
+        "clean": 129,
+        "n": 166,
+        "rate": 0.7771084337349398
+      },
+      "majority_clean_programs": 44
+    },
+    {
+      "k": 2,
+      "all": {
+        "clean": 149,
+        "n": 186,
+        "rate": 0.8010752688172043,
+        "wilson95": [
+          0.7378721103110072,
+          0.8520938575853118
+        ],
+        "cluster_bootstrap95": [
+          0.7150537634408602,
+          0.8817204301075269
+        ]
+      },
+      "executable_by_k": {
+        "clean": 149,
+        "n": 182,
+        "rate": 0.8186813186813187
+      },
+      "majority_clean_programs": 49
+    },
+    {
+      "k": 3,
+      "all": {
+        "clean": 154,
+        "n": 186,
+        "rate": 0.8279569892473119,
+        "wilson95": [
+          0.7672244380920495,
+          0.8754170626521552
+        ],
+        "cluster_bootstrap95": [
+          0.7473118279569892,
+          0.8978494623655915
+        ]
+      },
+      "executable_by_k": {
+        "clean": 154,
+        "n": 183,
+        "rate": 0.8415300546448088
+      },
+      "majority_clean_programs": 52
+    },
+    {
+      "k": 4,
+      "all": {
+        "clean": 155,
+        "n": 186,
+        "rate": 0.8333333333333334,
+        "wilson95": [
+          0.7731474535776948,
+          0.8800291537360869
+        ],
+        "cluster_bootstrap95": [
+          0.7526881720430109,
+          0.9032258064516129
+        ]
+      },
+      "executable_by_k": {
+        "clean": 155,
+        "n": 183,
+        "rate": 0.8469945355191257
+      },
+      "majority_clean_programs": 52
+    },
+    {
+      "k": 5,
+      "all": {
+        "clean": 159,
+        "n": 186,
+        "rate": 0.8548387096774194,
+        "wilson95": [
+          0.7970372065612857,
+          0.8982798270308044
+        ],
+        "cluster_bootstrap95": [
+          0.7795698924731184,
+          0.9193548387096774
+        ]
+      },
+      "executable_by_k": {
+        "clean": 159,
+        "n": 183,
+        "rate": 0.8688524590163934
+      },
+      "majority_clean_programs": 53
+    }
+  ],
+  "by_mechanism": {
+    "PAYMENTS_NO_FILTER": [
+      {
+        "k": 1,
+        "clean": 0,
+        "n": 3,
+        "rate": 0.0
+      },
+      {
+        "k": 2,
+        "clean": 0,
+        "n": 3,
+        "rate": 0.0
+      },
+      {
+        "k": 3,
+        "clean": 0,
+        "n": 3,
+        "rate": 0.0
+      },
+      {
+        "k": 4,
+        "clean": 0,
+        "n": 3,
+        "rate": 0.0
+      },
+      {
+        "k": 5,
+        "clean": 0,
+        "n": 3,
+        "rate": 0.0
+      }
+    ],
+    "REVIEWS_NO_FILTER": [
+      {
+        "k": 1,
+        "clean": 129,
+        "n": 180,
+        "rate": 0.7166666666666667
+      },
+      {
+        "k": 2,
+        "clean": 148,
+        "n": 180,
+        "rate": 0.8222222222222222
+      },
+      {
+        "k": 3,
+        "clean": 153,
+        "n": 180,
+        "rate": 0.85
+      },
+      {
+        "k": 4,
+        "clean": 154,
+        "n": 180,
+        "rate": 0.8555555555555555
+      },
+      {
+        "k": 5,
+        "clean": 158,
+        "n": 180,
+        "rate": 0.8777777777777778
+      }
+    ],
+    "VAR_MIXUP": [
+      {
+        "k": 1,
+        "clean": 0,
+        "n": 3,
+        "rate": 0.0
+      },
+      {
+        "k": 2,
+        "clean": 1,
+        "n": 3,
+        "rate": 0.3333333333333333
+      },
+      {
+        "k": 3,
+        "clean": 1,
+        "n": 3,
+        "rate": 0.3333333333333333
+      },
+      {
+        "k": 4,
+        "clean": 1,
+        "n": 3,
+        "rate": 0.3333333333333333
+      },
+      {
+        "k": 5,
+        "clean": 1,
+        "n": 3,
+        "rate": 0.3333333333333333
+      }
+    ]
+  },
+  "mcnemar_majority_clean_1_vs_5": {
+    "clean_1_not_5": 0,
+    "not_1_clean_5": 9,
+    "exact_two_sided_p": 0.00390625
+  },
+  "bootstrap": {
+    "resamples": 100000,
+    "seed": 20260915
+  },
+  "network_usage": {
+    "calls": 343,
+    "prompt_tokens": 1365775,
+    "completion_tokens": 516944,
+    "total_tokens": 1882719,
+    "cost": 1.396612,
+    "api_errors": 0
+  }
+}

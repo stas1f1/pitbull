@@ -1,0 +1,41 @@
+{
+ "item_id": "0964dd2e33e0085f",
+ "pair_id": "olist_seller_value_availability",
+ "category": "handwritten_pair",
+ "arm": "F0_ALT",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "31da53db305294b68d5a9a5533e28d67fad66a2848ab4d9aa6d214a1ad284df9",
+ "prompt_sha256": "d1611b976c5116817a40ebe0f31b3419beb355ea28bf7dff7e2eaa6fe1739c82",
+ "status": "ok",
+ "finish_reason": "length",
+ "raw_response": "",
+ "usage": {
+  "completion_tokens": 800,
+  "prompt_tokens": 218,
+  "total_tokens": 1018,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 800,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.00049374,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.00049374,
+   "upstream_inference_prompt_cost": 9.374e-05,
+   "upstream_inference_completions_cost": 0.0004
+  }
+ },
+ "wall_seconds": 17.3
+}

@@ -1,0 +1,54 @@
+{
+ "program_uid": "52648fcdc514695b",
+ "program": "deepseek-v4-flash-0731#33",
+ "repeat": 2,
+ "iteration": 3,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "867a088c6faf626f46c6f12e33c7eaead20211171dedb36a2a7d047a3ba63b62",
+ "prompt_sha256": "d3b31ce0fba415fe82efb32da16dd8d546316828614a145972b51758422420bf",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\ndef get_features(db, entity_ids, seed_time):\n    orders = db['orders']\n    items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n    \n    # История продаж только до seed_time\n    items = items[items['ts'] <= seed_time].copy()\n    \n    # Если нет ни одной продажи – простой DataFrame с нулями\n    if items.empty:\n        cols = [\n            'n_items', 'n_orders', 'n_customers', 'sum_price', 'avg_price',\n            'sum_freight', 'avg_freight', 'count_review', 'avg_review',\n            'avg_delivery_days', 'recent_30', 'recent_60', 'recent_90',\n            'lifetime_days', 'days_since_last', 'months_active'\n        ]\n        res = pd.DataFrame(0.0, index=entity_ids, columns=cols)\n        return res.reindex(entity_ids)\n    \n    # customer_id из orders (только те, что были до seed_time)\n    ord_sub = orders[orders['order_purchase_timestamp'] <= seed_time][['order_id', 'customer_id']]\n    items = items.merge(ord_sub, on='order_id', how='left')\n    \n    # Отзывы только по заказам, которые были сделаны до seed_time\n    rev_sub = reviews[reviews['review_creation_date'] <= seed_time]\n    rev_agg = rev_sub.groupby('order_id')['review_score'].mean().reset_index()\n    rev_agg.columns = ['order_id', 'review_mean']\n    items = items.merge(rev_agg, on='order_id', how='left')\n    \n    # Длительность доставки в днях (если известна дата доставки и она до seed_time)\n    items_with_delivery = items.dropna(subset=['order_delivered_customer_date'])\n    items_with_delivery = items_with_delivery[\n        items_with_delivery['order_delivered_customer_date'] <= seed_time\n    ].copy()\n    items_with_delivery['delivery_days'] = (\n        items_with_delivery['order_delivered_customer_date'] - items_with_delivery['ts']\n    ).dt.days\n    \n    # Основные агрегаты по товару\n    feat = items.groupby('product_id').agg(\n        n_items=('order_id', 'count'),\n        n_orders=('order_id', 'nunique'),\n        n_customers=('customer_id', 'nunique'),\n        sum_price=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        sum_freight=('freight_value', 'sum'),\n        avg_freight=('freight_value', 'mean'),\n        count_review=('review_mean', 'count'),\n        avg_review=('review_mean', 'mean')\n    )\n    \n    # Агрегация по времени доставки (только достоверные данные)\n    delivery_stats = items_with_delivery.groupby('product_id')['delivery_days'].mean().rename('avg_delivery_days')\n    feat = feat.join(delivery_stats, how='outer')\n    \n    # Окна 30/60/90 дней до seed_time\n    for window in (30, 60, 90):\n        start = seed_time - pd.Timedelta(days=window)\n        mask = (items['ts'] >= start) & (items['ts'] <= seed_time)\n        tmp = items[mask].groupby('product_id').size()\n        feat[f'recent_{window}'] = tmp\n    \n    # Первая/последняя дата покупки, интервал, время с последней покупки\n    first_last = items.groupby('product_id')['ts'].agg(['min', 'max'])\n    feat['lifetime_days'] = (first_last['max'] - first_last['min']).dt.days\n    feat['days_since_last'] = (seed_time - first_last['max']).dt.days\n    \n    # Количество активных месяцев\n    items['ym'] = items['ts'].dt.strftime('%Y-%m')\n    feat['months_active'] = items.groupby('product_id')['ym'].nunique()\n    \n    # Реиндекция по всем запрошенным товарам\n    feat = feat.reindex(entity_ids)\n    \n    # Заполняем пропуски (товары без истории) нулями\n    feat = feat.fillna(0.0).astype(float)\n    return feat\n```",
+   "usage": {
+    "completion_tokens": 938,
+    "prompt_tokens": 3387,
+    "total_tokens": 4325,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2368,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.00185837,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.00185837,
+     "upstream_inference_prompt_cost": 0.00045137,
+     "upstream_inference_completions_cost": 0.001407
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "def get_features(db, entity_ids, seed_time):\n    orders = db['orders']\n    items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n    \n    # История продаж только до seed_time\n    items = items[items['ts'] <= seed_time].copy()\n    \n    # Если нет ни одной продажи – простой DataFrame с нулями\n    if items.empty:\n        cols = [\n            'n_items', 'n_orders', 'n_customers', 'sum_price', 'avg_price',\n            'sum_freight', 'avg_freight', 'count_review', 'avg_review',\n            'avg_delivery_days', 'recent_30', 'recent_60', 'recent_90',\n            'lifetime_days', 'days_since_last', 'months_active'\n        ]\n        res = pd.DataFrame(0.0, index=entity_ids, columns=cols)\n        return res.reindex(entity_ids)\n    \n    # customer_id из orders (только те, что были до seed_time)\n    ord_sub = orders[orders['order_purchase_timestamp'] <= seed_time][['order_id', 'customer_id']]\n    items = items.merge(ord_sub, on='order_id', how='left')\n    \n    # Отзывы только по заказам, которые были сделаны до seed_time\n    rev_sub = reviews[reviews['review_creation_date'] <= seed_time]\n    rev_agg = rev_sub.groupby('order_id')['review_score'].mean().reset_index()\n    rev_agg.columns = ['order_id', 'review_mean']\n    items = items.merge(rev_agg, on='order_id', how='left')\n    \n    # Длительность доставки в днях (если известна дата доставки и она до seed_time)\n    items_with_delivery = items.dropna(subset=['order_delivered_customer_date'])\n    items_with_delivery = items_with_delivery[\n        items_with_delivery['order_delivered_customer_date'] <= seed_time\n    ].copy()\n    items_with_delivery['delivery_days'] = (\n        items_with_delivery['order_delivered_customer_date'] - items_with_delivery['ts']\n    ).dt.days\n    \n    # Основные агрегаты по товару\n    feat = items.groupby('product_id').agg(\n        n_items=('order_id', 'count'),\n        n_orders=('order_id', 'nunique'),\n        n_customers=('customer_id', 'nunique'),\n        sum_price=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        sum_freight=('freight_value', 'sum'),\n        avg_freight=('freight_value', 'mean'),\n        count_review=('review_mean', 'count'),\n        avg_review=('review_mean', 'mean')\n    )\n    \n    # Агрегация по времени доставки (только достоверные данные)\n    delivery_stats = items_with_delivery.groupby('product_id')['delivery_days'].mean().rename('avg_delivery_days')\n    feat = feat.join(delivery_stats, how='outer')\n    \n    # Окна 30/60/90 дней до seed_time\n    for window in (30, 60, 90):\n        start = seed_time - pd.Timedelta(days=window)\n        mask = (items['ts'] >= start) & (items['ts'] <= seed_time)\n        tmp = items[mask].groupby('product_id').size()\n        feat[f'recent_{window}'] = tmp\n    \n    # Первая/последняя дата покупки, интервал, время с последней покупки\n    first_last = items.groupby('product_id')['ts'].agg(['min', 'max'])\n    feat['lifetime_days'] = (first_last['max'] - first_last['min']).dt.days\n    feat['days_since_last'] = (seed_time - first_last['max']).dt.days\n    \n    # Количество активных месяцев\n    items['ym'] = items['ts'].dt.strftime('%Y-%m')\n    feat['months_active'] = items.groupby('product_id')['ym'].nunique()\n    \n    # Реиндекция по всем запрошенным товарам\n    feat = feat.reindex(entity_ids)\n    \n    # Заполняем пропуски (товары без истории) нулями\n    feat = feat.fillna(0.0).astype(float)\n    return feat",
+ "usage": {
+  "prompt_tokens": 3387,
+  "completion_tokens": 938,
+  "total_tokens": 4325,
+  "cost": 0.00185837
+ },
+ "wall_seconds": 26.6
+}

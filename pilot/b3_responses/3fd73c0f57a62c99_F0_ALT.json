@@ -1,0 +1,41 @@
+{
+ "item_id": "3fd73c0f57a62c99",
+ "pair_id": "a2-304c8f0fe9d43d91",
+ "category": "checker_pair",
+ "arm": "F0_ALT",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "8d716413cd9714ffae1a37cc748fdb0082c2c9a54b7f840d2a3ec17cae9e4706",
+ "prompt_sha256": "254c81c7f5f921833b7c633e6b8704adee735d0f54d785e4b3766947ba7aa21a",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"LEAK\", \"rationale\": \"order_status is a latest-known snapshot, so filtering orders by purchase timestamp still attaches post-seed_time statuses (delivered/canceled) to is_canceled/is_delivered/is_late, leaking future outcome information.\"}",
+ "usage": {
+  "completion_tokens": 416,
+  "prompt_tokens": 2445,
+  "total_tokens": 2861,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 357,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.00057475,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.00057475,
+   "upstream_inference_prompt_cost": 0.00036675,
+   "upstream_inference_completions_cost": 0.000208
+  }
+ },
+ "wall_seconds": 16.5
+}

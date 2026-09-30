@@ -1,0 +1,41 @@
+{
+ "program_uid": "2bbb34942263ad35",
+ "program": "stack_user-badge.sql",
+ "iteration": 4,
+ "repair_model": "z-ai/glm-5.3-flash",
+ "source_sql_sha256": "ecfdfd9a6316245c79708a874feb0be60824420fd9e8882979c50fe7c8a9cb97",
+ "prompt_sha256": "f90d2a9256265e5e342907eb3ed7af5cfb86cc3533d5185d2273cc17ee56ed41",
+ "status": "ok",
+ "finish_reason": "length",
+ "raw_response": "```sql\ncreate or replace table user_badge_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_badge_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_badge_{{ set }} -- noqa\n    {% endif %}\n),\n\n-- badge incidence computed only from badges available at each label timestamp\nlabel_timestamps as (\n    select distinct timestamp from labels\n),\n\nbadge_freqs as (\n    select\n        label_timestamps.timestamp,\n        badges.Name,\n        count(*) / (sum(count(*)) over (partition by label_timestamps.timestamp)) as badge_incidence\n    from label_timestamps\n    join badges\n        on badges.Date <= label_timestamps.timestamp\n    group by label_timestamps.timestamp, badges.Name\n),\n\nbadge_feats_deagged as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        badges.Id,\n        case\n            when badge_freqs.badge_incidence >= 0.01 then badges.Name\n            else 'OTHER'\n        end as badge_name,\n        log(1 / badge_freqs.badge_incidence) as rarity,\n        date_diff('week', badges.Date, labels.timestamp) as badge_age_weeks,\n",
+ "sql": "```sql\ncreate or replace table user_badge_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_badge_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_badge_{{ set }} -- noqa\n    {% endif %}\n),\n\n-- badge incidence computed only from badges available at each label timestamp\nlabel_timestamps as (\n    select distinct timestamp from labels\n),\n\nbadge_freqs as (\n    select\n        label_timestamps.timestamp,\n        badges.Name,\n        count(*) / (sum(count(*)) over (partition by label_timestamps.timestamp)) as badge_incidence\n    from label_timestamps\n    join badges\n        on badges.Date <= label_timestamps.timestamp\n    group by label_timestamps.timestamp, badges.Name\n),\n\nbadge_feats_deagged as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        badges.Id,\n        case\n            when badge_freqs.badge_incidence >= 0.01 then badges.Name\n            else 'OTHER'\n        end as badge_name,\n        log(1 / badge_freqs.badge_incidence) as rarity,\n        date_diff('week', badges.Date, labels.timestamp) as badge_age_weeks,",
+ "usage": {
+  "completion_tokens": 16000,
+  "prompt_tokens": 2711,
+  "total_tokens": 18711,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 15696,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.0063049875,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.0063049875,
+   "upstream_inference_prompt_cost": 0.0003049875,
+   "upstream_inference_completions_cost": 0.006
+  }
+ },
+ "wall_seconds": 359.7
+}

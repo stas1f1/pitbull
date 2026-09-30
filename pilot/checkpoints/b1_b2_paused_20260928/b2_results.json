@@ -1,0 +1,32 @@
+{
+  "experiment": "B2 RQ0 per-column rerun with rel-amazon",
+  "status": "provisional_ai_validated_map",
+  "human_validation": false,
+  "map": "pilot/b2_operational_map.csv",
+  "M": 7,
+  "excluded": 3,
+  "clean_at": {
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1
+  },
+  "clean_total": 1,
+  "failed": 0,
+  "pending": 6,
+  "by_dataset": {
+    "rel-amazon": {
+      "n": 2,
+      "clean": 0
+    },
+    "rel-event": {
+      "n": 3,
+      "clean": 1
+    },
+    "rel-stack": {
+      "n": 2,
+      "clean": 0
+    }
+  }
+}

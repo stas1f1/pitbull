@@ -1,0 +1,72 @@
+{
+  "reviewed": 30,
+  "selected": 10,
+  "excluded": 20,
+  "execution_ok": 9,
+  "execution_error": 1,
+  "manual_wrap_minutes": null,
+  "timing_protocol_satisfied": false,
+  "total_execution_seconds": 7.048,
+  "selected_files": [
+    {
+      "candidate_id": "B6-001",
+      "language": "Python",
+      "execution_status": "ok",
+      "execution_seconds": 0.282
+    },
+    {
+      "candidate_id": "B6-002",
+      "language": "Python",
+      "execution_status": "ok",
+      "execution_seconds": 0.763
+    },
+    {
+      "candidate_id": "B6-003",
+      "language": "Python",
+      "execution_status": "ok",
+      "execution_seconds": 0.767
+    },
+    {
+      "candidate_id": "B6-010",
+      "language": "Python",
+      "execution_status": "ok",
+      "execution_seconds": 1.393
+    },
+    {
+      "candidate_id": "B6-011",
+      "language": "Python",
+      "execution_status": "error:ModuleNotFoundError: No module named 'awsglue'",
+      "execution_seconds": 0.078
+    },
+    {
+      "candidate_id": "B6-012",
+      "language": "SQL",
+      "execution_status": "ok",
+      "execution_seconds": 0.801
+    },
+    {
+      "candidate_id": "B6-013",
+      "language": "SQL",
+      "execution_status": "ok",
+      "execution_seconds": 0.603
+    },
+    {
+      "candidate_id": "B6-014",
+      "language": "SQL",
+      "execution_status": "ok",
+      "execution_seconds": 0.793
+    },
+    {
+      "candidate_id": "B6-015",
+      "language": "SQL",
+      "execution_status": "ok",
+      "execution_seconds": 0.765
+    },
+    {
+      "candidate_id": "B6-016",
+      "language": "SQL",
+      "execution_status": "ok",
+      "execution_seconds": 0.803
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+ "item_id": "44e144551270605e",
+ "pair_id": "rel_f1_outcome_availability",
+ "category": "handwritten_pair",
+ "arm": "F0_5",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "2ea118ea0b0f407721ffabe937df92bc06e3b562ca961ebec3624533af65238e",
+ "prompt_sha256": "3534f88f4ca1c84a014ef0bea984af866a4104c0897555c83b7e854aca3a0e20",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"CLEAN\", \"rationale\": \"Rows with race start (ts) at or before seed are kept, but position/points/dnf are masked to NaN unless avail_ts <= seed, so only outcomes already known at seed contribute to the aggregates.\"}",
+ "usage": {
+  "completion_tokens": 546,
+  "prompt_tokens": 189,
+  "total_tokens": 735,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 489,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 64,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.00032867,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.00032867,
+   "upstream_inference_prompt_cost": 5.567e-05,
+   "upstream_inference_completions_cost": 0.000273
+  }
+ },
+ "wall_seconds": 15.1
+}

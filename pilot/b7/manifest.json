@@ -1,0 +1,199 @@
+{
+  "experiment": "B7 expert repair assessment",
+  "status": "complete_ai_assisted_proxy; external_human_criterion_not_satisfied",
+  "selection_seed": 20260927,
+  "cases": 20,
+  "reviewers_required": 2,
+  "reviewer_rule": "Reviewers must not have participated in harness development.",
+  "blinding": "Reviewer packets omit checker outcome, mechanism, model, and iteration.",
+  "strata": {
+    "all_failures": 4,
+    "payment_success": 1,
+    "var_mixup_success": 3,
+    "review_success_k1": 4,
+    "review_success_k2": 4,
+    "review_success_k3plus": 4
+  },
+  "private_cases": [
+    {
+      "case_id": "7f75bc391cd5",
+      "repeat": 1,
+      "program_uid": "f1cade690ca333e8",
+      "program": "deepseek-v4-flash-0731#79",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "failed",
+      "clean_at": null
+    },
+    {
+      "case_id": "3abb65903665",
+      "repeat": 2,
+      "program_uid": "d3f7e103215da781",
+      "program": "seed-2.0-code#7",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "failed",
+      "clean_at": null
+    },
+    {
+      "case_id": "3e5eca849c2d",
+      "repeat": 2,
+      "program_uid": "1c4cbd6256b111d8",
+      "program": "deepseek-v4-flash-0731#56",
+      "mechanism": "PAYMENTS_NO_FILTER",
+      "checker_status": "failed",
+      "clean_at": null
+    },
+    {
+      "case_id": "fd8843bedd4d",
+      "repeat": 3,
+      "program_uid": "1c4cbd6256b111d8",
+      "program": "deepseek-v4-flash-0731#56",
+      "mechanism": "PAYMENTS_NO_FILTER",
+      "checker_status": "failed",
+      "clean_at": null
+    },
+    {
+      "case_id": "affaa869a7ea",
+      "repeat": 1,
+      "program_uid": "1c4cbd6256b111d8",
+      "program": "deepseek-v4-flash-0731#56",
+      "mechanism": "PAYMENTS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 2
+    },
+    {
+      "case_id": "fbd34db00757",
+      "repeat": 1,
+      "program_uid": "955acbc837d37a98",
+      "program": "deepseek-v4-flash-0731#47",
+      "mechanism": "VAR_MIXUP",
+      "checker_status": "clean",
+      "clean_at": 1
+    },
+    {
+      "case_id": "02b404a1f40a",
+      "repeat": 2,
+      "program_uid": "955acbc837d37a98",
+      "program": "deepseek-v4-flash-0731#47",
+      "mechanism": "VAR_MIXUP",
+      "checker_status": "clean",
+      "clean_at": 1
+    },
+    {
+      "case_id": "fc42055d2e78",
+      "repeat": 3,
+      "program_uid": "955acbc837d37a98",
+      "program": "deepseek-v4-flash-0731#47",
+      "mechanism": "VAR_MIXUP",
+      "checker_status": "clean",
+      "clean_at": 1
+    },
+    {
+      "case_id": "5c4c47d81735",
+      "repeat": 2,
+      "program_uid": "736c72715ccceaa9",
+      "program": "seed-2.0-code#70",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 1
+    },
+    {
+      "case_id": "966185d2de25",
+      "repeat": 3,
+      "program_uid": "c4d668fb8689bf02",
+      "program": "deepseek-v4-flash-0731#45",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 1
+    },
+    {
+      "case_id": "4fad7a06b2aa",
+      "repeat": 2,
+      "program_uid": "c4d668fb8689bf02",
+      "program": "deepseek-v4-flash-0731#45",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 1
+    },
+    {
+      "case_id": "94bcf70661f9",
+      "repeat": 2,
+      "program_uid": "67fadf27cd93da36",
+      "program": "seed-2.0-code#44",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 1
+    },
+    {
+      "case_id": "062788bb00b1",
+      "repeat": 3,
+      "program_uid": "a3843dc59a5527d2",
+      "program": "deepseek-v4-flash-0731#76",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 2
+    },
+    {
+      "case_id": "c53419b5b494",
+      "repeat": 3,
+      "program_uid": "e44d35262384e019",
+      "program": "deepseek-v4-flash-0731#64",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 2
+    },
+    {
+      "case_id": "779d22f7acfc",
+      "repeat": 1,
+      "program_uid": "07a9ff3958189650",
+      "program": "deepseek-v4-flash-0731#74",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 2
+    },
+    {
+      "case_id": "ba8b9e991eb5",
+      "repeat": 3,
+      "program_uid": "28f9475f172c7de7",
+      "program": "deepseek-v4-flash-0731#52",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 2
+    },
+    {
+      "case_id": "5f8f8a90e1de",
+      "repeat": 3,
+      "program_uid": "57e0e29334ca7f41",
+      "program": "seed-2.0-code#19",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 3
+    },
+    {
+      "case_id": "e154fa611534",
+      "repeat": 3,
+      "program_uid": "88a6082cf5850778",
+      "program": "deepseek-v4-flash-0731#41",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 4
+    },
+    {
+      "case_id": "f3ef78deeb82",
+      "repeat": 3,
+      "program_uid": "aad1af7da1f87c35",
+      "program": "deepseek-v4-flash-0731#63",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 4
+    },
+    {
+      "case_id": "6719fc777dc7",
+      "repeat": 3,
+      "program_uid": "7e5e140d7dcb8cd3",
+      "program": "deepseek-v4-flash-0731#61",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "checker_status": "clean",
+      "clean_at": 3
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+ "program": "stack_user-badge.sql",
+ "checks": [
+  {
+   "seed": "2010-10-14 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "avg_rarity",
+    "badge_momentum",
+    "badge_score",
+    "last_badge_name",
+    "last_badge_rarity",
+    "max_rarity",
+    "rarest_badge_age_weeks"
+   ],
+   "cells": 4281,
+   "rows": 1093
+  },
+  {
+   "seed": "2014-10-09 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "avg_rarity",
+    "badge_momentum",
+    "badge_score",
+    "last_badge_name",
+    "last_badge_rarity",
+    "max_rarity",
+    "rarest_badge_age_weeks"
+   ],
+   "cells": 115254,
+   "rows": 38818
+  },
+  {
+   "seed": "2019-01-03 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "avg_rarity",
+    "badge_momentum",
+    "badge_score",
+    "last_badge_rarity",
+    "max_rarity",
+    "rarest_badge_age_weeks"
+   ],
+   "cells": 311117,
+   "rows": 185480
+  }
+ ]
+}

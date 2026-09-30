@@ -1,0 +1,41 @@
+{
+ "program_uid": "eaeda7e05d3d2b21",
+ "program": "event_user-repeat.sql",
+ "iteration": 2,
+ "repair_model": "z-ai/glm-5.3-flash",
+ "source_sql_sha256": "c0ade58a29da710bf979e7fe4231a754ceacaeacd9dbe52d822819cddfea250c",
+ "prompt_sha256": "e52fd3aa4c301cfd984c00c34f46dae88b775e65624378c2a8ac3b3fec817d09",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "```sql\ncreate or replace table user_repeat_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- driverId, date, position\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_repeat_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_repeat_{{ set }} -- noqa\n    {% endif %}\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        case\n            when users.joinedAt <= labels.timestamp\n            then date_diff('day', users.joinedAt, labels.timestamp)\n        end as days_on_app\n    from labels\n    left join users\n        on labels.user = users.user_id\n        and users.joinedAt <= labels.timestamp\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}\n```",
+ "sql": "create or replace table user_repeat_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- driverId, date, position\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_repeat_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_repeat_{{ set }} -- noqa\n    {% endif %}\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        case\n            when users.joinedAt <= labels.timestamp\n            then date_diff('day', users.joinedAt, labels.timestamp)\n        end as days_on_app\n    from labels\n    left join users\n        on labels.user = users.user_id\n        and users.joinedAt <= labels.timestamp\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}",
+ "usage": {
+  "completion_tokens": 1060,
+  "prompt_tokens": 918,
+  "total_tokens": 1978,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 394,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.0006677,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.0006677,
+   "upstream_inference_prompt_cost": 0.0001377,
+   "upstream_inference_completions_cost": 0.00053
+  }
+ },
+ "wall_seconds": 22.5
+}

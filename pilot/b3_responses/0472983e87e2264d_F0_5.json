@@ -1,0 +1,41 @@
+{
+ "item_id": "0472983e87e2264d",
+ "pair_id": "olist_product_join_availability",
+ "category": "handwritten_pair",
+ "arm": "F0_5",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "d63340d5f02fc4ed5e5dd925dedcfd5e8cd5a54ddbc1bef57970aac64848d019",
+ "prompt_sha256": "3053b1ece587067feb9a14f6ce06bc9ef7193572c431f804c07337cbf42fa1ed",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"CLEAN\", \"rationale\": \"Rows are restricted to ts <= seed and review_score/late are masked unless their known timestamps (review_ts/deliv_ts) precede the seed, so no post-seed information is used.\"}",
+ "usage": {
+  "completion_tokens": 72,
+  "prompt_tokens": 232,
+  "total_tokens": 304,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 16,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 7.08e-05,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 7.08e-05,
+   "upstream_inference_prompt_cost": 3.48e-05,
+   "upstream_inference_completions_cost": 3.6e-05
+  }
+ },
+ "wall_seconds": 2.0
+}

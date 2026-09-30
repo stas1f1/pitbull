@@ -1,0 +1,54 @@
+{
+ "program": "amazon_user-ltv.sql",
+ "checks": [
+  {
+   "seed": "2008-01-10 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "last_review_is_verified",
+    "last_review_summary_text",
+    "last_reviewed_product_category",
+    "last_reviewed_product_title",
+    "reviewed_product_modal_category",
+    "reviewed_product_modal_category_0_to_3"
+   ],
+   "cells": 2055,
+   "rows": 5372
+  },
+  {
+   "seed": "2011-04-07 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "last_review_is_verified",
+    "last_review_summary_text",
+    "last_reviewed_product_category",
+    "last_reviewed_product_title",
+    "reviewed_product_modal_category",
+    "reviewed_product_modal_category_0_to_3",
+    "reviewed_product_modal_category_3_to_6",
+    "reviewed_product_modal_category_6_to_9"
+   ],
+   "cells": 35544,
+   "rows": 59408
+  },
+  {
+   "seed": "2014-07-03 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "last_review_is_verified",
+    "last_review_summary_text",
+    "last_reviewed_product_category",
+    "last_reviewed_product_title",
+    "reviewed_product_modal_category",
+    "reviewed_product_modal_category_0_to_3",
+    "reviewed_product_modal_category_3_to_6",
+    "reviewed_product_modal_category_6_to_9"
+   ],
+   "cells": 271811,
+   "rows": 366666
+  }
+ ]
+}

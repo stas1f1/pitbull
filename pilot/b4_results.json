@@ -1,0 +1,232 @@
+{
+  "experiment": "B4 six-database canary calibration",
+  "status": "complete",
+  "calibration": "per-program tolerance = negative-control changed-cell count; main fires only above tolerance",
+  "warning": "post-hoc tolerance is calibrated and evaluated on the same negative controls",
+  "relbench": {
+    "by_dataset": {
+      "amazon": {
+        "programs": 4,
+        "valid_programs": 4,
+        "control_fires": 2,
+        "main_checks": 12,
+        "raw_main_fires": 4,
+        "calibrated_main_fires": 1,
+        "programs_detected_calibrated": 1,
+        "errors": 0
+      },
+      "event": {
+        "programs": 3,
+        "valid_programs": 3,
+        "control_fires": 0,
+        "main_checks": 9,
+        "raw_main_fires": 6,
+        "calibrated_main_fires": 6,
+        "programs_detected_calibrated": 3,
+        "errors": 0
+      },
+      "f1": {
+        "programs": 3,
+        "valid_programs": 3,
+        "control_fires": 0,
+        "main_checks": 9,
+        "raw_main_fires": 9,
+        "calibrated_main_fires": 9,
+        "programs_detected_calibrated": 3,
+        "errors": 0
+      },
+      "hm": {
+        "programs": 2,
+        "valid_programs": 2,
+        "control_fires": 2,
+        "main_checks": 6,
+        "raw_main_fires": 6,
+        "calibrated_main_fires": 1,
+        "programs_detected_calibrated": 1,
+        "errors": 0
+      },
+      "stack": {
+        "programs": 3,
+        "valid_programs": 2,
+        "control_fires": 1,
+        "main_checks": 6,
+        "raw_main_fires": 3,
+        "calibrated_main_fires": 3,
+        "programs_detected_calibrated": 1,
+        "errors": 4
+      }
+    },
+    "total": {
+      "programs": 15,
+      "valid_programs": 14,
+      "control_fires": 5,
+      "main_checks": 42,
+      "raw_main_fires": 28,
+      "calibrated_main_fires": 20,
+      "programs_detected_calibrated": 9,
+      "errors": 4,
+      "post_calibration_rule_of_three_upper95": 0.21428571428571427
+    },
+    "details": [
+      {
+        "dataset": "amazon",
+        "file": "amazon_item-churn.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 0,
+        "main_checks": 3,
+        "calibrated_main_fires": 0
+      },
+      {
+        "dataset": "amazon",
+        "file": "amazon_item-ltv.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 0,
+        "main_checks": 3,
+        "calibrated_main_fires": 0
+      },
+      {
+        "dataset": "amazon",
+        "file": "amazon_user-churn.sql",
+        "status": "ran",
+        "negative_control_cells": 724,
+        "raw_control_fire": true,
+        "raw_main_fires": 2,
+        "main_checks": 3,
+        "calibrated_main_fires": 1
+      },
+      {
+        "dataset": "amazon",
+        "file": "amazon_user-ltv.sql",
+        "status": "ran",
+        "negative_control_cells": 81012,
+        "raw_control_fire": true,
+        "raw_main_fires": 2,
+        "main_checks": 3,
+        "calibrated_main_fires": 0
+      },
+      {
+        "dataset": "event",
+        "file": "event_user-attendance.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 2,
+        "main_checks": 3,
+        "calibrated_main_fires": 2
+      },
+      {
+        "dataset": "event",
+        "file": "event_user-ignore.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 2,
+        "main_checks": 3,
+        "calibrated_main_fires": 2
+      },
+      {
+        "dataset": "event",
+        "file": "event_user-repeat.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 2,
+        "main_checks": 3,
+        "calibrated_main_fires": 2
+      },
+      {
+        "dataset": "f1",
+        "file": "f1_driver-dnf.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 3,
+        "main_checks": 3,
+        "calibrated_main_fires": 3
+      },
+      {
+        "dataset": "f1",
+        "file": "f1_driver-position.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 3,
+        "main_checks": 3,
+        "calibrated_main_fires": 3
+      },
+      {
+        "dataset": "f1",
+        "file": "f1_driver-top3.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 3,
+        "main_checks": 3,
+        "calibrated_main_fires": 3
+      },
+      {
+        "dataset": "hm",
+        "file": "hm_item-sales.sql",
+        "status": "ran",
+        "negative_control_cells": 449,
+        "raw_control_fire": true,
+        "raw_main_fires": 3,
+        "main_checks": 3,
+        "calibrated_main_fires": 1
+      },
+      {
+        "dataset": "hm",
+        "file": "hm_user-churn.sql",
+        "status": "ran",
+        "negative_control_cells": 133483,
+        "raw_control_fire": true,
+        "raw_main_fires": 3,
+        "main_checks": 3,
+        "calibrated_main_fires": 0
+      },
+      {
+        "dataset": "stack",
+        "file": "stack_post-votes.sql",
+        "status": "ran",
+        "negative_control_cells": 0,
+        "raw_control_fire": false,
+        "raw_main_fires": 0,
+        "main_checks": 3,
+        "calibrated_main_fires": 0
+      },
+      {
+        "dataset": "stack",
+        "file": "stack_user-badge.sql",
+        "status": "ran",
+        "negative_control_cells": 20,
+        "raw_control_fire": true,
+        "raw_main_fires": 3,
+        "main_checks": 3,
+        "calibrated_main_fires": 3
+      },
+      {
+        "dataset": "stack",
+        "file": "stack_user-engagement.sql",
+        "status": "invalid",
+        "errors": 4
+      }
+    ]
+  },
+  "olist": {
+    "source": "pilot/a5_results.json",
+    "leak_programs": 62,
+    "clean_programs": 30,
+    "canary_clean_program_false_positive": {
+      "programs_fired": 4,
+      "programs": 30,
+      "rate": 0.13333333333333333,
+      "rule_of_three_upper95": null,
+      "exact_zero_upper95": null
+    },
+    "canary_k2_scheduled_detection": 0.9779286926994906
+  }
+}

@@ -1,0 +1,41 @@
+{
+ "item_id": "b2c91cacb5c655f9",
+ "pair_id": "a2-7b1d8e9357f3ef2a",
+ "category": "checker_pair",
+ "arm": "F0_5",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "7b1d8e9357f3ef2a12fb2cd1c8f1fa7feb4835483bf4f17cd6799ed3bfbf8123",
+ "prompt_sha256": "99e576082d47dd228c303b31c965aa1eca3fe7c63b73c934492b1903fdbc7fc6",
+ "status": "ok",
+ "finish_reason": "length",
+ "raw_response": "{\"verdict\": \"LEAK\", \"rationale\": \"Orders fields are used without as-of-seed_time availability checks: order_status and order_delivered_customer_date reflect post-seed_time fulfillment events (deliveries/statuses occurring after seed_time), leaking future outcome information into delivery and status features",
+ "usage": {
+  "completion_tokens": 800,
+  "prompt_tokens": 3022,
+  "total_tokens": 3822,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 740,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.00169946,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.00169946,
+   "upstream_inference_prompt_cost": 0.00129946,
+   "upstream_inference_completions_cost": 0.0004
+  }
+ },
+ "wall_seconds": 27.1
+}

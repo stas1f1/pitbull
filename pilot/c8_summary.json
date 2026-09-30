@@ -1,0 +1,78 @@
+{
+  "records_seen": 110,
+  "unique_programs": 61,
+  "ok": 60,
+  "errors": 1,
+  "tools": {
+    "autogluon": {
+      "inflation_auc_pp": {
+        "n": 60,
+        "mean": 0.09643666666666667,
+        "median": 0.11085,
+        "q25": -0.5174,
+        "q75": 0.549,
+        "min": -1.4993,
+        "max": 3.5371,
+        "positive": 35,
+        "positive_share": 0.5833333333333334
+      },
+      "leaking_feature_share_in_top10": {
+        "n": 60,
+        "mean": 0.16,
+        "median": 0.2,
+        "q25": 0.1,
+        "q75": 0.2,
+        "min": 0.0,
+        "max": 0.4,
+        "positive": 53,
+        "positive_share": 0.8833333333333333
+      },
+      "leaking_feature_count_in_top10": {
+        "n": 60,
+        "mean": 1.6,
+        "median": 2.0,
+        "q25": 1.0,
+        "q75": 2.0,
+        "min": 0.0,
+        "max": 4.0,
+        "positive": 53,
+        "positive_share": 0.8833333333333333
+      }
+    },
+    "flaml": {
+      "inflation_auc_pp": {
+        "n": 60,
+        "mean": -0.05903833333333333,
+        "median": 0.0,
+        "q25": -0.4989,
+        "q75": 0.418375,
+        "min": -3.7166,
+        "max": 2.7188,
+        "positive": 25,
+        "positive_share": 0.4166666666666667
+      },
+      "leaking_feature_share_in_top10": {
+        "n": 60,
+        "mean": 0.09666666666666666,
+        "median": 0.1,
+        "q25": 0.0,
+        "q75": 0.125,
+        "min": 0.0,
+        "max": 0.3,
+        "positive": 40,
+        "positive_share": 0.6666666666666666
+      },
+      "leaking_feature_count_in_top10": {
+        "n": 60,
+        "mean": 0.9666666666666667,
+        "median": 1.0,
+        "q25": 0.0,
+        "q75": 1.25,
+        "min": 0.0,
+        "max": 3.0,
+        "positive": 40,
+        "positive_share": 0.6666666666666666
+      }
+    }
+  }
+}

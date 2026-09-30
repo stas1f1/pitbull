@@ -1,0 +1,41 @@
+{
+ "program_uid": "7020f63b2d1d57e6",
+ "program": "event_user-ignore.sql",
+ "iteration": 1,
+ "repair_model": "z-ai/glm-5.3-flash",
+ "source_sql_sha256": "2942533e5bb951a05d3db68887314a1f513b8131144ee1a6467dff4b71364fae",
+ "prompt_sha256": "3c7a899874cc430ba7bac609b7e1ae8f125cdc2641959ee975ef52ed618410b2",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "```sql\ncreate or replace table user_ignore_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_ignore_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_ignore_{{ set }} -- noqa\n    {% endif %}\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        date_diff('day', users.joinedAt, labels.timestamp) as days_on_app\n    from labels\n    left join users\n        on labels.user = users.user_id\n    -- only rows available at or before the label timestamp\n    where users.joinedAt <= labels.timestamp\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}\n```",
+ "sql": "create or replace table user_ignore_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_ignore_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_ignore_{{ set }} -- noqa\n    {% endif %}\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        date_diff('day', users.joinedAt, labels.timestamp) as days_on_app\n    from labels\n    left join users\n        on labels.user = users.user_id\n    -- only rows available at or before the label timestamp\n    where users.joinedAt <= labels.timestamp\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}",
+ "usage": {
+  "completion_tokens": 1022,
+  "prompt_tokens": 1397,
+  "total_tokens": 2419,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 374,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.00072055,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.00072055,
+   "upstream_inference_prompt_cost": 0.00020955,
+   "upstream_inference_completions_cost": 0.000511
+  }
+ },
+ "wall_seconds": 6.7
+}

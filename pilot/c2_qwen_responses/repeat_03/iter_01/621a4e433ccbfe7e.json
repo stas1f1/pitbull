@@ -1,0 +1,54 @@
+{
+ "program_uid": "621a4e433ccbfe7e",
+ "program": "deepseek-v4-flash-0731#77",
+ "repeat": 3,
+ "iteration": 1,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "621a4e433ccbfe7e50a546aae2298727422099d3762974f9d7d1f573ae9fe241",
+ "prompt_sha256": "aef77c280060453313cb3658153b1002801191655426cdea9b5dcbcafffb7ee7",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Извлечение таблиц\n    orders = db['orders']\n    order_items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    # Приведение seed_time к типу Timestamp\n    seed_time = pd.Timestamp(seed_time)\n\n    # Оставляем только заказы, сделанные до seed_time\n    historical_orders = orders[orders['order_purchase_timestamp'] < seed_time][['order_id', 'order_purchase_timestamp']]\n    \n    # Присоединяем позиции только по историческим заказам\n    work = order_items.merge(historical_orders, on='order_id', how='inner')\n    work = work[work['product_id'].isin(entity_ids)]\n\n    # Базовые признаки за всё время (до seed_time)\n    if not work.empty:\n        total_grp = work.groupby('product_id').agg(\n            orders_total=('order_id', 'nunique'),\n            units_total=('order_item_id', 'count'),\n            price_total=('price', 'sum'),\n            freight_total=('freight_value', 'sum'),\n            price_avg=('price', 'mean'),\n            freight_avg=('freight_value', 'mean')\n        ).reset_index()\n    else:\n        total_grp = pd.DataFrame(columns=['product_id', 'orders_total', 'units_total', 'price_total', \n                                          'freight_total', 'price_avg', 'freight_avg'])\n\n    # Признаки по отзывам (только если есть данные)\n    if len(work) > 0:\n        # Присоединяем отзывы, которые были созданы до seed_time\n        valid_reviews = reviews[reviews['review_creation_date'] < seed_time]\n        work_rev = work.merge(valid_reviews[['order_id', 'review_score']], on='order_id', how='left')\n\n        rev_grp = work_rev.groupby('product_id').agg(\n            review_avg=('review_score', 'mean'),\n            review_cnt=('review_score', 'count')\n        ).reset_index()\n\n        last_date = work.groupby('product_id')['ts'].max().reset_index()\n        last_date.columns = ['product_id', 'last_sale']\n        last_date['days_since_last'] = (seed_time - last_date['last_sale']).dt.days\n\n        feat = pd.merge(total_grp, rev_grp, on='product_id', how='outer')\n        feat = pd.merge(feat, last_date[['product_id', 'days_since_last']], on='product_id', how='outer')\n    else:\n        feat = total_grp.copy()\n        if 'product_id' not in feat.columns:\n            feat['product_id'] = []\n\n    # Создаем результат DataFrame с индексом по entity_ids\n    result = pd.DataFrame(index=pd.Index(entity_ids, name='product_id'))\n\n    # Заполняем основные признаки\n    if len(feat) > 0 and 'product_id' in feat.columns:\n        feat = feat.set_index('product_id')\n        for col in feat.columns:\n            result[col] = feat.reindex(entity_ids)[col].fillna(0)\n    else:\n        for col in ['orders_total', 'units_total', 'price_total', 'freight_total', \n                    'price_avg', 'freight_avg', 'review_avg', 'review_cnt', 'days_since_last']:\n            result[col] = 0.0\n\n    # Дополнительные признаки по временным окнам\n    windows = [7, 30, 90, 180, 365]\n    for w in windows:\n        cutoff = seed_time - pd.Timedelta(days=w)\n        mask = work['ts'] >= cutoff\n        work_w = work[mask]\n        if len(work_w) > 0:\n            grp_w = work_w.groupby('product_id').agg(\n                orders_window=('order_id', 'nunique'),\n                items_window=('order_item_id', 'count'),\n                price_window=('price', 'sum'),\n                freight_window=('freight_value', 'sum')\n            ).reset_index()\n            grp_w.columns = ['product_id', f'orders_{w}d', f'items_{w}d', f'price_{w}d', f'freight_{w}d']\n            grp_w = grp_w.set_index('product_id')\n            for col in grp_w.columns:\n                result[col] = grp_w.reindex(entity_ids)[col].fillna(0)\n        else:\n            for col in [f'orders_{w}d', f'items_{w}d', f'price_{w}d', f'freight_{w}d']:\n                result[col] = 0.0\n\n    # Отзывы за последние 90 дней (учитываем только созданные до seed_time)\n    cutoff_90 = seed_time - pd.Timedelta(days=90)\n    work_90 = work[(work['ts'] >= cutoff_90)]\n    if len(work_90) > 0:\n        valid_reviews_90 = reviews[reviews['review_creation_date'] < seed_time]\n        work_rev_90 = work_90.merge(valid_reviews_90[['order_id', 'review_score']], on='order_id', how='left')\n        rev_90_grp = work_rev_90.groupby('product_id').agg(\n            review_avg_90d=('review_score', 'mean'),\n            review_cnt_90d=('review_score', 'count')\n        ).reset_index().set_index('product_id')\n        for col in rev_90_grp.columns:\n            result[col] = rev_90_grp.reindex(entity_ids)[col].fillna(0)\n    else:\n        result['review_avg_90d'] = 0.0\n        result['review_cnt_90d'] = 0.0\n\n    return result\n```",
+   "usage": {
+    "completion_tokens": 1253,
+    "prompt_tokens": 3752,
+    "total_tokens": 5005,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2400,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.0024487,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.0024487,
+     "upstream_inference_prompt_cost": 0.0005692,
+     "upstream_inference_completions_cost": 0.0018795
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "def get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Извлечение таблиц\n    orders = db['orders']\n    order_items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    # Приведение seed_time к типу Timestamp\n    seed_time = pd.Timestamp(seed_time)\n\n    # Оставляем только заказы, сделанные до seed_time\n    historical_orders = orders[orders['order_purchase_timestamp'] < seed_time][['order_id', 'order_purchase_timestamp']]\n    \n    # Присоединяем позиции только по историческим заказам\n    work = order_items.merge(historical_orders, on='order_id', how='inner')\n    work = work[work['product_id'].isin(entity_ids)]\n\n    # Базовые признаки за всё время (до seed_time)\n    if not work.empty:\n        total_grp = work.groupby('product_id').agg(\n            orders_total=('order_id', 'nunique'),\n            units_total=('order_item_id', 'count'),\n            price_total=('price', 'sum'),\n            freight_total=('freight_value', 'sum'),\n            price_avg=('price', 'mean'),\n            freight_avg=('freight_value', 'mean')\n        ).reset_index()\n    else:\n        total_grp = pd.DataFrame(columns=['product_id', 'orders_total', 'units_total', 'price_total', \n                                          'freight_total', 'price_avg', 'freight_avg'])\n\n    # Признаки по отзывам (только если есть данные)\n    if len(work) > 0:\n        # Присоединяем отзывы, которые были созданы до seed_time\n        valid_reviews = reviews[reviews['review_creation_date'] < seed_time]\n        work_rev = work.merge(valid_reviews[['order_id', 'review_score']], on='order_id', how='left')\n\n        rev_grp = work_rev.groupby('product_id').agg(\n            review_avg=('review_score', 'mean'),\n            review_cnt=('review_score', 'count')\n        ).reset_index()\n\n        last_date = work.groupby('product_id')['ts'].max().reset_index()\n        last_date.columns = ['product_id', 'last_sale']\n        last_date['days_since_last'] = (seed_time - last_date['last_sale']).dt.days\n\n        feat = pd.merge(total_grp, rev_grp, on='product_id', how='outer')\n        feat = pd.merge(feat, last_date[['product_id', 'days_since_last']], on='product_id', how='outer')\n    else:\n        feat = total_grp.copy()\n        if 'product_id' not in feat.columns:\n            feat['product_id'] = []\n\n    # Создаем результат DataFrame с индексом по entity_ids\n    result = pd.DataFrame(index=pd.Index(entity_ids, name='product_id'))\n\n    # Заполняем основные признаки\n    if len(feat) > 0 and 'product_id' in feat.columns:\n        feat = feat.set_index('product_id')\n        for col in feat.columns:\n            result[col] = feat.reindex(entity_ids)[col].fillna(0)\n    else:\n        for col in ['orders_total', 'units_total', 'price_total', 'freight_total', \n                    'price_avg', 'freight_avg', 'review_avg', 'review_cnt', 'days_since_last']:\n            result[col] = 0.0\n\n    # Дополнительные признаки по временным окнам\n    windows = [7, 30, 90, 180, 365]\n    for w in windows:\n        cutoff = seed_time - pd.Timedelta(days=w)\n        mask = work['ts'] >= cutoff\n        work_w = work[mask]\n        if len(work_w) > 0:\n            grp_w = work_w.groupby('product_id').agg(\n                orders_window=('order_id', 'nunique'),\n                items_window=('order_item_id', 'count'),\n                price_window=('price', 'sum'),\n                freight_window=('freight_value', 'sum')\n            ).reset_index()\n            grp_w.columns = ['product_id', f'orders_{w}d', f'items_{w}d', f'price_{w}d', f'freight_{w}d']\n            grp_w = grp_w.set_index('product_id')\n            for col in grp_w.columns:\n                result[col] = grp_w.reindex(entity_ids)[col].fillna(0)\n        else:\n            for col in [f'orders_{w}d', f'items_{w}d', f'price_{w}d', f'freight_{w}d']:\n                result[col] = 0.0\n\n    # Отзывы за последние 90 дней (учитываем только созданные до seed_time)\n    cutoff_90 = seed_time - pd.Timedelta(days=90)\n    work_90 = work[(work['ts'] >= cutoff_90)]\n    if len(work_90) > 0:\n        valid_reviews_90 = reviews[reviews['review_creation_date'] < seed_time]\n        work_rev_90 = work_90.merge(valid_reviews_90[['order_id', 'review_score']], on='order_id', how='left')\n        rev_90_grp = work_rev_90.groupby('product_id').agg(\n            review_avg_90d=('review_score', 'mean'),\n            review_cnt_90d=('review_score', 'count')\n        ).reset_index().set_index('product_id')\n        for col in rev_90_grp.columns:\n            result[col] = rev_90_grp.reindex(entity_ids)[col].fillna(0)\n    else:\n        result['review_avg_90d'] = 0.0\n        result['review_cnt_90d'] = 0.0\n\n    return result",
+ "usage": {
+  "prompt_tokens": 3752,
+  "completion_tokens": 1253,
+  "total_tokens": 5005,
+  "cost": 0.0024487
+ },
+ "wall_seconds": 12.1
+}

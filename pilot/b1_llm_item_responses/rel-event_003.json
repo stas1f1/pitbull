@@ -1,0 +1,43 @@
+{
+ "item_id": "rel-event:003",
+ "model": "z-ai/glm-5.3-flash",
+ "status": "ok",
+ "raw_response": "```json\n{\"availability_class\":\"row_time\",\"availability_column\":\"timestamp\",\"boundary\":\"inclusive\",\"mutable\":false,\"checkability\":\"checkable\",\"confidence\":0.85}\n```",
+ "parsed": {
+  "availability_class": "row_time",
+  "availability_column": "timestamp",
+  "boundary": "inclusive",
+  "mutable": false,
+  "checkability": "checkable",
+  "confidence": 0.85
+ },
+ "usage": {
+  "completion_tokens": 60,
+  "prompt_tokens": 136,
+  "total_tokens": 196,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 22,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 5.04e-05,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 5.04e-05,
+   "upstream_inference_prompt_cost": 2.04e-05,
+   "upstream_inference_completions_cost": 3e-05
+  }
+ },
+ "wall_seconds": 1.0
+}

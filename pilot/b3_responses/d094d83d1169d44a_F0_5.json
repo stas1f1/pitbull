@@ -1,0 +1,41 @@
+{
+ "item_id": "d094d83d1169d44a",
+ "pair_id": "rel_f1_outcome_availability",
+ "category": "handwritten_pair",
+ "arm": "F0_5",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "588b4f2c5c8743fe73d777e4878d8ad842e77d78c71467280add53aa0f0cfc77",
+ "prompt_sha256": "0b0357285d8909ea1cc93a1f8f9b3a9124fa505a7b248e5b1ec6fb3cd1b82341",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"CLEAN\", \"rationale\": \"Rows are filtered to ts <= seed, and since position/points/dnf only become available at avail_ts after race start (ts > seed), no post-outcome data can enter features computed at seed.\"}",
+ "usage": {
+  "completion_tokens": 107,
+  "prompt_tokens": 162,
+  "total_tokens": 269,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 50,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 7.78e-05,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 7.78e-05,
+   "upstream_inference_prompt_cost": 2.43e-05,
+   "upstream_inference_completions_cost": 5.35e-05
+  }
+ },
+ "wall_seconds": 1.7
+}

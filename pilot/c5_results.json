@@ -1,0 +1,99 @@
+{
+  "experiment": "C5 fixed-LightGBM AUC authenticity control",
+  "status": "complete",
+  "learner": "LightGBM n_estimators=300 learning_rate=0.05 random_state=0",
+  "pairs": [
+    {
+      "task": "A",
+      "seed": "2018-01-01",
+      "before_auc": 0.840411,
+      "after_auc": 0.838796,
+      "inflation_removed_pp": 0.1615000000000033
+    },
+    {
+      "task": "A",
+      "seed": "2018-04-01",
+      "before_auc": 0.862388,
+      "after_auc": 0.860309,
+      "inflation_removed_pp": 0.2079000000000053
+    },
+    {
+      "task": "A",
+      "seed": "2018-07-01",
+      "before_auc": 0.834236,
+      "after_auc": 0.831072,
+      "inflation_removed_pp": 0.31639999999999446
+    },
+    {
+      "task": "B",
+      "seed": "2018-01-01",
+      "before_auc": 0.607072,
+      "after_auc": 0.576182,
+      "inflation_removed_pp": 3.0889999999999973
+    },
+    {
+      "task": "B",
+      "seed": "2018-04-01",
+      "before_auc": 0.64514,
+      "after_auc": 0.592497,
+      "inflation_removed_pp": 5.2642999999999995
+    },
+    {
+      "task": "B",
+      "seed": "2018-07-01",
+      "before_auc": 0.626532,
+      "after_auc": 0.588757,
+      "inflation_removed_pp": 3.7775000000000003
+    },
+    {
+      "task": "C",
+      "seed": "2018-01-01",
+      "before_auc": 0.72364,
+      "after_auc": 0.71378,
+      "inflation_removed_pp": 0.985999999999998
+    },
+    {
+      "task": "C",
+      "seed": "2018-04-01",
+      "before_auc": 0.748011,
+      "after_auc": 0.745292,
+      "inflation_removed_pp": 0.2719000000000027
+    },
+    {
+      "task": "C",
+      "seed": "2018-07-01",
+      "before_auc": 0.740733,
+      "after_auc": 0.741691,
+      "inflation_removed_pp": -0.09580000000000144
+    }
+  ],
+  "summary": {
+    "n_task_time_pairs": 9,
+    "mean_removed_pp": 1.553188888888889,
+    "median_removed_pp": 0.31639999999999446,
+    "min_removed_pp": -0.09580000000000144,
+    "max_removed_pp": 5.2642999999999995,
+    "positive_pairs": 8
+  },
+  "by_task": {
+    "A": {
+      "n": 3,
+      "mean_pp": 0.22860000000000102,
+      "min_pp": 0.1615000000000033,
+      "max_pp": 0.31639999999999446
+    },
+    "B": {
+      "n": 3,
+      "mean_pp": 4.043599999999999,
+      "min_pp": 3.0889999999999973,
+      "max_pp": 5.2642999999999995
+    },
+    "C": {
+      "n": 3,
+      "mean_pp": 0.3873666666666664,
+      "min_pp": -0.09580000000000144,
+      "max_pp": 0.985999999999998
+    }
+  },
+  "interpretation": "The repair removes leakage inflation but does not need to preserve the inflated score; one small negative pair is sampling/model variance."
+}

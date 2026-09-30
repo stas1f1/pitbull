@@ -1,0 +1,41 @@
+{
+ "item_id": "fd774c2abceb9b0a",
+ "pair_id": "featuretools_cutoff",
+ "category": "handwritten_pair",
+ "arm": "F0_ALT",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "8efcd429a6b19396872fd0c41557c9c7bd6032528ebfdac696a322ed0199bb46",
+ "prompt_sha256": "a0c3094701b0d682ba27283a9297ec946cdc3068e12aa3a892bd481d99616340",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"CLEAN\", \"rationale\": \"include_cutoff_time=False excludes events at or after each cutoff time, and last-time indexes ensure DFS respects per-row prediction times, so no future data leaks.\"}",
+ "usage": {
+  "completion_tokens": 47,
+  "prompt_tokens": 171,
+  "total_tokens": 218,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 0,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 4.915e-05,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 4.915e-05,
+   "upstream_inference_prompt_cost": 2.565e-05,
+   "upstream_inference_completions_cost": 2.35e-05
+  }
+ },
+ "wall_seconds": 1.4
+}

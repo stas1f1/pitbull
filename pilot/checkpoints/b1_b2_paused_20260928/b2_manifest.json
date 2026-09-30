@@ -1,0 +1,975 @@
+{
+ "experiment": "B2 RQ0 per-column rerun with rel-amazon",
+ "status": "provisional_ai_validated_map",
+ "human_validation": false,
+ "map": "pilot/b2_operational_map.csv",
+ "repair_model": "z-ai/glm-5.3-flash",
+ "repair_arm": "F1",
+ "max_iterations": 5,
+ "environment": {
+  "python": "3.13.5",
+  "pandas": "2.3.3",
+  "numpy": "2.3.4"
+ },
+ "M": 7,
+ "programs": [
+  {
+   "program_uid": "043be7882b7b5797",
+   "program": "amazon_user-churn.sql",
+   "dataset": "rel-amazon",
+   "ds": "amazon",
+   "task": "user-churn",
+   "source_path": "audit/amazon_user-churn.sql",
+   "source_sql": "create or replace table user_churn_{{ set }}_feats as -- noqa\n\nwith labels as (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_churn_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_churn_{{ set }} -- noqa\n    {% endif %}\n),\n\ntimestamps as (\n    select distinct timestamp from labels\n),\n\nproduct_ratings as (\n    select\n        timestamps.timestamp,\n        review.product_id,\n        avg(review.rating) as rating,\n        stddev(review.rating) as rating_std\n    from timestamps\n    left join review\n        on timestamps.timestamp > review.review_time\n    group by all\n),\n\nproduct_feats as (\n    select\n        product.product_id,\n        product_ratings.timestamp,\n        product.price,\n        product.title,\n        product_ratings.rating,\n        product_ratings.rating_std,\n        product.category[-1] as category\n    from product\n    left join product_ratings\n        on product.product_id = product_ratings.product_id\n),\n\nreview_aggs as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        max(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_first_review,\n        count(*) as num_reviews,\n        sum(review.rating) as sum_review_ratings,\n        avg(length(review.review_text)) as avg_review_length,\n        min(date_diff('weeks', review.review_time, labels.timestamp)) as last_review_weeks_ago,\n        arg_max(review.summary, review.review_time) as last_review_summary_text,\n        arg_max(product_feats.title, review.review_time) as last_reviewed_product_title,\n        arg_max(product_feats.category, review.review_time) as last_reviewed_product_category,\n        arg_max(review.verified, review.review_time) as last_review_is_verified,\n        avg(review.rating) as avg_review_rating,\n        avg(review.verified::int) as pct_verified_reviews,\n        stddev(review.rating) as std_review_rating,\n        min(review.rating) as min_review_rating,\n        max(review.rating) as max_review_rating,\n        avg(product_feats.rating) as avg_reviewed_product_rating,\n        sum(product_feats.rating) as sum_reviewed_product_rating,\n        stddev(product_feats.rating) as std_reviewed_product_rating,\n        min(product_feats.rating) as min_reviewed_product_rating,\n        max(product_feats.rating) as max_reviewed_product_rating,\n        avg(product_feats.price) as avg_reviewed_product_price,\n        sum(product_feats.price) as sum_reviewed_product_price,\n        stddev(product_feats.price) as std_reviewed_product_price,\n        min(product_feats.price) as min_reviewed_product_price,\n        max(product_feats.price) as max_reviewed_product_price,\n        mode(product_feats.category) as reviewed_product_modal_category,\n        avg((review.rating - product_feats.rating) / product_feats.rating_std) as user_bias\n    from labels\n    left join review\n        on\n            labels.customer_id = review.customer_id\n            and labels.timestamp > review.review_time\n    left join product_feats\n        on\n            review.product_id = product_feats.product_id\n            and labels.timestamp = product_feats.timestamp\n    group by labels.customer_id, labels.timestamp\n),\n\nlast_6mo as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        count(*) as num_reviews,\n        avg(review.rating) as avg_review_rating,\n        avg(product_feats.price) as avg_price,\n        avg((review.rating - product_feats.rating) / product_feats.rating_std) as user_bias\n    from labels\n    left join review\n        on\n            labels.customer_id = review.customer_id\n            and labels.timestamp > review.review_time\n            and (labels.timestamp - interval '6 months') < review.review_time\n    left join product_feats\n        on\n            review.product_id = product_feats.product_id\n            and labels.timestamp = product_feats.timestamp\n    group by labels.customer_id, labels.timestamp\n),\n\nprev_6mo as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        count(*) as num_reviews,\n        avg(review.rating) as avg_review_rating,\n        avg(product_feats.price) as avg_price,\n        avg((review.rating - product_feats.rating) / product_feats.rating_std) as user_bias\n    from labels\n    left join review\n        on\n            labels.customer_id = review.customer_id\n            and (labels.timestamp - interval '6 months') > review.review_time\n            and (labels.timestamp - interval '12 months') < review.review_time\n    left join product_feats\n        on\n            review.product_id = product_feats.product_id\n            and labels.timestamp = product_feats.timestamp\n    group by labels.customer_id, labels.timestamp\n),\n\ntrends as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        (last_6mo.num_reviews - prev_6mo.num_reviews)\n        / coalesce(prev_6mo.num_reviews, 1e-1) as num_reviews_trend,\n        (last_6mo.avg_review_rating - prev_6mo.avg_review_rating)\n        / coalesce(prev_6mo.avg_review_rating, 1e-1) as avg_rating_trend,\n        (last_6mo.avg_price - prev_6mo.avg_price)\n        / coalesce(prev_6mo.avg_price, 1e-1) as avg_price_trend,\n        (last_6mo.user_bias - prev_6mo.user_bias)\n        / coalesce(prev_6mo.user_bias, 1e-1) as avg_user_bias_trend\n    from labels\n    left join last_6mo\n        on\n            labels.customer_id = last_6mo.customer_id\n            and labels.timestamp = last_6mo.timestamp\n    left join prev_6mo\n        on\n            labels.customer_id = prev_6mo.customer_id\n            and labels.timestamp = prev_6mo.timestamp\n)\n\nselect\n    labels.customer_id,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.churn,\n    {% endif %}\n    review_aggs.weeks_since_first_review,\n    review_aggs.num_reviews,\n    review_aggs.sum_review_ratings,\n    review_aggs.avg_review_length,\n    review_aggs.last_review_weeks_ago,\n    review_aggs.last_review_summary_text,\n    review_aggs.last_reviewed_product_title,\n    review_aggs.last_reviewed_product_category,\n    review_aggs.last_review_is_verified,\n    review_aggs.avg_review_rating,\n    review_aggs.pct_verified_reviews,\n    review_aggs.std_review_rating,\n    review_aggs.min_review_rating,\n    review_aggs.max_review_rating,\n    review_aggs.avg_reviewed_product_rating,\n    review_aggs.sum_reviewed_product_rating,\n    review_aggs.std_reviewed_product_rating,\n    review_aggs.min_reviewed_product_rating,\n    review_aggs.max_reviewed_product_rating,\n    review_aggs.avg_reviewed_product_price,\n    review_aggs.sum_reviewed_product_price,\n    review_aggs.std_reviewed_product_price,\n    review_aggs.min_reviewed_product_price,\n    review_aggs.max_reviewed_product_price,\n    review_aggs.reviewed_product_modal_category,\n    review_aggs.user_bias,\n    trends.num_reviews_trend,\n    trends.avg_rating_trend,\n    trends.avg_price_trend,\n    trends.avg_user_bias_trend\nfrom labels\nleft join review_aggs\n    on\n        labels.customer_id = review_aggs.customer_id\n        and labels.timestamp = review_aggs.timestamp\nleft join trends\n    on\n        labels.customer_id = trends.customer_id\n        and labels.timestamp = trends.timestamp\n",
+   "current_sql": "create or replace table user_churn_{{ set }}_feats as -- noqa\n\nwith labels as (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_churn_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_churn_{{ set }} -- noqa\n    {% endif %}\n),\n\ntimestamps as (\n    select distinct timestamp from labels\n),\n\nproduct_ratings as (\n    select\n        timestamps.timestamp,\n        review.product_id,\n        avg(review.rating) as rating,\n        stddev(review.rating) as rating_std\n    from timestamps\n    left join review\n        on timestamps.timestamp >= review.review_time\n    group by all\n),\n\nproduct_feats as (\n    select\n        product.product_id,\n        product_ratings.timestamp,\n        product.price,\n        product.title,\n        product_ratings.rating,\n        product_ratings.rating_std,\n        product.category[-1] as category\n    from product\n    left join product_ratings\n        on product.product_id = product_ratings.product_id\n),\n\nreview_aggs as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        max(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_first_review,\n        count(*) as num_reviews,\n        sum(review.rating) as sum_review_ratings,\n        avg(length(review.review_text)) as avg_review_length,\n        min(date_diff('weeks', review.review_time, labels.timestamp)) as last_review_weeks_ago,\n        arg_max(review.summary, review.review_time) as last_review_summary_text,\n        arg_max(product_feats.title, review.review_time) as last_reviewed_product_title,\n        arg_max(product_feats.category, review.review_time) as last_reviewed_product_category,\n        arg_max(review.verified, review.review_time) as last_review_is_verified,\n        avg(review.rating) as avg_review_rating,\n        avg(review.verified::int) as pct_verified_reviews,\n        stddev(review.rating) as std_review_rating,\n        min(review.rating) as min_review_rating,\n        max(review.rating) as max_review_rating,\n        avg(product_feats.rating) as avg_reviewed_product_rating,\n        sum(product_feats.rating) as sum_reviewed_product_rating,\n        stddev(product_feats.rating) as std_reviewed_product_rating,\n        min(product_feats.rating) as min_reviewed_product_rating,\n        max(product_feats.rating) as max_reviewed_product_rating,\n        avg(product_feats.price) as avg_reviewed_product_price,\n        sum(product_feats.price) as sum_reviewed_product_price,\n        stddev(product_feats.price) as std_reviewed_product_price,\n        min(product_feats.price) as min_reviewed_product_price,\n        max(product_feats.price) as max_reviewed_product_price,\n        mode(product_feats.category) as reviewed_product_modal_category,\n        avg((review.rating - product_feats.rating) / product_feats.rating_std) as user_bias\n    from labels\n    left join review\n        on\n            labels.customer_id = review.customer_id\n            and review.review_time <= labels.timestamp\n    left join product_feats\n        on\n            review.product_id = product_feats.product_id\n            and labels.timestamp = product_feats.timestamp\n    group by labels.customer_id, labels.timestamp\n),\n\nlast_6mo as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        count(*) as num_reviews,\n        avg(review.rating) as avg_review_rating,\n        avg(product_feats.price) as avg_price,\n        avg((review.rating - product_feats.rating) / product_feats.rating_std) as user_bias\n    from labels\n    left join review\n        on\n            labels.customer_id = review.customer_id\n            and review.review_time <= labels.timestamp\n            and review.review_time > (labels.timestamp - interval '6 months')\n    left join product_feats\n        on\n            review.product_id = product_feats.product_id\n            and labels.timestamp = product_feats.timestamp\n    group by labels.customer_id, labels.timestamp\n),\n\nprev_6mo as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        count(*) as num_reviews,\n        avg(review.rating) as avg_review_rating,\n        avg(product_feats.price) as avg_price,\n        avg((review.rating - product_feats.rating) / product_feats.rating_std) as user_bias\n    from labels\n    left join review\n        on\n            labels.customer_id = review.customer_id\n            and review.review_time <= (labels.timestamp - interval '6 months')\n            and review.review_time > (labels.timestamp - interval '12 months')\n    left join product_feats\n        on\n            review.product_id = product_feats.product_id\n            and labels.timestamp = product_feats.timestamp\n    group by labels.customer_id, labels.timestamp\n),\n\ntrends as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        (last_6mo.num_reviews - prev_6mo.num_reviews)\n        / coalesce(prev_6mo.num_reviews, 1e-1) as num_reviews_trend,\n        (last_6mo.avg_review_rating - prev_6mo.avg_review_rating)\n        / coalesce(prev_6mo.avg_review_rating, 1e-1) as avg_rating_trend,\n        (last_6mo.avg_price - prev_6mo.avg_price)\n        / coalesce(prev_6mo.avg_price, 1e-1) as avg_price_trend,\n        (last_6mo.user_bias - prev_6mo.user_bias)\n        / coalesce(prev_6mo.user_bias, 1e-1) as avg_user_bias_trend\n    from labels\n    left join last_6mo\n        on\n            labels.customer_id = last_6mo.customer_id\n            and labels.timestamp = last_6mo.timestamp\n    left join prev_6mo\n        on\n            labels.customer_id = prev_6mo.customer_id\n            and labels.timestamp = prev_6mo.timestamp\n)\n\nselect\n    labels.customer_id,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.churn,\n    {% endif %}\n    review_aggs.weeks_since_first_review,\n    review_aggs.num_reviews,\n    review_aggs.sum_review_ratings,\n    review_aggs.avg_review_length,\n    review_aggs.last_review_weeks_ago,\n    review_aggs.last_review_summary_text,\n    review_aggs.last_reviewed_product_title,\n    review_aggs.last_reviewed_product_category,\n    review_aggs.last_review_is_verified,\n    review_aggs.avg_review_rating,\n    review_aggs.pct_verified_reviews,\n    review_aggs.std_review_rating,\n    review_aggs.min_review_rating,\n    review_aggs.max_review_rating,\n    review_aggs.avg_reviewed_product_rating,\n    review_aggs.sum_reviewed_product_rating,\n    review_aggs.std_reviewed_product_rating,\n    review_aggs.min_reviewed_product_rating,\n    review_aggs.max_reviewed_product_rating,\n    review_aggs.avg_reviewed_product_price,\n    review_aggs.sum_reviewed_product_price,\n    review_aggs.std_reviewed_product_price,\n    review_aggs.min_reviewed_product_price,\n    review_aggs.max_reviewed_product_price,\n    review_aggs.reviewed_product_modal_category,\n    review_aggs.user_bias,\n    trends.num_reviews_trend,\n    trends.avg_rating_trend,\n    trends.avg_price_trend,\n    trends.avg_user_bias_trend\nfrom labels\nleft join review_aggs\n    on\n        labels.customer_id = review_aggs.customer_id\n        and labels.timestamp = review_aggs.timestamp\nleft join trends\n    on\n        labels.customer_id = trends.customer_id\n        and labels.timestamp = trends.timestamp",
+   "dev_seeds": [
+    "2008-01-10 00:00:00",
+    "2011-04-07 00:00:00",
+    "2014-07-03 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2009-07-09 00:00:00",
+    "2012-10-04 00:00:00",
+    "2016-01-01 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2008-01-10 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "last_review_is_verified",
+      "last_review_summary_text",
+      "last_reviewed_product_category",
+      "last_reviewed_product_title",
+      "reviewed_product_modal_category"
+     ],
+     "cells": 1666,
+     "rows": 5372
+    },
+    {
+     "seed": "2011-04-07 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "last_review_is_verified",
+      "last_review_summary_text",
+      "last_reviewed_product_category",
+      "last_reviewed_product_title",
+      "reviewed_product_modal_category"
+     ],
+     "cells": 23876,
+     "rows": 59408
+    },
+    {
+     "seed": "2014-07-03 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "last_review_is_verified",
+      "last_review_summary_text",
+      "last_reviewed_product_category",
+      "last_reviewed_product_title",
+      "reviewed_product_modal_category"
+     ],
+     "cells": 180347,
+     "rows": 366666
+    }
+   ],
+   "history": [
+    {
+     "iteration": 1,
+     "response": "pilot/b2_responses/iter_01/043be7882b7b5797.json",
+     "status": "ok",
+     "checks": [
+      {
+       "seed": "2008-01-10 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category"
+       ],
+       "cells": 1846,
+       "rows": 5372,
+       "split": "dev"
+      },
+      {
+       "seed": "2011-04-07 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category"
+       ],
+       "cells": 23990,
+       "rows": 59408,
+       "split": "dev"
+      },
+      {
+       "seed": "2014-07-03 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category"
+       ],
+       "cells": 178937,
+       "rows": 366666,
+       "split": "dev"
+      },
+      {
+       "seed": "2009-07-09 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category"
+       ],
+       "cells": 16429,
+       "rows": 39945,
+       "split": "held_out"
+      },
+      {
+       "seed": "2012-10-04 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category"
+       ],
+       "cells": 44617,
+       "rows": 116006,
+       "split": "held_out"
+      },
+      {
+       "seed": "2016-01-01 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category"
+       ],
+       "cells": 176341,
+       "rows": 351885,
+       "split": "held_out"
+      }
+     ],
+     "clean": false,
+     "candidate_sha256": "383560f155e18fa56ce568c51ab31468ce3726a868de93a37470b231ea0b7e0d"
+    }
+   ],
+   "status": "pending"
+  },
+  {
+   "program_uid": "9676edcceff6e49c",
+   "program": "amazon_user-ltv.sql",
+   "dataset": "rel-amazon",
+   "ds": "amazon",
+   "task": "user-ltv",
+   "source_path": "audit/amazon_user-ltv.sql",
+   "source_sql": "create or replace table user_ltv_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_ltv_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_ltv_{{ set }} -- noqa\n    {% endif %}\n),\n\ntimestamps as (\n    select distinct timestamp from labels\n),\n\nproduct_ratings as (\n    select\n        timestamps.timestamp,\n        review.product_id,\n        avg(review.rating) as rating,\n        stddev(review.rating) as rating_std\n    from timestamps\n    left join review\n        on timestamps.timestamp > review.review_time\n    group by all\n),\n\nproduct_feats as (\n    select\n        product.product_id,\n        product_ratings.timestamp,\n        product.price,\n        product.title,\n        product_ratings.rating,\n        product_ratings.rating_std,\n        product.category[-1] as category\n    from product\n    left join product_ratings\n        on product.product_id = product_ratings.product_id\n),\n\n{% for lb, ub in [(0, 3), (3, 6), (6, 9)] %}\n    window_feats_{{ lb }}_to_{{ ub }} as (\n        select\n            labels.customer_id,\n            labels.timestamp,\n            count(*) as num_reviews_{{ lb }}_to_{{ ub }},\n            sum(review.rating) as sum_review_ratings_{{ lb }}_to_{{ ub }},\n            avg(length(review.review_text)) as avg_review_length_{{ lb }}_to_{{ ub }},\n            avg(review.rating) as avg_review_rating_{{ lb }}_to_{{ ub }},\n            avg(review.verified::int) as pct_verified_reviews_{{ lb }}_to_{{ ub }},\n            stddev(review.rating) as std_review_rating_{{ lb }}_to_{{ ub }},\n            min(review.rating) as min_review_rating_{{ lb }}_to_{{ ub }},\n            max(review.rating) as max_review_rating_{{ lb }}_to_{{ ub }},\n            avg(product_feats.rating) as avg_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            sum(product_feats.rating) as sum_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            stddev(product_feats.rating) as std_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            min(product_feats.rating) as min_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            max(product_feats.rating) as max_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            avg(product_feats.price) as avg_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            sum(product_feats.price) as sum_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            stddev(product_feats.price) as std_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            min(product_feats.price) as min_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            max(product_feats.price) as max_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            mode(product_feats.category) as reviewed_product_modal_category_{{ lb }}_to_{{ ub }}\n        from labels\n        left join review\n            on\n                labels.customer_id = review.customer_id\n                and labels.timestamp - interval '{{ lb }} months' > review.review_time\n                and labels.timestamp - interval '{{ ub }} months' <= review.review_time\n        left join product_feats\n            on\n                review.product_id = product_feats.product_id\n                and labels.timestamp = product_feats.timestamp\n        group by labels.customer_id, labels.timestamp\n    ),\n{% endfor %}\n\nall_time_feats as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        max(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_first_review,\n        min(date_diff('weeks', review.review_time, labels.timestamp)) as last_review_weeks_ago,\n        arg_max(review.summary, review.review_time) as last_review_summary_text,\n        arg_max(product_feats.title, review.review_time) as last_reviewed_product_title,\n        arg_max(product_feats.category, review.review_time) as last_reviewed_product_category,\n        arg_max(review.verified, review.review_time) as last_review_is_verified,\n        count(*) as num_reviews,\n        sum(review.rating) as sum_review_ratings,\n        avg(length(review.review_text)) as avg_review_length,\n        avg(review.rating) as avg_review_rating,\n        avg(review.verified::int) as pct_verified_reviews,\n        stddev(review.rating) as std_review_rating,\n        min(review.rating) as min_review_rating,\n        max(review.rating) as max_review_rating,\n        avg(product_feats.rating) as avg_reviewed_product_rating,\n        sum(product_feats.rating) as sum_reviewed_product_rating,\n        stddev(product_feats.rating) as std_reviewed_product_rating,\n        min(product_feats.rating) as min_reviewed_product_rating,\n        max(product_feats.rating) as max_reviewed_product_rating,\n        avg(product_feats.price) as avg_reviewed_product_price,\n        sum(product_feats.price) as sum_reviewed_product_price,\n        stddev(product_feats.price) as std_reviewed_product_price,\n        min(product_feats.price) as min_reviewed_product_price,\n        max(product_feats.price) as max_reviewed_product_price,\n        mode(product_feats.category) as reviewed_product_modal_category\n    from labels\n    left join review\n        on\n            labels.customer_id = review.customer_id\n            and labels.timestamp > review.review_time\n    left join product_feats\n        on\n            review.product_id = product_feats.product_id\n            and labels.timestamp = product_feats.timestamp\n    group by labels.customer_id, labels.timestamp\n)\n\nselect\n    labels.customer_id,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.ltv,\n    {% endif %}\n    {% for lb, ub in [(0, 3), (3, 6), (6, 9)] %}\n        window_feats_{{ lb }}_to_{{ ub }}.* exclude(customer_id, timestamp), -- noqa\n    {% endfor %}\n    all_time_feats.* exclude (customer_id, timestamp) -- noqa\nfrom labels\nleft join window_feats_0_to_3\n    on\n        labels.customer_id = window_feats_0_to_3.customer_id\n        and labels.timestamp = window_feats_0_to_3.timestamp\nleft join window_feats_3_to_6\n    on\n        labels.customer_id = window_feats_3_to_6.customer_id\n        and labels.timestamp = window_feats_3_to_6.timestamp\nleft join window_feats_6_to_9\n    on\n        labels.customer_id = window_feats_6_to_9.customer_id\n        and labels.timestamp = window_feats_6_to_9.timestamp\nleft join all_time_feats\n    on\n        labels.customer_id = all_time_feats.customer_id\n        and labels.timestamp = all_time_feats.timestamp\n",
+   "current_sql": "create or replace table user_ltv_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_ltv_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_ltv_{{ set }} -- noqa\n    {% endif %}\n),\n\ntimestamps as (\n    select distinct timestamp from labels\n),\n\nproduct_ratings as (\n    select\n        timestamps.timestamp,\n        review.product_id,\n        avg(review.rating) as rating,\n        stddev(review.rating) as rating_std\n    from timestamps\n    left join review\n        on review.review_time <= timestamps.timestamp\n    group by all\n),\n\nproduct_feats as (\n    select\n        product.product_id,\n        product_ratings.timestamp,\n        product.price,\n        product.title,\n        product_ratings.rating,\n        product_ratings.rating_std,\n        product.category[-1] as category\n    from product\n    left join product_ratings\n        on product.product_id = product_ratings.product_id\n),\n\n{% for lb, ub in [(0, 3), (3, 6), (6, 9)] %}\n    window_feats_{{ lb }}_to_{{ ub }} as (\n        select\n            labels.customer_id,\n            labels.timestamp,\n            count(*) as num_reviews_{{ lb }}_to_{{ ub }},\n            sum(review.rating) as sum_review_ratings_{{ lb }}_to_{{ ub }},\n            avg(length(review.review_text)) as avg_review_length_{{ lb }}_to_{{ ub }},\n            avg(review.rating) as avg_review_rating_{{ lb }}_to_{{ ub }},\n            avg(review.verified::int) as pct_verified_reviews_{{ lb }}_to_{{ ub }},\n            stddev(review.rating) as std_review_rating_{{ lb }}_to_{{ ub }},\n            min(review.rating) as min_review_rating_{{ lb }}_to_{{ ub }},\n            max(review.rating) as max_review_rating_{{ lb }}_to_{{ ub }},\n            avg(product_feats.rating) as avg_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            sum(product_feats.rating) as sum_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            stddev(product_feats.rating) as std_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            min(product_feats.rating) as min_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            max(product_feats.rating) as max_reviewed_product_rating_{{ lb }}_to_{{ ub }},\n            avg(product_feats.price) as avg_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            sum(product_feats.price) as sum_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            stddev(product_feats.price) as std_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            min(product_feats.price) as min_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            max(product_feats.price) as max_reviewed_product_price_{{ lb }}_to_{{ ub }},\n            mode(product_feats.category) as reviewed_product_modal_category_{{ lb }}_to_{{ ub }}\n        from labels\n        left join review\n            on\n                labels.customer_id = review.customer_id\n                and review.review_time <= labels.timestamp - interval '{{ lb }} months'\n                and review.review_time >= labels.timestamp - interval '{{ ub }} months'\n        left join product_feats\n            on\n                review.product_id = product_feats.product_id\n                and labels.timestamp = product_feats.timestamp\n        group by labels.customer_id, labels.timestamp\n    ),\n{% endfor %}\n\nall_time_feats as (\n    select\n        labels.customer_id,\n        labels.timestamp,\n        max(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_first_review,\n        min(date_diff('weeks', review.review_time, labels.timestamp)) as last_review_weeks_ago,\n        arg_max(review.summary, review.review_time) as last_review_summary_text,\n        arg_max(product_feats.title, review.review_time) as last_reviewed_product_title,\n        arg_max(product_feats.category, review.review_time) as last_reviewed_product_category,\n        arg_max(review.verified, review.review_time) as last_review_is_verified,\n        count(*) as num_reviews,\n        sum(review.rating) as sum_review_ratings,\n        avg(length(review.review_text)) as avg_review_length,\n        avg(review.rating) as avg_review_rating,\n        avg(review.verified::int) as pct_verified_reviews,\n        stddev(review.rating) as std_review_rating,\n        min(review.rating) as min_review_rating,\n        max(review.rating) as max_review_rating,\n        avg(product_feats.rating) as avg_reviewed_product_rating,\n        sum(product_feats.rating) as sum_reviewed_product_rating,\n        stddev(product_feats.rating) as std_reviewed_product_rating,\n        min(product_feats.rating) as min_reviewed_product_rating,\n        max(product_feats.rating) as max_reviewed_product_rating,\n        avg(product_feats.price) as avg_reviewed_product_price,\n        sum(product_feats.price) as sum_reviewed_product_price,\n        stddev(product_feats.price) as std_reviewed_product_price,\n        min(product_feats.price) as min_reviewed_product_price,\n        max(product_feats.price) as max_reviewed_product_price,\n        mode(product_feats.category) as reviewed_product_modal_category\n    from labels\n    left join review\n        on\n            labels.customer_id = review.customer_id\n            and review.review_time <= labels.timestamp\n    left join product_feats\n        on\n            review.product_id = product_feats.product_id\n            and labels.timestamp = product_feats.timestamp\n    group by labels.customer_id, labels.timestamp\n)\n\nselect\n    labels.customer_id,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.ltv,\n    {% endif %}\n    {% for lb, ub in [(0, 3), (3, 6), (6, 9)] %}\n        window_feats_{{ lb }}_to_{{ ub }}.* exclude(customer_id, timestamp), -- noqa\n    {% endfor %}\n    all_time_feats.* exclude (customer_id, timestamp) -- noqa\nfrom labels\nleft join window_feats_0_to_3\n    on\n        labels.customer_id = window_feats_0_to_3.customer_id\n        and labels.timestamp = window_feats_0_to_3.timestamp\nleft join window_feats_3_to_6\n    on\n        labels.customer_id = window_feats_3_to_6.customer_id\n        and labels.timestamp = window_feats_3_to_6.timestamp\nleft join window_feats_6_to_9\n    on\n        labels.customer_id = window_feats_6_to_9.customer_id\n        and labels.timestamp = window_feats_6_to_9.timestamp\nleft join all_time_feats\n    on\n        labels.customer_id = all_time_feats.customer_id\n        and labels.timestamp = all_time_feats.timestamp",
+   "dev_seeds": [
+    "2008-01-10 00:00:00",
+    "2011-04-07 00:00:00",
+    "2014-07-03 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2009-07-09 00:00:00",
+    "2012-10-04 00:00:00",
+    "2016-01-01 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2008-01-10 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "last_review_is_verified",
+      "last_review_summary_text",
+      "last_reviewed_product_category",
+      "last_reviewed_product_title",
+      "reviewed_product_modal_category",
+      "reviewed_product_modal_category_0_to_3"
+     ],
+     "cells": 2055,
+     "rows": 5372
+    },
+    {
+     "seed": "2011-04-07 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "last_review_is_verified",
+      "last_review_summary_text",
+      "last_reviewed_product_category",
+      "last_reviewed_product_title",
+      "reviewed_product_modal_category",
+      "reviewed_product_modal_category_0_to_3",
+      "reviewed_product_modal_category_3_to_6",
+      "reviewed_product_modal_category_6_to_9"
+     ],
+     "cells": 35544,
+     "rows": 59408
+    },
+    {
+     "seed": "2014-07-03 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "last_review_is_verified",
+      "last_review_summary_text",
+      "last_reviewed_product_category",
+      "last_reviewed_product_title",
+      "reviewed_product_modal_category",
+      "reviewed_product_modal_category_0_to_3",
+      "reviewed_product_modal_category_3_to_6",
+      "reviewed_product_modal_category_6_to_9"
+     ],
+     "cells": 271811,
+     "rows": 366666
+    }
+   ],
+   "history": [
+    {
+     "iteration": 1,
+     "response": "pilot/b2_responses/iter_01/9676edcceff6e49c.json",
+     "status": "ok",
+     "checks": [
+      {
+       "seed": "2008-01-10 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category",
+        "reviewed_product_modal_category_0_to_3"
+       ],
+       "cells": 2325,
+       "rows": 5372,
+       "split": "dev"
+      },
+      {
+       "seed": "2011-04-07 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category",
+        "reviewed_product_modal_category_0_to_3",
+        "reviewed_product_modal_category_3_to_6",
+        "reviewed_product_modal_category_6_to_9"
+       ],
+       "cells": 35485,
+       "rows": 59408,
+       "split": "dev"
+      },
+      {
+       "seed": "2014-07-03 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category",
+        "reviewed_product_modal_category_0_to_3",
+        "reviewed_product_modal_category_3_to_6",
+        "reviewed_product_modal_category_6_to_9"
+       ],
+       "cells": 276917,
+       "rows": 366666,
+       "split": "dev"
+      },
+      {
+       "seed": "2009-07-09 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category",
+        "reviewed_product_modal_category_0_to_3",
+        "reviewed_product_modal_category_3_to_6",
+        "reviewed_product_modal_category_6_to_9"
+       ],
+       "cells": 24915,
+       "rows": 39945,
+       "split": "held_out"
+      },
+      {
+       "seed": "2012-10-04 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category",
+        "reviewed_product_modal_category_0_to_3",
+        "reviewed_product_modal_category_3_to_6",
+        "reviewed_product_modal_category_6_to_9"
+       ],
+       "cells": 65936,
+       "rows": 116006,
+       "split": "held_out"
+      },
+      {
+       "seed": "2016-01-01 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "last_review_is_verified",
+        "last_review_summary_text",
+        "last_reviewed_product_category",
+        "last_reviewed_product_title",
+        "reviewed_product_modal_category",
+        "reviewed_product_modal_category_0_to_3",
+        "reviewed_product_modal_category_3_to_6",
+        "reviewed_product_modal_category_6_to_9"
+       ],
+       "cells": 272215,
+       "rows": 351885,
+       "split": "held_out"
+      }
+     ],
+     "clean": false,
+     "candidate_sha256": "637fbaed67cc6efab63f767e1bb4225d150b990554415d05cc3ecb4be94e1e80"
+    }
+   ],
+   "status": "pending"
+  },
+  {
+   "program_uid": "00dfa0ba97796ce6",
+   "program": "event_user-attendance.sql",
+   "dataset": "rel-event",
+   "ds": "event",
+   "task": "user-attendance",
+   "source_path": "audit/event_user-attendance.sql",
+   "source_sql": "create or replace table user_attendance_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- driverId, date, position\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_attendance_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_attendance_{{ set }} -- noqa\n    {% endif %}\n),\n\nfriend_info as (\n    select\n        user_friends.user as user_id,\n        count(distinct user_friends.friend) as num_friends\n    from user_friends\n    group by user_friends.user\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        users.locale,\n        date_part('year', labels.timestamp) - users.birthyear as age,\n        users.gender,\n        date_diff('day', users.joinedAt, labels.timestamp) as days_on_app,\n        users.location,\n        users.timezone,\n        friend_info.num_friends\n    from labels\n    left join users\n        on labels.user = users.user_id\n    left join friend_info\n        on labels.user = friend_info.user_id\n),\n\nattendance_window_fns as materialized (\n    select\n        a.user_id,\n        a.start_time as timestamp,\n        count(case when a.status == 'invited' then a.status end) over monthly as num_invited,\n        count(case when a.status == 'yes' then a.status end) over monthly as num_yes,\n        count(case when a.status == 'no' then a.status end) over monthly as num_no,\n        count(case when a.status == 'maybe' then a.status end) over monthly as num_maybe,\n        avg(date_part('hour', a.start_time)) over monthly as avg_event_start_hour,\n        mode(date_part('dow', a.start_time)) over monthly as modal_event_dow\n    from event_attendees as a\n    window monthly as (\n        partition by a.user_id\n        order by a.start_time asc\n        range between interval '1 month' preceding and current row\n    )\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_att.num_invited as past_{{ i }}_num_invited,\n    past_{{ i }}_att.num_yes as past_{{ i }}_num_yes,\n    past_{{ i }}_att.num_no as past_{{ i }}_num_no,\n    past_{{ i }}_att.num_maybe as past_{{ i }}_num_maybe,\n    past_{{ i }}_att.avg_event_start_hour as past_{{ i }}_avg_event_start_hour,\n    past_{{ i }}_att.modal_event_dow as past_{{ i }}_modal_event_dow,\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join attendance_window_fns as past_{{ i }}_att\n        on\n            labels.user = past_{{ i }}_att.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_att.timestamp\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}\n",
+   "current_sql": "create or replace table user_attendance_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- driverId, date, position\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_attendance_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_attendance_{{ set }} -- noqa\n    {% endif %}\n),\n\nfriend_info as (\n    select\n        user_friends.user as user_id,\n        count(distinct user_friends.friend) as num_friends\n    from user_friends\n    group by user_friends.user\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        users.locale,\n        date_part('year', labels.timestamp) - users.birthyear as age,\n        users.gender,\n        date_diff('day', users.joinedAt, labels.timestamp) as days_on_app,\n        users.location,\n        users.timezone,\n        friend_info.num_friends\n    from labels\n    left join users\n        on labels.user = users.user_id\n    left join friend_info\n        on labels.user = friend_info.user_id\n),\n\nattendance_window_fns as materialized (\n    select\n        a.user_id,\n        a.start_time as timestamp,\n        count(case when a.status == 'invited' then a.status end) over monthly as num_invited,\n        count(case when a.status == 'yes' then a.status end) over monthly as num_yes,\n        count(case when a.status == 'no' then a.status end) over monthly as num_no,\n        count(case when a.status == 'maybe' then a.status end) over monthly as num_maybe,\n        avg(date_part('hour', a.start_time)) over monthly as avg_event_start_hour,\n        mode(date_part('dow', a.start_time)) over monthly as modal_event_dow\n    from event_attendees as a\n    window monthly as (\n        partition by a.user_id\n        order by a.start_time asc\n        range between interval '1 month' preceding and current row\n    )\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_att.num_invited as past_{{ i }}_num_invited,\n    past_{{ i }}_att.num_yes as past_{{ i }}_num_yes,\n    past_{{ i }}_att.num_no as past_{{ i }}_num_no,\n    past_{{ i }}_att.num_maybe as past_{{ i }}_num_maybe,\n    past_{{ i }}_att.avg_event_start_hour as past_{{ i }}_avg_event_start_hour,\n    past_{{ i }}_att.modal_event_dow as past_{{ i }}_modal_event_dow,\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join attendance_window_fns as past_{{ i }}_att\n        on\n            labels.user = past_{{ i }}_att.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_att.timestamp\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}\n",
+   "dev_seeds": [
+    "2012-06-20 00:00:00",
+    "2012-08-22 00:00:00",
+    "2012-10-24 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2012-07-25 00:00:00",
+    "2012-09-26 00:00:00",
+    "2012-11-29 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2012-06-20 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 14,
+     "rows": 16
+    },
+    {
+     "seed": "2012-08-22 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 190,
+     "rows": 421
+    },
+    {
+     "seed": "2012-10-24 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 1246,
+     "rows": 2546
+    }
+   ],
+   "history": [
+    {
+     "iteration": 1,
+     "response": "pilot/b2_responses/iter_01/00dfa0ba97796ce6.json",
+     "status": "no_sql_or_api_error",
+     "error": null
+    }
+   ],
+   "status": "pending"
+  },
+  {
+   "program_uid": "7020f63b2d1d57e6",
+   "program": "event_user-ignore.sql",
+   "dataset": "rel-event",
+   "ds": "event",
+   "task": "user-ignore",
+   "source_path": "audit/event_user-ignore.sql",
+   "source_sql": "create or replace table user_ignore_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- driverId, date, position\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_ignore_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_ignore_{{ set }} -- noqa\n    {% endif %}\n),\n\nfriend_info as (\n    select\n        user_friends.user as user_id,\n        count(distinct user_friends.friend) as num_friends\n    from user_friends\n    group by user_friends.user\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        users.locale,\n        date_part('year', labels.timestamp) - users.birthyear as age,\n        users.gender,\n        date_diff('day', users.joinedAt, labels.timestamp) as days_on_app,\n        users.location,\n        users.timezone,\n        friend_info.num_friends\n    from labels\n    left join users\n        on labels.user = users.user_id\n    left join friend_info\n        on labels.user = friend_info.user_id\n),\n\nattendance_window_fns as materialized (\n    select\n        a.user_id,\n        a.start_time as timestamp,\n        count(case when a.status == 'invited' then a.status end) over monthly as num_invited,\n        count(case when a.status == 'yes' then a.status end) over monthly as num_yes,\n        count(case when a.status == 'no' then a.status end) over monthly as num_no,\n        count(case when a.status == 'maybe' then a.status end) over monthly as num_maybe,\n        avg(date_part('hour', a.start_time)) over monthly as avg_event_start_hour,\n        mode(date_part('dow', a.start_time)) over monthly as modal_event_dow\n    from event_attendees as a\n    window monthly as (\n        partition by a.user_id\n        order by a.start_time asc\n        range between interval '1 month' preceding and current row\n    )\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_att.num_invited as past_{{ i }}_num_invited,\n    past_{{ i }}_att.num_yes as past_{{ i }}_num_yes,\n    past_{{ i }}_att.num_no as past_{{ i }}_num_no,\n    past_{{ i }}_att.num_maybe as past_{{ i }}_num_maybe,\n    past_{{ i }}_att.avg_event_start_hour as past_{{ i }}_avg_event_start_hour,\n    past_{{ i }}_att.modal_event_dow as past_{{ i }}_modal_event_dow,\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join attendance_window_fns as past_{{ i }}_att\n        on\n            labels.user = past_{{ i }}_att.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_att.timestamp\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}\n",
+   "current_sql": "create or replace table user_ignore_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_ignore_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_ignore_{{ set }} -- noqa\n    {% endif %}\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        date_diff('day', users.joinedAt, labels.timestamp) as days_on_app\n    from labels\n    left join users\n        on labels.user = users.user_id\n    -- only rows available at or before the label timestamp\n    where users.joinedAt <= labels.timestamp\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}",
+   "dev_seeds": [
+    "2012-06-20 00:00:00",
+    "2012-08-22 00:00:00",
+    "2012-10-24 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2012-07-25 00:00:00",
+    "2012-09-26 00:00:00",
+    "2012-11-29 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2012-06-20 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 14,
+     "rows": 16
+    },
+    {
+     "seed": "2012-08-22 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 190,
+     "rows": 421
+    },
+    {
+     "seed": "2012-10-24 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 1246,
+     "rows": 2546
+    }
+   ],
+   "history": [
+    {
+     "iteration": 1,
+     "response": "pilot/b2_responses/iter_01/7020f63b2d1d57e6.json",
+     "status": "ok",
+     "checks": [
+      {
+       "seed": "2012-06-20 00:00:00",
+       "status": "ran",
+       "witness": false,
+       "columns": [],
+       "cells": 0,
+       "rows": 16,
+       "split": "dev"
+      },
+      {
+       "seed": "2012-08-22 00:00:00",
+       "status": "ran",
+       "witness": false,
+       "columns": [],
+       "cells": 0,
+       "rows": 421,
+       "split": "dev"
+      },
+      {
+       "seed": "2012-10-24 00:00:00",
+       "status": "ran",
+       "witness": false,
+       "columns": [],
+       "cells": 0,
+       "rows": 2546,
+       "split": "dev"
+      },
+      {
+       "seed": "2012-07-25 00:00:00",
+       "status": "ran",
+       "witness": false,
+       "columns": [],
+       "cells": 0,
+       "rows": 394,
+       "split": "held_out"
+      },
+      {
+       "seed": "2012-09-26 00:00:00",
+       "status": "ran",
+       "witness": false,
+       "columns": [],
+       "cells": 0,
+       "rows": 1060,
+       "split": "held_out"
+      },
+      {
+       "seed": "2012-11-29 00:00:00",
+       "status": "ran",
+       "witness": false,
+       "columns": [],
+       "cells": 0,
+       "rows": 1958,
+       "split": "held_out"
+      }
+     ],
+     "clean": true,
+     "candidate_sha256": "4b84e9ebc8a3894273972337081a8daa8e28d10408401e905063a41774895bca"
+    }
+   ],
+   "status": "clean",
+   "clean_at": 1
+  },
+  {
+   "program_uid": "eaeda7e05d3d2b21",
+   "program": "event_user-repeat.sql",
+   "dataset": "rel-event",
+   "ds": "event",
+   "task": "user-repeat",
+   "source_path": "audit/event_user-repeat.sql",
+   "source_sql": "create or replace table user_repeat_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- driverId, date, position\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_repeat_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_repeat_{{ set }} -- noqa\n    {% endif %}\n),\n\nfriend_info as (\n    select\n        user_friends.user as user_id,\n        count(distinct user_friends.friend) as num_friends\n    from user_friends\n    group by user_friends.user\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        users.locale,\n        date_part('year', labels.timestamp) - users.birthyear as age,\n        users.gender,\n        date_diff('day', users.joinedAt, labels.timestamp) as days_on_app,\n        users.location,\n        users.timezone,\n        friend_info.num_friends\n    from labels\n    left join users\n        on labels.user = users.user_id\n    left join friend_info\n        on labels.user = friend_info.user_id\n),\n\nattendance_window_fns as materialized (\n    select\n        a.user_id,\n        a.start_time as timestamp,\n        count(case when a.status == 'invited' then a.status end) over monthly as num_invited,\n        count(case when a.status == 'yes' then a.status end) over monthly as num_yes,\n        count(case when a.status == 'no' then a.status end) over monthly as num_no,\n        count(case when a.status == 'maybe' then a.status end) over monthly as num_maybe,\n        avg(date_part('hour', a.start_time)) over monthly as avg_event_start_hour,\n        mode(date_part('dow', a.start_time)) over monthly as modal_event_dow\n    from event_attendees as a\n    window monthly as (\n        partition by a.user_id\n        order by a.start_time asc\n        range between interval '1 month' preceding and current row\n    )\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_att.num_invited as past_{{ i }}_num_invited,\n    past_{{ i }}_att.num_yes as past_{{ i }}_num_yes,\n    past_{{ i }}_att.num_no as past_{{ i }}_num_no,\n    past_{{ i }}_att.num_maybe as past_{{ i }}_num_maybe,\n    past_{{ i }}_att.avg_event_start_hour as past_{{ i }}_avg_event_start_hour,\n    past_{{ i }}_att.modal_event_dow as past_{{ i }}_modal_event_dow,\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join attendance_window_fns as past_{{ i }}_att\n        on\n            labels.user = past_{{ i }}_att.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_att.timestamp\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}\n",
+   "current_sql": "create or replace table user_repeat_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- driverId, date, position\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_repeat_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_repeat_{{ set }} -- noqa\n    {% endif %}\n),\n\nuser_feats as (\n    select\n        labels.user as user_id,\n        labels.timestamp,\n        date_diff('day', users.joinedAt, labels.timestamp) as days_on_app\n    from labels\n    left join users\n        on labels.user = users.user_id\n),\n\ninterest_window_fns as materialized (\n    select\n        i.user as user_id,\n        i.timestamp,\n        sum(i.invited) over monthly as num_invites,\n        sum(i.interested) over monthly as num_interested,\n        sum(i.not_interested) over monthly as num_not_interested,\n        sum((i.invited::bool and i.interested::bool)::int) over monthly\n        as num_invited_and_interested,\n        sum((i.invited::bool and i.not_interested::bool)::int) over monthly\n        as num_invited_and_not_interested\n    from event_interest as i\n    window monthly as (\n        partition by i.user\n        order by i.timestamp asc\n        range between interval '1 month' preceding and current row\n    )\n)\n\nselect\n    labels.user,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.target,\n    {% endif %}\n    user_feats.* exclude (user_id, timestamp),\n{% for i in [1, 2, 3, 4, 5] %}\n    past_{{ i }}_int.num_invites as past_{{ i }}_num_invites,\n    past_{{ i }}_int.num_interested as past_{{ i }}_num_interested,\n    past_{{ i }}_int.num_not_interested as past_{{ i }}_num_not_interested,\n    past_{{ i }}_int.num_invited_and_interested as past_{{ i }}_num_invited_and_interested,\n    past_{{ i }}_int.num_invited_and_not_interested as past_{{ i }}_num_invited_and_not_interested\n{%- if not loop.last %},{% endif %} -- noqa\n{% endfor %}\nfrom labels\nleft join user_feats\n    on\n        labels.user = user_feats.user_id\n        and labels.timestamp = user_feats.timestamp\n{% for i in [1, 2, 3, 4, 5] %}\n    asof left join interest_window_fns as past_{{ i }}_int\n        on\n            labels.user = past_{{ i }}_int.user_id\n            and labels.timestamp - interval '{{ i - 1 }} month' > past_{{ i }}_int.timestamp\n{% endfor %}",
+   "dev_seeds": [
+    "2012-07-11 00:00:00",
+    "2012-09-05 00:00:00",
+    "2012-10-31 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2012-08-08 00:00:00",
+    "2012-10-03 00:00:00",
+    "2012-11-29 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2012-07-11 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 5,
+     "rows": 5
+    },
+    {
+     "seed": "2012-09-05 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 35,
+     "rows": 80
+    },
+    {
+     "seed": "2012-10-31 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "days_on_app"
+     ],
+     "cells": 70,
+     "rows": 341
+    }
+   ],
+   "history": [
+    {
+     "iteration": 1,
+     "response": "pilot/b2_responses/iter_01/eaeda7e05d3d2b21.json",
+     "status": "ok",
+     "checks": [
+      {
+       "seed": "2012-07-11 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "days_on_app"
+       ],
+       "cells": 5,
+       "rows": 5,
+       "split": "dev"
+      },
+      {
+       "seed": "2012-09-05 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "days_on_app"
+       ],
+       "cells": 35,
+       "rows": 80,
+       "split": "dev"
+      },
+      {
+       "seed": "2012-10-31 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "days_on_app"
+       ],
+       "cells": 70,
+       "rows": 341,
+       "split": "dev"
+      },
+      {
+       "seed": "2012-08-08 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "days_on_app"
+       ],
+       "cells": 37,
+       "rows": 76,
+       "split": "held_out"
+      },
+      {
+       "seed": "2012-10-03 00:00:00",
+       "status": "ran",
+       "witness": true,
+       "columns": [
+        "days_on_app"
+       ],
+       "cells": 64,
+       "rows": 228,
+       "split": "held_out"
+      },
+      {
+       "seed": "2012-11-29 00:00:00",
+       "status": "ran",
+       "witness": false,
+       "columns": [],
+       "cells": 0,
+       "rows": 246,
+       "split": "held_out"
+      }
+     ],
+     "clean": false,
+     "candidate_sha256": "c0ade58a29da710bf979e7fe4231a754ceacaeacd9dbe52d822819cddfea250c"
+    }
+   ],
+   "status": "pending"
+  },
+  {
+   "program_uid": "f2dd9a17efd2e7b8",
+   "program": "stack_post-votes.sql",
+   "dataset": "rel-stack",
+   "ds": "stack",
+   "task": "post-votes",
+   "source_path": "audit/stack_post-votes.sql",
+   "source_sql": "create or replace table post_votes_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- Schema:\n    --     timestamp\n    --     PostId\n    --     popularity\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from post_votes_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from post_votes_{{ set }} -- noqa\n    {% endif %}\n),\n\npost_attrs_at_creation as (\n    select\n        PostId,\n        any_value(case when PostHistoryTypeId = 1 then Text end) as orig_title,\n        any_value(case when PostHistoryTypeId = 2 then Text end) as orig_body,\n        any_value(case when PostHistoryTypeId = 3 then Text end) as orig_tags\n    from post_history\n    where PostHistoryTypeId in (1, 2, 3)\n    group by PostId\n),\n\npost_hist_feats as (\n    select\n        labels.PostId,\n        labels.timestamp,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 10 then post_history.CreationDate end,\n            labels.timestamp\n        )) as closed_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 11 then post_history.CreationDate end,\n            labels.timestamp\n        )) as reopened_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 12 then post_history.CreationDate end,\n            labels.timestamp\n        )) as deleted_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 13 then post_history.CreationDate end,\n            labels.timestamp\n        )) as undeleted_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 14 then post_history.CreationDate end,\n            labels.timestamp\n        )) as locked_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 15 then post_history.CreationDate end,\n            labels.timestamp\n        )) as unlocked_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 25 then post_history.CreationDate end,\n            labels.timestamp\n        )) as tweeted_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 50 then post_history.CreationDate end,\n            labels.timestamp\n        )) as bumped_weeks_ago\n    from labels\n    left join post_history\n        on\n            labels.PostId = post_history.PostId\n            and labels.timestamp > post_history.CreationDate\n    where post_history.PostHistoryTypeId in (10, 11, 12, 13, 14, 15, 25, 50)\n    group by all\n),\n\npost_ordinals as (\n    select\n        Id as PostId,\n        row_number() over (partition by OwnerUserId order by CreationDate asc) as post_ordinal\n    from posts\n),\n\nnum_votes as (\n    select\n        labels.PostId,\n        labels.timestamp,\n        count(*) as num_votes\n    from labels\n    left join votes\n        on\n            labels.PostId = votes.PostId\n            and labels.timestamp > votes.CreationDate\n    group by all\n),\n\nvote_stats_first_month as (\n    select\n        votes.PostId,\n        count(*) as num_votes\n    from votes\n    left join posts\n        on votes.PostId = posts.Id\n    where\n        votes.VoteTypeId = 2  -- upvotes\n        and date_diff('day', posts.CreationDate, votes.CreationDate) <= 30\n    group by votes.PostId\n),\n\ncomment_stats_first_month as (\n    select\n        comments.PostId,\n        count(*) as num_comments\n    from comments\n    left join posts\n        on comments.PostId = posts.Id\n    where date_diff('day', posts.CreationDate, comments.CreationDate) <= 30\n    group by comments.PostId\n),\n\nuser_timestamp as (\n    -- aggregate to (user, timestamp) first to speed up query\n    select\n        labels.timestamp,\n        posts.OwnerUserId as user_id\n    from labels\n    left join posts\n        on labels.PostId = posts.Id\n    group by all\n),\n\nowner_feats_by_timestamp as (\n    select\n        user_timestamp.timestamp,\n        user_timestamp.user_id,\n        avg(\n            case\n                when censored_posts.PostTypeId = 1\n                    then coalesce(vote_stats_first_month.num_votes, 0)\n            end\n        ) as avg_owner_question_upvotes_first_month,\n        avg(\n            case\n                when censored_posts.PostTypeId = 1\n                    then coalesce(comment_stats_first_month.num_comments, 0)\n            end\n        ) as avg_owner_question_comments_first_month,\n        avg(\n            case\n                when censored_posts.PostTypeId = 2\n                    then coalesce(vote_stats_first_month.num_votes, 0)\n            end\n        ) as avg_owner_answer_upvotes_first_month,\n        avg(\n            case\n                when censored_posts.PostTypeId = 2\n                    then coalesce(comment_stats_first_month.num_comments, 0)\n            end\n        ) as avg_owner_answer_comments_first_month\n    from user_timestamp\n    left join posts as censored_posts\n        on\n            user_timestamp.user_id = censored_posts.OwnerUserId\n            and date_diff('day', censored_posts.CreationDate, user_timestamp.timestamp) > 30\n    left join vote_stats_first_month\n        on censored_posts.Id = vote_stats_first_month.PostId\n    left join comment_stats_first_month\n        on censored_posts.Id = comment_stats_first_month.PostId\n    group by all\n),\n\npost_feats as (\n    select\n        labels.PostId,\n        labels.timestamp,\n        posts.PostTypeId as post_type,\n        date_diff('week', posts.CreationDate, labels.timestamp) as post_age_weeks,\n        coalesce(len(post_attrs_at_creation.orig_title), 0) as title_length,\n        coalesce(len(post_attrs_at_creation.orig_body), 0) as body_length,\n        coalesce(len(string_split(trim(posts.Tags, '<>'), '><')), 0) as num_tags,\n        date_diff('month', users.CreationDate, labels.timestamp) as user_age_months,\n        post_ordinals.post_ordinal,\n        num_votes.num_votes,\n        post_hist_feats.closed_weeks_ago,\n        post_hist_feats.reopened_weeks_ago,\n        post_hist_feats.deleted_weeks_ago,\n        post_hist_feats.undeleted_weeks_ago,\n        post_hist_feats.locked_weeks_ago,\n        post_hist_feats.unlocked_weeks_ago,\n        post_hist_feats.tweeted_weeks_ago,\n        post_hist_feats.bumped_weeks_ago,\n        owner_feats_by_timestamp.avg_owner_question_upvotes_first_month,\n        owner_feats_by_timestamp.avg_owner_question_comments_first_month,\n        owner_feats_by_timestamp.avg_owner_answer_upvotes_first_month,\n        owner_feats_by_timestamp.avg_owner_answer_comments_first_month\n    from labels\n    left join posts\n        on labels.PostId = posts.Id\n    left join post_attrs_at_creation\n        on labels.PostId = post_attrs_at_creation.PostId\n    left join users\n        on posts.OwnerUserId = users.Id\n    left join post_ordinals\n        on labels.PostId = post_ordinals.PostId\n    left join num_votes\n        on\n            labels.PostId = num_votes.PostId\n            and labels.timestamp = num_votes.timestamp\n    left join post_hist_feats\n        on\n            labels.PostId = post_hist_feats.PostId\n            and labels.timestamp = post_hist_feats.timestamp\n    left join owner_feats_by_timestamp\n        on\n            posts.OwnerUserId = owner_feats_by_timestamp.user_id\n            and labels.timestamp = owner_feats_by_timestamp.timestamp\n)\n\n-- Final Feature Set\nselect\n    labels.PostId,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.popularity,\n    {% endif %}\n    post_feats.post_type,\n    post_feats.post_age_weeks,\n    post_feats.title_length,\n    post_feats.body_length,\n    post_feats.num_tags,\n    post_feats.user_age_months,\n    post_feats.post_ordinal,\n    post_feats.num_votes,\n    post_feats.closed_weeks_ago,\n    post_feats.reopened_weeks_ago,\n    post_feats.deleted_weeks_ago,\n    post_feats.undeleted_weeks_ago,\n    post_feats.locked_weeks_ago,\n    post_feats.unlocked_weeks_ago,\n    post_feats.tweeted_weeks_ago,\n    post_feats.bumped_weeks_ago,\n    post_feats.avg_owner_question_upvotes_first_month,\n    post_feats.avg_owner_question_comments_first_month,\n    post_feats.avg_owner_answer_upvotes_first_month,\n    post_feats.avg_owner_answer_comments_first_month\nfrom labels\nleft join post_feats\n    on\n        labels.PostId = post_feats.PostId\n        and labels.timestamp = post_feats.timestamp\n",
+   "current_sql": "create or replace table post_votes_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    -- Schema:\n    --     timestamp\n    --     PostId\n    --     popularity\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from post_votes_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from post_votes_{{ set }} -- noqa\n    {% endif %}\n),\n\npost_attrs_at_creation as (\n    select\n        PostId,\n        any_value(case when PostHistoryTypeId = 1 then Text end) as orig_title,\n        any_value(case when PostHistoryTypeId = 2 then Text end) as orig_body,\n        any_value(case when PostHistoryTypeId = 3 then Text end) as orig_tags\n    from post_history\n    where PostHistoryTypeId in (1, 2, 3)\n    group by PostId\n),\n\npost_hist_feats as (\n    select\n        labels.PostId,\n        labels.timestamp,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 10 then post_history.CreationDate end,\n            labels.timestamp\n        )) as closed_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 11 then post_history.CreationDate end,\n            labels.timestamp\n        )) as reopened_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 12 then post_history.CreationDate end,\n            labels.timestamp\n        )) as deleted_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 13 then post_history.CreationDate end,\n            labels.timestamp\n        )) as undeleted_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 14 then post_history.CreationDate end,\n            labels.timestamp\n        )) as locked_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 15 then post_history.CreationDate end,\n            labels.timestamp\n        )) as unlocked_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 25 then post_history.CreationDate end,\n            labels.timestamp\n        )) as tweeted_weeks_ago,\n        min(date_diff(\n            'week',\n            case when post_history.PostHistoryTypeId = 50 then post_history.CreationDate end,\n            labels.timestamp\n        )) as bumped_weeks_ago\n    from labels\n    left join post_history\n        on\n            labels.PostId = post_history.PostId\n            and labels.timestamp > post_history.CreationDate\n    where post_history.PostHistoryTypeId in (10, 11, 12, 13, 14, 15, 25, 50)\n    group by all\n),\n\npost_ordinals as (\n    select\n        Id as PostId,\n        row_number() over (partition by OwnerUserId order by CreationDate asc) as post_ordinal\n    from posts\n),\n\nnum_votes as (\n    select\n        labels.PostId,\n        labels.timestamp,\n        count(*) as num_votes\n    from labels\n    left join votes\n        on\n            labels.PostId = votes.PostId\n            and labels.timestamp > votes.CreationDate\n    group by all\n),\n\nvote_stats_first_month as (\n    select\n        votes.PostId,\n        count(*) as num_votes\n    from votes\n    left join posts\n        on votes.PostId = posts.Id\n    where\n        votes.VoteTypeId = 2  -- upvotes\n        and date_diff('day', posts.CreationDate, votes.CreationDate) <= 30\n    group by votes.PostId\n),\n\ncomment_stats_first_month as (\n    select\n        comments.PostId,\n        count(*) as num_comments\n    from comments\n    left join posts\n        on comments.PostId = posts.Id\n    where date_diff('day', posts.CreationDate, comments.CreationDate) <= 30\n    group by comments.PostId\n),\n\nuser_timestamp as (\n    -- aggregate to (user, timestamp) first to speed up query\n    select\n        labels.timestamp,\n        posts.OwnerUserId as user_id\n    from labels\n    left join posts\n        on labels.PostId = posts.Id\n    group by all\n),\n\nowner_feats_by_timestamp as (\n    select\n        user_timestamp.timestamp,\n        user_timestamp.user_id,\n        avg(\n            case\n                when censored_posts.PostTypeId = 1\n                    then coalesce(vote_stats_first_month.num_votes, 0)\n            end\n        ) as avg_owner_question_upvotes_first_month,\n        avg(\n            case\n                when censored_posts.PostTypeId = 1\n                    then coalesce(comment_stats_first_month.num_comments, 0)\n            end\n        ) as avg_owner_question_comments_first_month,\n        avg(\n            case\n                when censored_posts.PostTypeId = 2\n                    then coalesce(vote_stats_first_month.num_votes, 0)\n            end\n        ) as avg_owner_answer_upvotes_first_month,\n        avg(\n            case\n                when censored_posts.PostTypeId = 2\n                    then coalesce(comment_stats_first_month.num_comments, 0)\n            end\n        ) as avg_owner_answer_comments_first_month\n    from user_timestamp\n    left join posts as censored_posts\n        on\n            user_timestamp.user_id = censored_posts.OwnerUserId\n            and date_diff('day', censored_posts.CreationDate, user_timestamp.timestamp) > 30\n    left join vote_stats_first_month\n        on censored_posts.Id = vote_stats_first_month.PostId\n    left join comment_stats_first_month\n        on censored_posts.Id = comment_stats_first_month.PostId\n    group by all\n),\n\npost_feats as (\n    select\n        labels.PostId,\n        labels.timestamp,\n        posts.PostTypeId as post_type,\n        date_diff('week', posts.CreationDate, labels.timestamp) as post_age_weeks,\n        coalesce(len(post_attrs_at_creation.orig_title), 0) as title_length,\n        coalesce(len(post_attrs_at_creation.orig_body), 0) as body_length,\n        coalesce(len(string_split(trim(posts.Tags, '<>'), '><')), 0) as num_tags,\n        date_diff('month', users.CreationDate, labels.timestamp) as user_age_months,\n        post_ordinals.post_ordinal,\n        num_votes.num_votes,\n        post_hist_feats.closed_weeks_ago,\n        post_hist_feats.reopened_weeks_ago,\n        post_hist_feats.deleted_weeks_ago,\n        post_hist_feats.undeleted_weeks_ago,\n        post_hist_feats.locked_weeks_ago,\n        post_hist_feats.unlocked_weeks_ago,\n        post_hist_feats.tweeted_weeks_ago,\n        post_hist_feats.bumped_weeks_ago,\n        owner_feats_by_timestamp.avg_owner_question_upvotes_first_month,\n        owner_feats_by_timestamp.avg_owner_question_comments_first_month,\n        owner_feats_by_timestamp.avg_owner_answer_upvotes_first_month,\n        owner_feats_by_timestamp.avg_owner_answer_comments_first_month\n    from labels\n    left join posts\n        on labels.PostId = posts.Id\n    left join post_attrs_at_creation\n        on labels.PostId = post_attrs_at_creation.PostId\n    left join users\n        on posts.OwnerUserId = users.Id\n    left join post_ordinals\n        on labels.PostId = post_ordinals.PostId\n    left join num_votes\n        on\n            labels.PostId = num_votes.PostId\n            and labels.timestamp = num_votes.timestamp\n    left join post_hist_feats\n        on\n            labels.PostId = post_hist_feats.PostId\n            and labels.timestamp = post_hist_feats.timestamp\n    left join owner_feats_by_timestamp\n        on\n            posts.OwnerUserId = owner_feats_by_timestamp.user_id\n            and labels.timestamp = owner_feats_by_timestamp.timestamp\n)\n\n-- Final Feature Set\nselect\n    labels.PostId,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.popularity,\n    {% endif %}\n    post_feats.post_type,\n    post_feats.post_age_weeks,\n    post_feats.title_length,\n    post_feats.body_length,\n    post_feats.num_tags,\n    post_feats.user_age_months,\n    post_feats.post_ordinal,\n    post_feats.num_votes,\n    post_feats.closed_weeks_ago,\n    post_feats.reopened_weeks_ago,\n    post_feats.deleted_weeks_ago,\n    post_feats.undeleted_weeks_ago,\n    post_feats.locked_weeks_ago,\n    post_feats.unlocked_weeks_ago,\n    post_feats.tweeted_weeks_ago,\n    post_feats.bumped_weeks_ago,\n    post_feats.avg_owner_question_upvotes_first_month,\n    post_feats.avg_owner_question_comments_first_month,\n    post_feats.avg_owner_answer_upvotes_first_month,\n    post_feats.avg_owner_answer_comments_first_month\nfrom labels\nleft join post_feats\n    on\n        labels.PostId = post_feats.PostId\n        and labels.timestamp = post_feats.timestamp\n",
+   "dev_seeds": [
+    "2009-04-16 00:00:00",
+    "2014-01-09 00:00:00",
+    "2018-10-04 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2011-07-14 00:00:00",
+    "2016-04-07 00:00:00",
+    "2021-01-01 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2009-04-16 00:00:00",
+     "status": "ran",
+     "witness": false,
+     "columns": [],
+     "cells": 0,
+     "rows": 1
+    },
+    {
+     "seed": "2014-01-09 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "post_ordinal"
+     ],
+     "cells": 7,
+     "rows": 25836
+    },
+    {
+     "seed": "2018-10-04 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "post_ordinal"
+     ],
+     "cells": 40,
+     "rows": 116305
+    }
+   ],
+   "history": [],
+   "status": "pending",
+   "validation_checkpoint": {
+    "1": [
+     {
+      "seed": "2009-04-16 00:00:00",
+      "status": "ran",
+      "witness": false,
+      "columns": [],
+      "cells": 0,
+      "rows": 1,
+      "split": "dev"
+     }
+    ]
+   }
+  },
+  {
+   "program_uid": "2bbb34942263ad35",
+   "program": "stack_user-badge.sql",
+   "dataset": "rel-stack",
+   "ds": "stack",
+   "task": "user-badge",
+   "source_path": "audit/stack_user-badge.sql",
+   "source_sql": "create or replace table user_badge_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_badge_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_badge_{{ set }} -- noqa\n    {% endif %}\n),\n\nbadge_freqs as (\n    select\n        Name,\n        count(*) / (sum(count(*)) over ()) as badge_incidence\n    from badges\n    group by Name\n),\n\nbadge_feats_deagged as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        badges.Id,\n        case\n            when badge_freqs.badge_incidence >= 0.01 then badges.Name\n            else 'OTHER'\n        end as badge_name,\n        log(1 / badge_freqs.badge_incidence) as rarity,\n        date_diff('week', badges.Date, labels.timestamp) as badge_age_weeks,\n        date_diff(\n            'week',\n            lag(badges.Date, 1) over (\n                partition by badges.UserId order by badges.Date asc\n            ),\n            badges.Date\n        ) as weeks_since_prev_badge,\n        -- exponential decay results in ~6% of original weight after 1 year\n        (rarity * 0.95**badge_age_weeks) as smoothed_weight\n    from labels\n    left join badges\n        on\n            labels.UserId = badges.UserId\n            and badges.Date between (labels.timestamp - interval 2 year) and labels.timestamp\n    left join badge_freqs\n        on badges.Name = badge_freqs.Name\n),\n\nbadge_feats as (\n    select\n        UserId,\n        timestamp,\n        coalesce(count(distinct Id), 0) as num_badges,\n        coalesce(sum(rarity), 0) as badge_score,\n        coalesce(max(rarity), 0) as max_rarity,\n        coalesce(avg(rarity), 0) as avg_rarity,\n        first(badge_name order by badge_age_weeks asc) as last_badge_name,\n        first(rarity order by badge_age_weeks asc) as last_badge_rarity,\n        first(badge_age_weeks order by rarity desc) as rarest_badge_age_weeks,\n        min(badge_age_weeks) as last_badge_weeks_ago,\n        avg(badge_age_weeks) as avg_badge_age_weeks,\n        avg(weeks_since_prev_badge) as avg_weeks_bw_badges,\n        coalesce(sum(smoothed_weight), 0) as badge_momentum\n    from badge_feats_deagged\n    group by UserId, timestamp\n),\n\nuser_feats as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        date_diff('month', users.CreationDate, labels.timestamp) as months_since_account_creation\n    from labels\n    left join users\n        on labels.UserId = users.Id\n),\n\ncomment_aggs_by_user as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        min(date_diff('week', comments.CreationDate, labels.timestamp)) as weeks_since_last_comment,\n        count(distinct comments.Id) as num_comments,\n        count(distinct comments.PostId) as num_posts_commented,\n        avg(coalesce(len(string_split(comments.Text, ' ')), 0)) as avg_comment_length\n    from labels\n    left join comments\n        on\n            labels.UserId = comments.UserId\n            and labels.timestamp > comments.CreationDate\n    group by all\n),\n\n-- A row per (time-censored) post per user, timestamp tuple.\npost_labels as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        posts.Id as post_id\n    from labels\n    left join posts\n        on\n            labels.UserId = posts.OwnerUserId\n            and labels.timestamp > posts.CreationDate\n),\n\nvote_aggs as (\n    select\n        post_labels.UserId,\n        post_labels.timestamp,\n        post_labels.post_id,\n        count(case when votes.VoteTypeId in (1, 2, 5, 8, 16) then 1 end) as num_positive_votes,\n        count(case when votes.VoteTypeId in (3, 4, 6, 10, 12) then 1 end) as num_negative_votes\n    from post_labels\n    left join votes\n        on\n            post_labels.post_id = votes.PostId\n            and post_labels.timestamp > votes.CreationDate\n    group by all\n),\n\ncomment_aggs_by_post as (\n    select\n        post_labels.post_id,\n        post_labels.UserId,\n        post_labels.timestamp,\n        count(distinct comments.Id) as num_comments,\n        avg(coalesce(badge_feats.badge_score, 0)) as avg_badge_score\n    from post_labels\n    left join comments\n        on\n            post_labels.post_id = comments.PostId\n            and post_labels.timestamp > comments.CreationDate\n    left join badge_feats\n        on\n            comments.UserId = badge_feats.UserId\n            and post_labels.timestamp = badge_feats.timestamp\n    group by all\n),\n\npost_feats_deagged as (\n    select\n        post_labels.post_id,\n        post_labels.UserId,\n        post_labels.timestamp,\n        posts.CreationDate as creation_date,\n        row_number() over (\n            partition by post_labels.UserId, post_labels.timestamp, posts.PostTypeId\n            order by posts.CreationDate desc\n        ) as post_rank,\n        posts.PostTypeId as post_type,\n        coalesce(len(string_split(trim(posts.Tags, '<>'), '><')), 0) as num_tags,\n        len(string_split(posts.Body, ' ')) as body_length,\n        date_diff(\n            'days',\n            lag(posts.CreationDate, 1) over (\n                partition by posts.OwnerUserId order by posts.CreationDate asc\n            ),\n            posts.CreationDate\n        ) as days_since_last_post,\n        coalesce(vote_aggs.num_positive_votes, 0) as num_positive_votes,\n        coalesce(vote_aggs.num_negative_votes, 0) as num_negative_votes,\n        coalesce(comment_aggs_by_post.num_comments, 0) as num_comments,\n        comment_aggs_by_post.avg_badge_score as avg_commenter_badge_score\n    from post_labels\n    left join posts\n        on post_labels.post_id = posts.Id\n    left join vote_aggs\n        on\n            post_labels.post_id = vote_aggs.post_id\n            and post_labels.UserId = vote_aggs.UserId\n            and post_labels.timestamp = vote_aggs.timestamp\n    left join comment_aggs_by_post\n        on\n            post_labels.post_id = comment_aggs_by_post.post_id\n            and post_labels.UserId = comment_aggs_by_post.UserId\n            and post_labels.timestamp = comment_aggs_by_post.timestamp\n),\n\nlast_question_feats as (\n    select\n        *,\n        date_diff('week', creation_date, timestamp) as last_q_weeks_ago\n    from post_feats_deagged\n    where\n        post_type = 1\n        and post_rank = 1\n),\n\nlast_answer_feats as (\n    select\n        *,\n        date_diff('week', creation_date, timestamp) as last_a_weeks_ago\n    from post_feats_deagged\n    where\n        post_type = 2\n        and post_rank = 1\n),\n\nquestion_feats_last_yr as (\n    select\n        UserId,\n        timestamp,\n        count(*) as num_questions_last_yr,\n        avg(days_since_last_post) as avg_days_since_last_post_q,\n        avg(num_tags) as avg_num_tags,\n        avg(body_length) as avg_body_length,\n        avg(num_positive_votes) as avg_num_positive_votes,\n        avg(num_negative_votes) as avg_num_negative_votes,\n        avg(num_comments) as avg_num_comments,\n        avg(avg_commenter_badge_score) as avg_commenter_badge_score\n    from post_feats_deagged\n    where\n        date_diff('month', creation_date, timestamp) <= 12\n        and post_type = 1\n    group by all\n),\n\nanswer_feats_last_yr as (\n    select\n        UserId,\n        timestamp,\n        count(*) as num_answers_last_yr,\n        avg(days_since_last_post) as avg_days_since_last_post_a,\n        avg(body_length) as avg_body_length,\n        avg(num_positive_votes) as avg_num_positive_votes,\n        avg(num_negative_votes) as avg_num_negative_votes,\n        avg(num_comments) as avg_num_comments,\n        avg(avg_commenter_badge_score) as avg_commenter_badge_score\n    from post_feats_deagged\n    where\n        date_diff('month', creation_date, timestamp) <= 12\n        and post_type = 2\n    group by all\n)\n\n-- Final feature set\nselect\n    -- labels\n    labels.UserId,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.WillGetBadge,\n    {% endif %}\n    -- user-level features\n    user_feats.months_since_account_creation,\n    badge_feats.num_badges,\n    badge_feats.badge_score,\n    badge_feats.max_rarity,\n    badge_feats.avg_rarity,\n    badge_feats.last_badge_name,\n    badge_feats.rarest_badge_age_weeks,\n    badge_feats.last_badge_rarity,\n    badge_feats.last_badge_weeks_ago,\n    badge_feats.avg_badge_age_weeks,\n    badge_feats.avg_weeks_bw_badges,\n    badge_feats.badge_momentum,\n    comment_aggs_by_user.weeks_since_last_comment,\n    comment_aggs_by_user.num_comments,\n    comment_aggs_by_user.num_posts_commented,\n    comment_aggs_by_user.avg_comment_length,\n    -- question features\n    last_question_feats.last_q_weeks_ago,\n    last_question_feats.num_tags as last_q_num_tags,\n    last_question_feats.body_length as last_q_body_length,\n    last_question_feats.num_positive_votes as last_q_num_positive_votes,\n    last_question_feats.num_negative_votes as last_q_num_negative_votes,\n    last_question_feats.num_comments as last_q_num_comments,\n    last_question_feats.avg_commenter_badge_score as last_q_avg_commenter_badge_score,\n    question_feats_last_yr.num_questions_last_yr,\n    question_feats_last_yr.avg_days_since_last_post_q,\n    question_feats_last_yr.avg_num_tags,\n    question_feats_last_yr.avg_body_length as avg_body_length_q,\n    question_feats_last_yr.avg_num_positive_votes as avg_num_positive_votes_q,\n    question_feats_last_yr.avg_num_negative_votes as avg_num_negative_votes_q,\n    question_feats_last_yr.avg_num_comments as avg_num_comments_q,\n    question_feats_last_yr.avg_commenter_badge_score as avg_commenter_badge_score_q,\n    -- answer features\n    last_answer_feats.last_a_weeks_ago,\n    last_answer_feats.body_length as last_a_body_length,\n    last_answer_feats.num_positive_votes as last_a_num_positive_votes,\n    last_answer_feats.num_negative_votes as last_a_num_negative_votes,\n    last_answer_feats.num_comments as last_a_num_comments,\n    last_answer_feats.avg_commenter_badge_score as last_a_avg_commenter_badge_score,\n    answer_feats_last_yr.num_answers_last_yr,\n    answer_feats_last_yr.avg_days_since_last_post_a,\n    answer_feats_last_yr.avg_body_length as avg_body_length_a,\n    answer_feats_last_yr.avg_num_positive_votes as avg_num_positive_votes_a,\n    answer_feats_last_yr.avg_num_negative_votes as avg_num_negative_votes_a,\n    answer_feats_last_yr.avg_num_comments as avg_num_comments_a,\n    answer_feats_last_yr.avg_commenter_badge_score as avg_commenter_badge_score_a\n\nfrom labels\nleft join user_feats\n    on\n        labels.UserId = user_feats.UserId\n        and labels.timestamp = user_feats.timestamp\nleft join badge_feats\n    on\n        labels.UserId = badge_feats.UserId\n        and labels.timestamp = badge_feats.timestamp\nleft join comment_aggs_by_user\n    on\n        labels.UserId = comment_aggs_by_user.UserId\n        and labels.timestamp = comment_aggs_by_user.timestamp\nleft join last_question_feats\n    on\n        labels.UserId = last_question_feats.UserId\n        and labels.timestamp = last_question_feats.timestamp\nleft join last_answer_feats\n    on\n        labels.UserId = last_answer_feats.UserId\n        and labels.timestamp = last_answer_feats.timestamp\nleft join question_feats_last_yr\n    on\n        labels.UserId = question_feats_last_yr.UserId\n        and labels.timestamp = question_feats_last_yr.timestamp\nleft join answer_feats_last_yr\n    on\n        labels.UserId = answer_feats_last_yr.UserId\n        and labels.timestamp = answer_feats_last_yr.timestamp;\n",
+   "current_sql": "create or replace table user_badge_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_badge_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_badge_{{ set }} -- noqa\n    {% endif %}\n),\n\nbadge_freqs as (\n    select\n        Name,\n        count(*) / (sum(count(*)) over ()) as badge_incidence\n    from badges\n    group by Name\n),\n\nbadge_feats_deagged as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        badges.Id,\n        case\n            when badge_freqs.badge_incidence >= 0.01 then badges.Name\n            else 'OTHER'\n        end as badge_name,\n        log(1 / badge_freqs.badge_incidence) as rarity,\n        date_diff('week', badges.Date, labels.timestamp) as badge_age_weeks,\n        date_diff(\n            'week',\n            lag(badges.Date, 1) over (\n                partition by badges.UserId order by badges.Date asc\n            ),\n            badges.Date\n        ) as weeks_since_prev_badge,\n        -- exponential decay results in ~6% of original weight after 1 year\n        (rarity * 0.95**badge_age_weeks) as smoothed_weight\n    from labels\n    left join badges\n        on\n            labels.UserId = badges.UserId\n            and badges.Date between (labels.timestamp - interval 2 year) and labels.timestamp\n    left join badge_freqs\n        on badges.Name = badge_freqs.Name\n),\n\nbadge_feats as (\n    select\n        UserId,\n        timestamp,\n        coalesce(count(distinct Id), 0) as num_badges,\n        coalesce(sum(rarity), 0) as badge_score,\n        coalesce(max(rarity), 0) as max_rarity,\n        coalesce(avg(rarity), 0) as avg_rarity,\n        first(badge_name order by badge_age_weeks asc) as last_badge_name,\n        first(rarity order by badge_age_weeks asc) as last_badge_rarity,\n        first(badge_age_weeks order by rarity desc) as rarest_badge_age_weeks,\n        min(badge_age_weeks) as last_badge_weeks_ago,\n        avg(badge_age_weeks) as avg_badge_age_weeks,\n        avg(weeks_since_prev_badge) as avg_weeks_bw_badges,\n        coalesce(sum(smoothed_weight), 0) as badge_momentum\n    from badge_feats_deagged\n    group by UserId, timestamp\n),\n\nuser_feats as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        date_diff('month', users.CreationDate, labels.timestamp) as months_since_account_creation\n    from labels\n    left join users\n        on labels.UserId = users.Id\n),\n\ncomment_aggs_by_user as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        min(date_diff('week', comments.CreationDate, labels.timestamp)) as weeks_since_last_comment,\n        count(distinct comments.Id) as num_comments,\n        count(distinct comments.PostId) as num_posts_commented,\n        avg(coalesce(len(string_split(comments.Text, ' ')), 0)) as avg_comment_length\n    from labels\n    left join comments\n        on\n            labels.UserId = comments.UserId\n            and labels.timestamp > comments.CreationDate\n    group by all\n),\n\n-- A row per (time-censored) post per user, timestamp tuple.\npost_labels as (\n    select\n        labels.UserId,\n        labels.timestamp,\n        posts.Id as post_id\n    from labels\n    left join posts\n        on\n            labels.UserId = posts.OwnerUserId\n            and labels.timestamp > posts.CreationDate\n),\n\nvote_aggs as (\n    select\n        post_labels.UserId,\n        post_labels.timestamp,\n        post_labels.post_id,\n        count(case when votes.VoteTypeId in (1, 2, 5, 8, 16) then 1 end) as num_positive_votes,\n        count(case when votes.VoteTypeId in (3, 4, 6, 10, 12) then 1 end) as num_negative_votes\n    from post_labels\n    left join votes\n        on\n            post_labels.post_id = votes.PostId\n            and post_labels.timestamp > votes.CreationDate\n    group by all\n),\n\ncomment_aggs_by_post as (\n    select\n        post_labels.post_id,\n        post_labels.UserId,\n        post_labels.timestamp,\n        count(distinct comments.Id) as num_comments,\n        avg(coalesce(badge_feats.badge_score, 0)) as avg_badge_score\n    from post_labels\n    left join comments\n        on\n            post_labels.post_id = comments.PostId\n            and post_labels.timestamp > comments.CreationDate\n    left join badge_feats\n        on\n            comments.UserId = badge_feats.UserId\n            and post_labels.timestamp = badge_feats.timestamp\n    group by all\n),\n\npost_feats_deagged as (\n    select\n        post_labels.post_id,\n        post_labels.UserId,\n        post_labels.timestamp,\n        posts.CreationDate as creation_date,\n        row_number() over (\n            partition by post_labels.UserId, post_labels.timestamp, posts.PostTypeId\n            order by posts.CreationDate desc\n        ) as post_rank,\n        posts.PostTypeId as post_type,\n        coalesce(len(string_split(trim(posts.Tags, '<>'), '><')), 0) as num_tags,\n        len(string_split(posts.Body, ' ')) as body_length,\n        date_diff(\n            'days',\n            lag(posts.CreationDate, 1) over (\n                partition by posts.OwnerUserId order by posts.CreationDate asc\n            ),\n            posts.CreationDate\n        ) as days_since_last_post,\n        coalesce(vote_aggs.num_positive_votes, 0) as num_positive_votes,\n        coalesce(vote_aggs.num_negative_votes, 0) as num_negative_votes,\n        coalesce(comment_aggs_by_post.num_comments, 0) as num_comments,\n        comment_aggs_by_post.avg_badge_score as avg_commenter_badge_score\n    from post_labels\n    left join posts\n        on post_labels.post_id = posts.Id\n    left join vote_aggs\n        on\n            post_labels.post_id = vote_aggs.post_id\n            and post_labels.UserId = vote_aggs.UserId\n            and post_labels.timestamp = vote_aggs.timestamp\n    left join comment_aggs_by_post\n        on\n            post_labels.post_id = comment_aggs_by_post.post_id\n            and post_labels.UserId = comment_aggs_by_post.UserId\n            and post_labels.timestamp = comment_aggs_by_post.timestamp\n),\n\nlast_question_feats as (\n    select\n        *,\n        date_diff('week', creation_date, timestamp) as last_q_weeks_ago\n    from post_feats_deagged\n    where\n        post_type = 1\n        and post_rank = 1\n),\n\nlast_answer_feats as (\n    select\n        *,\n        date_diff('week', creation_date, timestamp) as last_a_weeks_ago\n    from post_feats_deagged\n    where\n        post_type = 2\n        and post_rank = 1\n),\n\nquestion_feats_last_yr as (\n    select\n        UserId,\n        timestamp,\n        count(*) as num_questions_last_yr,\n        avg(days_since_last_post) as avg_days_since_last_post_q,\n        avg(num_tags) as avg_num_tags,\n        avg(body_length) as avg_body_length,\n        avg(num_positive_votes) as avg_num_positive_votes,\n        avg(num_negative_votes) as avg_num_negative_votes,\n        avg(num_comments) as avg_num_comments,\n        avg(avg_commenter_badge_score) as avg_commenter_badge_score\n    from post_feats_deagged\n    where\n        date_diff('month', creation_date, timestamp) <= 12\n        and post_type = 1\n    group by all\n),\n\nanswer_feats_last_yr as (\n    select\n        UserId,\n        timestamp,\n        count(*) as num_answers_last_yr,\n        avg(days_since_last_post) as avg_days_since_last_post_a,\n        avg(body_length) as avg_body_length,\n        avg(num_positive_votes) as avg_num_positive_votes,\n        avg(num_negative_votes) as avg_num_negative_votes,\n        avg(num_comments) as avg_num_comments,\n        avg(avg_commenter_badge_score) as avg_commenter_badge_score\n    from post_feats_deagged\n    where\n        date_diff('month', creation_date, timestamp) <= 12\n        and post_type = 2\n    group by all\n)\n\n-- Final feature set\nselect\n    -- labels\n    labels.UserId,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.WillGetBadge,\n    {% endif %}\n    -- user-level features\n    user_feats.months_since_account_creation,\n    badge_feats.num_badges,\n    badge_feats.badge_score,\n    badge_feats.max_rarity,\n    badge_feats.avg_rarity,\n    badge_feats.last_badge_name,\n    badge_feats.rarest_badge_age_weeks,\n    badge_feats.last_badge_rarity,\n    badge_feats.last_badge_weeks_ago,\n    badge_feats.avg_badge_age_weeks,\n    badge_feats.avg_weeks_bw_badges,\n    badge_feats.badge_momentum,\n    comment_aggs_by_user.weeks_since_last_comment,\n    comment_aggs_by_user.num_comments,\n    comment_aggs_by_user.num_posts_commented,\n    comment_aggs_by_user.avg_comment_length,\n    -- question features\n    last_question_feats.last_q_weeks_ago,\n    last_question_feats.num_tags as last_q_num_tags,\n    last_question_feats.body_length as last_q_body_length,\n    last_question_feats.num_positive_votes as last_q_num_positive_votes,\n    last_question_feats.num_negative_votes as last_q_num_negative_votes,\n    last_question_feats.num_comments as last_q_num_comments,\n    last_question_feats.avg_commenter_badge_score as last_q_avg_commenter_badge_score,\n    question_feats_last_yr.num_questions_last_yr,\n    question_feats_last_yr.avg_days_since_last_post_q,\n    question_feats_last_yr.avg_num_tags,\n    question_feats_last_yr.avg_body_length as avg_body_length_q,\n    question_feats_last_yr.avg_num_positive_votes as avg_num_positive_votes_q,\n    question_feats_last_yr.avg_num_negative_votes as avg_num_negative_votes_q,\n    question_feats_last_yr.avg_num_comments as avg_num_comments_q,\n    question_feats_last_yr.avg_commenter_badge_score as avg_commenter_badge_score_q,\n    -- answer features\n    last_answer_feats.last_a_weeks_ago,\n    last_answer_feats.body_length as last_a_body_length,\n    last_answer_feats.num_positive_votes as last_a_num_positive_votes,\n    last_answer_feats.num_negative_votes as last_a_num_negative_votes,\n    last_answer_feats.num_comments as last_a_num_comments,\n    last_answer_feats.avg_commenter_badge_score as last_a_avg_commenter_badge_score,\n    answer_feats_last_yr.num_answers_last_yr,\n    answer_feats_last_yr.avg_days_since_last_post_a,\n    answer_feats_last_yr.avg_body_length as avg_body_length_a,\n    answer_feats_last_yr.avg_num_positive_votes as avg_num_positive_votes_a,\n    answer_feats_last_yr.avg_num_negative_votes as avg_num_negative_votes_a,\n    answer_feats_last_yr.avg_num_comments as avg_num_comments_a,\n    answer_feats_last_yr.avg_commenter_badge_score as avg_commenter_badge_score_a\n\nfrom labels\nleft join user_feats\n    on\n        labels.UserId = user_feats.UserId\n        and labels.timestamp = user_feats.timestamp\nleft join badge_feats\n    on\n        labels.UserId = badge_feats.UserId\n        and labels.timestamp = badge_feats.timestamp\nleft join comment_aggs_by_user\n    on\n        labels.UserId = comment_aggs_by_user.UserId\n        and labels.timestamp = comment_aggs_by_user.timestamp\nleft join last_question_feats\n    on\n        labels.UserId = last_question_feats.UserId\n        and labels.timestamp = last_question_feats.timestamp\nleft join last_answer_feats\n    on\n        labels.UserId = last_answer_feats.UserId\n        and labels.timestamp = last_answer_feats.timestamp\nleft join question_feats_last_yr\n    on\n        labels.UserId = question_feats_last_yr.UserId\n        and labels.timestamp = question_feats_last_yr.timestamp\nleft join answer_feats_last_yr\n    on\n        labels.UserId = answer_feats_last_yr.UserId\n        and labels.timestamp = answer_feats_last_yr.timestamp;\n",
+   "dev_seeds": [
+    "2010-10-14 00:00:00",
+    "2014-10-09 00:00:00",
+    "2019-01-03 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2012-10-11 00:00:00",
+    "2017-01-05 00:00:00",
+    "2021-01-01 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2010-10-14 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "avg_commenter_badge_score_a",
+      "avg_commenter_badge_score_q",
+      "avg_rarity",
+      "badge_momentum",
+      "badge_score",
+      "last_a_avg_commenter_badge_score",
+      "last_badge_name",
+      "last_badge_rarity",
+      "last_q_avg_commenter_badge_score",
+      "max_rarity",
+      "rarest_badge_age_weeks"
+     ],
+     "cells": 4939,
+     "rows": 1093
+    },
+    {
+     "seed": "2014-10-09 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "avg_commenter_badge_score_a",
+      "avg_commenter_badge_score_q",
+      "avg_days_since_last_post_a",
+      "avg_days_since_last_post_q",
+      "avg_rarity",
+      "badge_momentum",
+      "badge_score",
+      "last_a_avg_commenter_badge_score",
+      "last_badge_name",
+      "last_badge_rarity",
+      "last_q_avg_commenter_badge_score",
+      "max_rarity",
+      "rarest_badge_age_weeks"
+     ],
+     "cells": 135413,
+     "rows": 38818
+    },
+    {
+     "seed": "2019-01-03 00:00:00",
+     "status": "ran",
+     "witness": true,
+     "columns": [
+      "avg_commenter_badge_score_a",
+      "avg_commenter_badge_score_q",
+      "avg_days_since_last_post_a",
+      "avg_days_since_last_post_q",
+      "avg_rarity",
+      "badge_momentum",
+      "badge_score",
+      "last_a_avg_commenter_badge_score",
+      "last_badge_rarity",
+      "last_q_avg_commenter_badge_score",
+      "max_rarity",
+      "rarest_badge_age_weeks"
+     ],
+     "cells": 360665,
+     "rows": 185480
+    }
+   ],
+   "history": [],
+   "status": "pending"
+  }
+ ],
+ "excluded": [
+  {
+   "program_uid": "ca56e23f505c1f7e",
+   "program": "amazon_item-churn.sql",
+   "dataset": "rel-amazon",
+   "ds": "amazon",
+   "task": "item-churn",
+   "source_path": "audit/amazon_item-churn.sql",
+   "source_sql": "create or replace table item_churn_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from item_churn_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from item_churn_{{ set }} -- noqa\n    {% endif %}\n),\n\nproduct_feats as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        any_value(product.price) as price,\n        any_value(product.category[-1]) as category,\n        any_value(product.title) as title,\n        max(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_first_review,\n        median(\n            date_diff('weeks', review.review_time, labels.timestamp)\n        ) as weeks_since_median_review,\n        min(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_latest_review,\n        count(*) as num_reviews,\n        sum(review.rating) as sum_ratings,\n        avg(review.rating) as avg_rating,\n        stddev(review.rating) as std_rating,\n        min(review.rating) as min_rating,\n        max(review.rating) as max_rating,\n        avg(review.verified::int) as pct_verified_reviews,\n        avg(length(review.review_text)) as avg_review_length,\n        arg_max(review.summary, review.review_time) as last_review_summary,\n        -- Using avg of avg rating as a proxy for global avg rating\n        (avg_rating - avg(avg_rating) over ()) / stddev(avg_rating) over () as product_bias\n    from labels\n    left join product\n        on labels.product_id = product.product_id\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp > review.review_time\n    group by all\n),\n\ntimestamps as (\n    select distinct timestamp from labels\n),\n\ncustomer_feats as (\n    select\n        timestamps.timestamp,\n        review.customer_id,\n        count(*) as num_reviews,\n        sum(product.price) as total_spent,\n        avg(product.price) as avg_price,\n        avg(review.rating) as avg_rating,\n        stddev(review.rating) as std_rating\n    from timestamps\n    left join review\n        on timestamps.timestamp > review.review_time\n    left join product\n        on review.product_id = product.product_id\n    group by all\n),\n\nreviewer_aggs as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        avg(customer_feats.num_reviews) as avg_reviewer_num_reviews,\n        avg(customer_feats.total_spent) as avg_reviewer_total_spent,\n        avg(customer_feats.avg_price) as avg_reviewer_avg_price,\n        avg(customer_feats.avg_rating) as avg_reviewer_avg_rating,\n        avg(customer_feats.std_rating) as avg_reviewer_std_rating\n    from labels\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp > review.review_time\n    left join customer_feats\n        on\n            review.customer_id = customer_feats.customer_id\n            and labels.timestamp = customer_feats.timestamp\n    group by all\n),\n\nlast_6mo as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        count(*) as num_reviews,\n        avg(review.rating) as avg_rating,\n        sum(review.rating) as sum_ratings,\n        min(review.rating) as min_rating,\n        max(review.rating) as max_rating,\n        avg(length(review.review_text)) as avg_review_length,\n        (avg_rating - avg(avg_rating) over ()) / stddev(avg_rating) over () as product_bias\n    from labels\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp > review.review_time\n            and labels.timestamp - interval '6 months' < review.review_time\n    group by all\n),\n\nprev_6mo as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        count(*) as num_reviews,\n        avg(review.rating) as avg_rating,\n        sum(review.rating) as sum_ratings,\n        min(review.rating) as min_rating,\n        max(review.rating) as max_rating,\n        avg(length(review.review_text)) as avg_review_length,\n        (avg_rating - avg(avg_rating) over ()) / stddev(avg_rating) over () as product_bias\n    from labels\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp - interval '6 months' > review.review_time\n            and labels.timestamp - interval '12 months' < review.review_time\n    group by all\n),\n\ntrends as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        (last_6mo.num_reviews - prev_6mo.num_reviews) as num_reviews_trend,\n        (last_6mo.avg_rating - prev_6mo.avg_rating) as avg_rating_trend,\n        (last_6mo.sum_ratings - prev_6mo.sum_ratings) as sum_ratings_trend,\n        (last_6mo.min_rating - prev_6mo.min_rating) as min_rating_trend,\n        (last_6mo.max_rating - prev_6mo.max_rating) as max_rating_trend,\n        (last_6mo.avg_review_length - prev_6mo.avg_review_length) as avg_review_length_trend,\n        (last_6mo.product_bias - prev_6mo.product_bias) as product_bias_trend\n    from labels\n    left join last_6mo\n        on\n            labels.product_id = last_6mo.product_id\n            and labels.timestamp = last_6mo.timestamp\n    left join prev_6mo\n        on\n            labels.product_id = prev_6mo.product_id\n            and labels.timestamp = prev_6mo.timestamp\n)\n\nselect\n    labels.product_id,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.churn,\n    {% endif %}\n    product_feats.price,\n    product_feats.category,\n    product_feats.title,\n    product_feats.weeks_since_first_review,\n    product_feats.weeks_since_median_review,\n    product_feats.weeks_since_latest_review,\n    product_feats.num_reviews,\n    product_feats.sum_ratings,\n    product_feats.avg_rating,\n    product_feats.std_rating,\n    product_feats.min_rating,\n    product_feats.max_rating,\n    product_feats.pct_verified_reviews,\n    product_feats.avg_review_length,\n    product_feats.last_review_summary,\n    product_feats.product_bias,\n    reviewer_aggs.avg_reviewer_num_reviews,\n    reviewer_aggs.avg_reviewer_total_spent,\n    reviewer_aggs.avg_reviewer_avg_price,\n    reviewer_aggs.avg_reviewer_avg_rating,\n    reviewer_aggs.avg_reviewer_std_rating,\n    trends.num_reviews_trend,\n    trends.avg_rating_trend,\n    trends.sum_ratings_trend,\n    trends.min_rating_trend,\n    trends.max_rating_trend,\n    trends.avg_review_length_trend,\n    trends.product_bias_trend\nfrom labels\nleft join product_feats\n    on\n        labels.product_id = product_feats.product_id\n        and labels.timestamp = product_feats.timestamp\nleft join reviewer_aggs\n    on\n        labels.product_id = reviewer_aggs.product_id\n        and labels.timestamp = reviewer_aggs.timestamp\nleft join trends\n    on\n        labels.product_id = trends.product_id\n        and labels.timestamp = trends.timestamp\n",
+   "current_sql": "create or replace table item_churn_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from item_churn_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from item_churn_{{ set }} -- noqa\n    {% endif %}\n),\n\nproduct_feats as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        any_value(product.price) as price,\n        any_value(product.category[-1]) as category,\n        any_value(product.title) as title,\n        max(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_first_review,\n        median(\n            date_diff('weeks', review.review_time, labels.timestamp)\n        ) as weeks_since_median_review,\n        min(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_latest_review,\n        count(*) as num_reviews,\n        sum(review.rating) as sum_ratings,\n        avg(review.rating) as avg_rating,\n        stddev(review.rating) as std_rating,\n        min(review.rating) as min_rating,\n        max(review.rating) as max_rating,\n        avg(review.verified::int) as pct_verified_reviews,\n        avg(length(review.review_text)) as avg_review_length,\n        arg_max(review.summary, review.review_time) as last_review_summary,\n        -- Using avg of avg rating as a proxy for global avg rating\n        (avg_rating - avg(avg_rating) over ()) / stddev(avg_rating) over () as product_bias\n    from labels\n    left join product\n        on labels.product_id = product.product_id\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp > review.review_time\n    group by all\n),\n\ntimestamps as (\n    select distinct timestamp from labels\n),\n\ncustomer_feats as (\n    select\n        timestamps.timestamp,\n        review.customer_id,\n        count(*) as num_reviews,\n        sum(product.price) as total_spent,\n        avg(product.price) as avg_price,\n        avg(review.rating) as avg_rating,\n        stddev(review.rating) as std_rating\n    from timestamps\n    left join review\n        on timestamps.timestamp > review.review_time\n    left join product\n        on review.product_id = product.product_id\n    group by all\n),\n\nreviewer_aggs as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        avg(customer_feats.num_reviews) as avg_reviewer_num_reviews,\n        avg(customer_feats.total_spent) as avg_reviewer_total_spent,\n        avg(customer_feats.avg_price) as avg_reviewer_avg_price,\n        avg(customer_feats.avg_rating) as avg_reviewer_avg_rating,\n        avg(customer_feats.std_rating) as avg_reviewer_std_rating\n    from labels\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp > review.review_time\n    left join customer_feats\n        on\n            review.customer_id = customer_feats.customer_id\n            and labels.timestamp = customer_feats.timestamp\n    group by all\n),\n\nlast_6mo as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        count(*) as num_reviews,\n        avg(review.rating) as avg_rating,\n        sum(review.rating) as sum_ratings,\n        min(review.rating) as min_rating,\n        max(review.rating) as max_rating,\n        avg(length(review.review_text)) as avg_review_length,\n        (avg_rating - avg(avg_rating) over ()) / stddev(avg_rating) over () as product_bias\n    from labels\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp > review.review_time\n            and labels.timestamp - interval '6 months' < review.review_time\n    group by all\n),\n\nprev_6mo as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        count(*) as num_reviews,\n        avg(review.rating) as avg_rating,\n        sum(review.rating) as sum_ratings,\n        min(review.rating) as min_rating,\n        max(review.rating) as max_rating,\n        avg(length(review.review_text)) as avg_review_length,\n        (avg_rating - avg(avg_rating) over ()) / stddev(avg_rating) over () as product_bias\n    from labels\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp - interval '6 months' > review.review_time\n            and labels.timestamp - interval '12 months' < review.review_time\n    group by all\n),\n\ntrends as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        (last_6mo.num_reviews - prev_6mo.num_reviews) as num_reviews_trend,\n        (last_6mo.avg_rating - prev_6mo.avg_rating) as avg_rating_trend,\n        (last_6mo.sum_ratings - prev_6mo.sum_ratings) as sum_ratings_trend,\n        (last_6mo.min_rating - prev_6mo.min_rating) as min_rating_trend,\n        (last_6mo.max_rating - prev_6mo.max_rating) as max_rating_trend,\n        (last_6mo.avg_review_length - prev_6mo.avg_review_length) as avg_review_length_trend,\n        (last_6mo.product_bias - prev_6mo.product_bias) as product_bias_trend\n    from labels\n    left join last_6mo\n        on\n            labels.product_id = last_6mo.product_id\n            and labels.timestamp = last_6mo.timestamp\n    left join prev_6mo\n        on\n            labels.product_id = prev_6mo.product_id\n            and labels.timestamp = prev_6mo.timestamp\n)\n\nselect\n    labels.product_id,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.churn,\n    {% endif %}\n    product_feats.price,\n    product_feats.category,\n    product_feats.title,\n    product_feats.weeks_since_first_review,\n    product_feats.weeks_since_median_review,\n    product_feats.weeks_since_latest_review,\n    product_feats.num_reviews,\n    product_feats.sum_ratings,\n    product_feats.avg_rating,\n    product_feats.std_rating,\n    product_feats.min_rating,\n    product_feats.max_rating,\n    product_feats.pct_verified_reviews,\n    product_feats.avg_review_length,\n    product_feats.last_review_summary,\n    product_feats.product_bias,\n    reviewer_aggs.avg_reviewer_num_reviews,\n    reviewer_aggs.avg_reviewer_total_spent,\n    reviewer_aggs.avg_reviewer_avg_price,\n    reviewer_aggs.avg_reviewer_avg_rating,\n    reviewer_aggs.avg_reviewer_std_rating,\n    trends.num_reviews_trend,\n    trends.avg_rating_trend,\n    trends.sum_ratings_trend,\n    trends.min_rating_trend,\n    trends.max_rating_trend,\n    trends.avg_review_length_trend,\n    trends.product_bias_trend\nfrom labels\nleft join product_feats\n    on\n        labels.product_id = product_feats.product_id\n        and labels.timestamp = product_feats.timestamp\nleft join reviewer_aggs\n    on\n        labels.product_id = reviewer_aggs.product_id\n        and labels.timestamp = reviewer_aggs.timestamp\nleft join trends\n    on\n        labels.product_id = trends.product_id\n        and labels.timestamp = trends.timestamp\n",
+   "dev_seeds": [
+    "2008-01-10 00:00:00",
+    "2011-04-07 00:00:00",
+    "2014-07-03 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2009-07-09 00:00:00",
+    "2012-10-04 00:00:00",
+    "2016-01-01 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2008-01-10 00:00:00",
+     "status": "ran",
+     "witness": false,
+     "columns": [],
+     "cells": 0,
+     "rows": 6024
+    },
+    {
+     "seed": "2011-04-07 00:00:00",
+     "status": "ran",
+     "witness": false,
+     "columns": [],
+     "cells": 0,
+     "rows": 49544
+    },
+    {
+     "seed": "2014-07-03 00:00:00",
+     "status": "ran",
+     "witness": false,
+     "columns": [],
+     "cells": 0,
+     "rows": 147259
+    }
+   ],
+   "history": [],
+   "status": "excluded",
+   "reason": "no reproducible development witness"
+  },
+  {
+   "program_uid": "935f2a55125ae6e9",
+   "program": "amazon_item-ltv.sql",
+   "dataset": "rel-amazon",
+   "ds": "amazon",
+   "task": "item-ltv",
+   "source_path": "audit/amazon_item-ltv.sql",
+   "source_sql": "create or replace table item_ltv_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from item_ltv_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from item_ltv_{{ set }} -- noqa\n    {% endif %}\n),\n\ntimestamps as (\n    select distinct timestamp from labels\n),\n\ncustomer_feats as (\n    select\n        timestamps.timestamp,\n        review.customer_id,\n        count(*) as num_reviews,\n        sum(product.price) as total_spent,\n        avg(product.price) as avg_price,\n        avg(review.rating) as avg_rating,\n        stddev(review.rating) as std_rating\n    from timestamps\n    left join review\n        on timestamps.timestamp > review.review_time\n    left join product\n        on review.product_id = product.product_id\n    group by all\n),\n\n{% for lb, ub in [(0, 3), (3, 6), (6, 9)] %}\n    window_feats_{{ lb }}_to_{{ ub }} as (\n        select\n            labels.product_id,\n            labels.timestamp,\n            count(*) as num_reviews_{{ lb }}_to_{{ ub }},\n            sum(review.rating) as sum_ratings_{{ lb }}_to_{{ ub }},\n            avg(review.rating) as avg_rating_{{ lb }}_to_{{ ub }},\n            stddev(review.rating) as std_rating_{{ lb }}_to_{{ ub }},\n            min(review.rating) as min_rating_{{ lb }}_to_{{ ub }},\n            max(review.rating) as max_rating_{{ lb }}_to_{{ ub }},\n            avg(length(review.review_text)) as avg_review_length_{{ lb }}_to_{{ ub }},\n            avg(review.verified::int) as pct_verified_reviews_{{ lb }}_to_{{ ub }},\n            (avg(review.rating) - avg(avg(review.rating)) over ())\n            / stddev(avg(review.rating)) over () as product_bias_{{ lb }}_to_{{ ub }},\n            -- reviewer aggs: too slow to compute customer features as of window end date so using\n            -- features as of timestamp (should be close enough)\n            avg(customer_feats.num_reviews) as avg_reviewer_num_reviews_{{ lb }}_to_{{ ub }},\n            avg(customer_feats.total_spent) as avg_reviewer_total_spent_{{ lb }}_to_{{ ub }},\n            avg(customer_feats.avg_price) as avg_reviewer_avg_price_{{ lb }}_to_{{ ub }},\n            avg(customer_feats.avg_rating) as avg_reviewer_avg_rating_{{ lb }}_to_{{ ub }},\n            avg(customer_feats.std_rating) as avg_reviewer_std_rating_{{ lb }}_to_{{ ub }}\n        from labels\n        left join review\n            on\n                labels.product_id = review.product_id\n                and labels.timestamp - interval '{{ lb }} months' > review.review_time\n                and labels.timestamp - interval '{{ ub }} months' <= review.review_time\n        left join customer_feats\n            on\n                review.customer_id = customer_feats.customer_id\n                and labels.timestamp = customer_feats.timestamp\n        group by labels.product_id, labels.timestamp\n    ),\n{% endfor %}\n\n-- TODO issue is in this table!\nall_time_feats as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        max(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_first_review,\n        median(\n            date_diff('weeks', review.review_time, labels.timestamp)\n        ) as weeks_since_median_review,\n        min(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_latest_review,\n        arg_max(review.summary, review.review_time) as last_review_summary,\n        arg_max(review.verified::int, review.review_time) as last_review_is_verified,\n        count(*) as num_reviews,\n        sum(review.rating) as sum_ratings,\n        avg(review.rating) as avg_rating,\n        stddev(review.rating) as std_rating,\n        min(review.rating) as min_rating,\n        max(review.rating) as max_rating,\n        avg(length(review.review_text)) as avg_review_length,\n        avg(review.verified::int) as pct_verified_reviews,\n        (avg(review.rating) - avg(avg(review.rating)) over ())\n        / stddev(avg(review.rating)) over () as product_bias,\n        avg(customer_feats.num_reviews) as avg_reviewer_num_reviews,\n        avg(customer_feats.total_spent) as avg_reviewer_total_spent,\n        avg(customer_feats.avg_price) as avg_reviewer_avg_price,\n        avg(customer_feats.avg_rating) as avg_reviewer_avg_rating,\n        avg(customer_feats.std_rating) as avg_reviewer_std_rating\n    from labels\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp > review.review_time\n    left join customer_feats\n        on\n            review.customer_id = customer_feats.customer_id\n            and labels.timestamp = customer_feats.timestamp\n    group by labels.product_id, labels.timestamp\n)\n\nselect\n    labels.product_id,\n    labels.timestamp,\n    product.price,\n    product.category[-1] as category,\n    product.title,\n    {% if set != 'test' +%} -- noqa\n        labels.ltv,\n    {% endif %}\n    {% for lb, ub in [(0, 3), (3, 6), (6, 9)] %}\n        window_feats_{{ lb }}_to_{{ ub }}.* exclude(product_id, timestamp), -- noqa\n    {% endfor %}\n    all_time_feats.* exclude (product_id, timestamp) -- noqa\nfrom labels\nleft join product\n    on labels.product_id = product.product_id\nleft join window_feats_0_to_3\n    on\n        labels.product_id = window_feats_0_to_3.product_id\n        and labels.timestamp = window_feats_0_to_3.timestamp\nleft join window_feats_3_to_6\n    on\n        labels.product_id = window_feats_3_to_6.product_id\n        and labels.timestamp = window_feats_3_to_6.timestamp\nleft join window_feats_6_to_9\n    on\n        labels.product_id = window_feats_6_to_9.product_id\n        and labels.timestamp = window_feats_6_to_9.timestamp\nleft join all_time_feats\n    on\n        labels.product_id = all_time_feats.product_id\n        and labels.timestamp = all_time_feats.timestamp\n",
+   "current_sql": "create or replace table item_ltv_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from item_ltv_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from item_ltv_{{ set }} -- noqa\n    {% endif %}\n),\n\ntimestamps as (\n    select distinct timestamp from labels\n),\n\ncustomer_feats as (\n    select\n        timestamps.timestamp,\n        review.customer_id,\n        count(*) as num_reviews,\n        sum(product.price) as total_spent,\n        avg(product.price) as avg_price,\n        avg(review.rating) as avg_rating,\n        stddev(review.rating) as std_rating\n    from timestamps\n    left join review\n        on timestamps.timestamp > review.review_time\n    left join product\n        on review.product_id = product.product_id\n    group by all\n),\n\n{% for lb, ub in [(0, 3), (3, 6), (6, 9)] %}\n    window_feats_{{ lb }}_to_{{ ub }} as (\n        select\n            labels.product_id,\n            labels.timestamp,\n            count(*) as num_reviews_{{ lb }}_to_{{ ub }},\n            sum(review.rating) as sum_ratings_{{ lb }}_to_{{ ub }},\n            avg(review.rating) as avg_rating_{{ lb }}_to_{{ ub }},\n            stddev(review.rating) as std_rating_{{ lb }}_to_{{ ub }},\n            min(review.rating) as min_rating_{{ lb }}_to_{{ ub }},\n            max(review.rating) as max_rating_{{ lb }}_to_{{ ub }},\n            avg(length(review.review_text)) as avg_review_length_{{ lb }}_to_{{ ub }},\n            avg(review.verified::int) as pct_verified_reviews_{{ lb }}_to_{{ ub }},\n            (avg(review.rating) - avg(avg(review.rating)) over ())\n            / stddev(avg(review.rating)) over () as product_bias_{{ lb }}_to_{{ ub }},\n            -- reviewer aggs: too slow to compute customer features as of window end date so using\n            -- features as of timestamp (should be close enough)\n            avg(customer_feats.num_reviews) as avg_reviewer_num_reviews_{{ lb }}_to_{{ ub }},\n            avg(customer_feats.total_spent) as avg_reviewer_total_spent_{{ lb }}_to_{{ ub }},\n            avg(customer_feats.avg_price) as avg_reviewer_avg_price_{{ lb }}_to_{{ ub }},\n            avg(customer_feats.avg_rating) as avg_reviewer_avg_rating_{{ lb }}_to_{{ ub }},\n            avg(customer_feats.std_rating) as avg_reviewer_std_rating_{{ lb }}_to_{{ ub }}\n        from labels\n        left join review\n            on\n                labels.product_id = review.product_id\n                and labels.timestamp - interval '{{ lb }} months' > review.review_time\n                and labels.timestamp - interval '{{ ub }} months' <= review.review_time\n        left join customer_feats\n            on\n                review.customer_id = customer_feats.customer_id\n                and labels.timestamp = customer_feats.timestamp\n        group by labels.product_id, labels.timestamp\n    ),\n{% endfor %}\n\n-- TODO issue is in this table!\nall_time_feats as (\n    select\n        labels.product_id,\n        labels.timestamp,\n        max(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_first_review,\n        median(\n            date_diff('weeks', review.review_time, labels.timestamp)\n        ) as weeks_since_median_review,\n        min(date_diff('weeks', review.review_time, labels.timestamp)) as weeks_since_latest_review,\n        arg_max(review.summary, review.review_time) as last_review_summary,\n        arg_max(review.verified::int, review.review_time) as last_review_is_verified,\n        count(*) as num_reviews,\n        sum(review.rating) as sum_ratings,\n        avg(review.rating) as avg_rating,\n        stddev(review.rating) as std_rating,\n        min(review.rating) as min_rating,\n        max(review.rating) as max_rating,\n        avg(length(review.review_text)) as avg_review_length,\n        avg(review.verified::int) as pct_verified_reviews,\n        (avg(review.rating) - avg(avg(review.rating)) over ())\n        / stddev(avg(review.rating)) over () as product_bias,\n        avg(customer_feats.num_reviews) as avg_reviewer_num_reviews,\n        avg(customer_feats.total_spent) as avg_reviewer_total_spent,\n        avg(customer_feats.avg_price) as avg_reviewer_avg_price,\n        avg(customer_feats.avg_rating) as avg_reviewer_avg_rating,\n        avg(customer_feats.std_rating) as avg_reviewer_std_rating\n    from labels\n    left join review\n        on\n            labels.product_id = review.product_id\n            and labels.timestamp > review.review_time\n    left join customer_feats\n        on\n            review.customer_id = customer_feats.customer_id\n            and labels.timestamp = customer_feats.timestamp\n    group by labels.product_id, labels.timestamp\n)\n\nselect\n    labels.product_id,\n    labels.timestamp,\n    product.price,\n    product.category[-1] as category,\n    product.title,\n    {% if set != 'test' +%} -- noqa\n        labels.ltv,\n    {% endif %}\n    {% for lb, ub in [(0, 3), (3, 6), (6, 9)] %}\n        window_feats_{{ lb }}_to_{{ ub }}.* exclude(product_id, timestamp), -- noqa\n    {% endfor %}\n    all_time_feats.* exclude (product_id, timestamp) -- noqa\nfrom labels\nleft join product\n    on labels.product_id = product.product_id\nleft join window_feats_0_to_3\n    on\n        labels.product_id = window_feats_0_to_3.product_id\n        and labels.timestamp = window_feats_0_to_3.timestamp\nleft join window_feats_3_to_6\n    on\n        labels.product_id = window_feats_3_to_6.product_id\n        and labels.timestamp = window_feats_3_to_6.timestamp\nleft join window_feats_6_to_9\n    on\n        labels.product_id = window_feats_6_to_9.product_id\n        and labels.timestamp = window_feats_6_to_9.timestamp\nleft join all_time_feats\n    on\n        labels.product_id = all_time_feats.product_id\n        and labels.timestamp = all_time_feats.timestamp\n",
+   "dev_seeds": [
+    "2008-01-10 00:00:00",
+    "2011-04-07 00:00:00",
+    "2014-07-03 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2009-07-09 00:00:00",
+    "2012-10-04 00:00:00",
+    "2016-01-01 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2008-01-10 00:00:00",
+     "status": "ran",
+     "witness": false,
+     "columns": [],
+     "cells": 0,
+     "rows": 32148
+    },
+    {
+     "seed": "2011-04-07 00:00:00",
+     "status": "ran",
+     "witness": false,
+     "columns": [],
+     "cells": 0,
+     "rows": 49665
+    },
+    {
+     "seed": "2014-07-03 00:00:00",
+     "status": "ran",
+     "witness": false,
+     "columns": [],
+     "cells": 0,
+     "rows": 179515
+    }
+   ],
+   "history": [],
+   "status": "excluded",
+   "reason": "no reproducible development witness"
+  },
+  {
+   "program_uid": "17f0908e3b01d83d",
+   "program": "stack_user-engagement.sql",
+   "dataset": "rel-stack",
+   "ds": "stack",
+   "task": "user-engagement",
+   "source_path": "audit/stack_user-engagement.sql",
+   "source_sql": "create or replace table user_engagement_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_engagement_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_engagement_{{ set }} -- noqa\n    {% endif %}\n),\n\nbadge_freqs as (\n    select\n        Name,\n        count(*) / (sum(count(*)) over ()) as badge_incidence\n    from badges\n    group by Name\n),\n\nbadge_feats as (\n    select\n        labels.OwnerUserId,\n        labels.timestamp,\n        coalesce(count(distinct badges.Id), 0) as num_badges,\n        coalesce(sum(log(1 / badge_freqs.badge_incidence)), 0) as badge_score\n    from labels\n    left join badges\n        on\n            labels.OwnerUserId = badges.UserId\n            and labels.timestamp > badges.Date\n    left join badge_freqs\n        on badges.Name = badge_freqs.Name\n    group by all\n),\n\nuser_feats as (\n    select\n        labels.OwnerUserId,\n        labels.timestamp,\n        date_diff('month', users.CreationDate, labels.timestamp) as months_since_account_creation,\n        (users.DisplayName is null) as display_name_is_null,\n        (users.WebsiteUrl is null) as website_url_is_null,\n        coalesce(len(string_split(users.AboutMe, ' ')), 0) as about_me_length,\n        (users.Location is null) as location_is_null\n    from labels\n    left join users\n        on labels.OwnerUserId = users.Id\n),\n\ncomment_aggs_by_user as (\n    select\n        labels.OwnerUserId,\n        labels.timestamp,\n        min(date_diff('week', comments.CreationDate, labels.timestamp)) as weeks_since_last_comment,\n        count(distinct comments.Id) as num_comments,\n        count(distinct comments.PostId) as num_posts_commented,\n        avg(coalesce(len(string_split(comments.Text, ' ')), 0)) as avg_comment_length\n    from labels\n    left join comments\n        on\n            labels.OwnerUserId = comments.UserId\n            and labels.timestamp > comments.CreationDate\n    group by all\n),\n\n-- A row per (time-censored) post per user, timestamp tuple.\npost_labels as (\n    select\n        labels.OwnerUserId,\n        labels.timestamp,\n        posts.Id as post_id\n    from labels\n    left join posts\n        on\n            labels.OwnerUserId = posts.OwnerUserId\n            and labels.timestamp > posts.CreationDate\n),\n\nvote_aggs as (\n    select\n        post_labels.OwnerUserId,\n        post_labels.timestamp,\n        post_labels.post_id,\n        count(case when votes.VoteTypeId in (1, 2, 5, 8, 16) then 1 end) as num_positive_votes,\n        count(case when votes.VoteTypeId in (3, 4, 6, 10, 12) then 1 end) as num_negative_votes\n    from post_labels\n    left join votes\n        on\n            post_labels.post_id = votes.PostId\n            and post_labels.timestamp > votes.CreationDate\n    group by all\n),\n\ncomment_aggs_by_post as (\n    select\n        post_labels.post_id,\n        post_labels.OwnerUserId,\n        post_labels.timestamp,\n        count(distinct comments.Id) as num_comments,\n        avg(coalesce(len(string_split(comments.Text, ' ')), 0)) as avg_comment_length,\n        count(distinct comments.UserId) as num_distinct_users,\n        avg(coalesce(badge_feats.badge_score, 0)) as avg_badge_score\n    from post_labels\n    left join comments\n        on\n            post_labels.post_id = comments.PostId\n            and post_labels.timestamp > comments.CreationDate\n    left join badge_feats\n        on\n            comments.UserId = badge_feats.OwnerUserId\n            and post_labels.timestamp = badge_feats.timestamp\n    group by all\n),\n\naccepted_answers as (\n    select AcceptedAnswerId as accepted_ans_id\n    from posts\n    where AcceptedAnswerId is not null\n),\n\npost_feats_deagged as (\n    select\n        post_labels.post_id,\n        post_labels.OwnerUserId,\n        post_labels.timestamp,\n        posts.CreationDate as creation_date,\n        row_number() over (\n            partition by post_labels.OwnerUserId, post_labels.timestamp, posts.PostTypeId\n            order by posts.CreationDate desc\n        ) as post_rank,\n        posts.PostTypeId as post_type,\n        (posts.AcceptedAnswerId is not null) as has_accepted_ans,\n        (accepted_answers.accepted_ans_id is not null) as is_accepted_ans,\n        coalesce(len(string_split(trim(posts.Tags, '<>'), '><')), 0) as num_tags,\n        len(string_split(posts.Title, ' ')) as title_length,\n        len(string_split(posts.Body, ' ')) as body_length,\n        date_diff(\n            'days',\n            lag(posts.CreationDate, 1) over (\n                partition by posts.OwnerUserId order by posts.CreationDate asc\n            ),\n            posts.CreationDate\n        ) as days_since_last_post,\n        coalesce(vote_aggs.num_positive_votes, 0) as num_positive_votes,\n        coalesce(vote_aggs.num_negative_votes, 0) as num_negative_votes,\n        coalesce(comment_aggs_by_post.num_comments, 0) as num_comments,\n        coalesce(comment_aggs_by_post.avg_comment_length, 0) as avg_comment_length,\n        coalesce(comment_aggs_by_post.num_distinct_users, 0) as num_distinct_commenters,\n        comment_aggs_by_post.avg_badge_score as avg_commenter_badge_score\n    from post_labels\n    left join posts\n        on post_labels.post_id = posts.Id\n    left join accepted_answers\n        on post_labels.post_id = accepted_answers.accepted_ans_id\n    left join vote_aggs\n        on\n            post_labels.post_id = vote_aggs.post_id\n            and post_labels.OwnerUserId = vote_aggs.OwnerUserId\n            and post_labels.timestamp = vote_aggs.timestamp\n    left join comment_aggs_by_post\n        on\n            post_labels.post_id = comment_aggs_by_post.post_id\n            and post_labels.OwnerUserId = comment_aggs_by_post.OwnerUserId\n            and post_labels.timestamp = comment_aggs_by_post.timestamp\n),\n\nlast_question_feats as (\n    select\n        *,\n        date_diff('week', creation_date, timestamp) as last_q_weeks_ago\n    from post_feats_deagged\n    where\n        post_type = 1\n        and post_rank = 1\n),\n\nlast_answer_feats as (\n    select\n        *,\n        date_diff('week', creation_date, timestamp) as last_a_weeks_ago\n    from post_feats_deagged\n    where\n        post_type = 2\n        and post_rank = 1\n),\n\nquestion_feats_last_6mo as (\n    select\n        OwnerUserId,\n        timestamp,\n        count(*) as num_questions_last_6mo,\n        avg(has_accepted_ans::int) as avg_has_accepted_ans,\n        avg(days_since_last_post) as avg_days_since_last_post_q,\n        avg(num_tags) as avg_num_tags,\n        avg(title_length) as avg_title_length,\n        avg(body_length) as avg_body_length,\n        avg(num_positive_votes) as avg_num_positive_votes,\n        avg(num_negative_votes) as avg_num_negative_votes,\n        avg(num_comments) as avg_num_comments,\n        avg(avg_comment_length) as avg_avg_comment_length,\n        avg(num_distinct_commenters) as avg_num_distinct_commenters,\n        avg(avg_commenter_badge_score) as avg_commenter_badge_score\n    from post_feats_deagged\n    where\n        date_diff('month', creation_date, timestamp) <= 6\n        and post_type = 1\n    group by all\n),\n\nanswer_feats_last_6mo as (\n    select\n        OwnerUserId,\n        timestamp,\n        count(*) as num_answers_last_6mo,\n        avg(is_accepted_ans::int) as ans_acceptance_rate,\n        avg(days_since_last_post) as avg_days_since_last_post_a,\n        avg(body_length) as avg_body_length,\n        avg(num_positive_votes) as avg_num_positive_votes,\n        avg(num_negative_votes) as avg_num_negative_votes,\n        avg(num_comments) as avg_num_comments,\n        avg(avg_comment_length) as avg_avg_comment_length,\n        avg(num_distinct_commenters) as avg_num_distinct_commenters,\n        avg(avg_commenter_badge_score) as avg_commenter_badge_score\n    from post_feats_deagged\n    where\n        date_diff('month', creation_date, timestamp) <= 6\n        and post_type = 2\n    group by all\n)\n\n-- Final feature set\nselect\n    -- labels\n    labels.OwnerUserId,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.contribution,\n    {% endif %}\n    -- user-level features\n    user_feats.months_since_account_creation,\n    user_feats.display_name_is_null,\n    user_feats.website_url_is_null,\n    user_feats.about_me_length,\n    user_feats.location_is_null,\n    badge_feats.num_badges,\n    badge_feats.badge_score,\n    comment_aggs_by_user.weeks_since_last_comment,\n    comment_aggs_by_user.num_comments,\n    comment_aggs_by_user.num_posts_commented,\n    comment_aggs_by_user.avg_comment_length,\n    -- question features\n    last_question_feats.last_q_weeks_ago,\n    last_question_feats.has_accepted_ans as last_q_has_accepted_ans,\n    last_question_feats.num_tags as last_q_num_tags,\n    last_question_feats.title_length as last_q_title_length,\n    last_question_feats.body_length as last_q_body_length,\n    last_question_feats.num_positive_votes as last_q_num_positive_votes,\n    last_question_feats.num_negative_votes as last_q_num_negative_votes,\n    last_question_feats.num_comments as last_q_num_comments,\n    last_question_feats.avg_comment_length as last_q_avg_comment_length,\n    last_question_feats.num_distinct_commenters as last_q_num_distinct_commenters,\n    last_question_feats.avg_commenter_badge_score as last_q_avg_commenter_badge_score,\n    question_feats_last_6mo.num_questions_last_6mo,\n    question_feats_last_6mo.avg_has_accepted_ans,\n    question_feats_last_6mo.avg_days_since_last_post_q,\n    question_feats_last_6mo.avg_num_tags,\n    question_feats_last_6mo.avg_title_length as avg_title_length_q,\n    question_feats_last_6mo.avg_body_length as avg_body_length_q,\n    question_feats_last_6mo.avg_num_positive_votes as avg_num_positive_votes_q,\n    question_feats_last_6mo.avg_num_negative_votes as avg_num_negative_votes_q,\n    question_feats_last_6mo.avg_num_comments as avg_num_comments_q,\n    question_feats_last_6mo.avg_avg_comment_length as avg_avg_comment_length_q,\n    question_feats_last_6mo.avg_num_distinct_commenters as avg_num_distinct_commenters_q,\n    question_feats_last_6mo.avg_commenter_badge_score as avg_commenter_badge_score_q,\n    -- answer features\n    last_answer_feats.last_a_weeks_ago,\n    last_answer_feats.is_accepted_ans as last_a_is_accepted_ans,\n    last_answer_feats.body_length as last_a_body_length,\n    last_answer_feats.num_positive_votes as last_a_num_positive_votes,\n    last_answer_feats.num_negative_votes as last_a_num_negative_votes,\n    last_answer_feats.num_comments as last_a_num_comments,\n    last_answer_feats.avg_comment_length as last_a_avg_comment_length,\n    last_answer_feats.num_distinct_commenters as last_a_num_distinct_commenters,\n    last_answer_feats.avg_commenter_badge_score as last_a_avg_commenter_badge_score,\n    answer_feats_last_6mo.num_answers_last_6mo,\n    answer_feats_last_6mo.ans_acceptance_rate,\n    answer_feats_last_6mo.avg_days_since_last_post_a,\n    answer_feats_last_6mo.avg_body_length as avg_body_length_a,\n    answer_feats_last_6mo.avg_num_positive_votes as avg_num_positive_votes_a,\n    answer_feats_last_6mo.avg_num_negative_votes as avg_num_negative_votes_a,\n    answer_feats_last_6mo.avg_num_comments as avg_num_comments_a,\n    answer_feats_last_6mo.avg_avg_comment_length as avg_avg_comment_length_a,\n    answer_feats_last_6mo.avg_num_distinct_commenters as avg_num_distinct_commenters_a,\n    answer_feats_last_6mo.avg_commenter_badge_score as avg_commenter_badge_score_a\n\nfrom labels\nleft join user_feats\n    on\n        labels.OwnerUserId = user_feats.OwnerUserId\n        and labels.timestamp = user_feats.timestamp\nleft join badge_feats\n    on\n        labels.OwnerUserId = badge_feats.OwnerUserId\n        and labels.timestamp = badge_feats.timestamp\nleft join comment_aggs_by_user\n    on\n        labels.OwnerUserId = comment_aggs_by_user.OwnerUserId\n        and labels.timestamp = comment_aggs_by_user.timestamp\nleft join last_question_feats\n    on\n        labels.OwnerUserId = last_question_feats.OwnerUserId\n        and labels.timestamp = last_question_feats.timestamp\nleft join last_answer_feats\n    on\n        labels.OwnerUserId = last_answer_feats.OwnerUserId\n        and labels.timestamp = last_answer_feats.timestamp\nleft join question_feats_last_6mo\n    on\n        labels.OwnerUserId = question_feats_last_6mo.OwnerUserId\n        and labels.timestamp = question_feats_last_6mo.timestamp\nleft join answer_feats_last_6mo\n    on\n        labels.OwnerUserId = answer_feats_last_6mo.OwnerUserId\n        and labels.timestamp = answer_feats_last_6mo.timestamp;\n",
+   "current_sql": "create or replace table user_engagement_{{ set }}_feats as -- noqa\n\nwith labels as materialized (\n    {% if (set == 'train') and (subsample > 0) %} -- noqa\n    select * from user_engagement_{{ set }} using sample {{ subsample }} -- noqa\n    {% else %}\n    select * from user_engagement_{{ set }} -- noqa\n    {% endif %}\n),\n\nbadge_freqs as (\n    select\n        Name,\n        count(*) / (sum(count(*)) over ()) as badge_incidence\n    from badges\n    group by Name\n),\n\nbadge_feats as (\n    select\n        labels.OwnerUserId,\n        labels.timestamp,\n        coalesce(count(distinct badges.Id), 0) as num_badges,\n        coalesce(sum(log(1 / badge_freqs.badge_incidence)), 0) as badge_score\n    from labels\n    left join badges\n        on\n            labels.OwnerUserId = badges.UserId\n            and labels.timestamp > badges.Date\n    left join badge_freqs\n        on badges.Name = badge_freqs.Name\n    group by all\n),\n\nuser_feats as (\n    select\n        labels.OwnerUserId,\n        labels.timestamp,\n        date_diff('month', users.CreationDate, labels.timestamp) as months_since_account_creation,\n        (users.DisplayName is null) as display_name_is_null,\n        (users.WebsiteUrl is null) as website_url_is_null,\n        coalesce(len(string_split(users.AboutMe, ' ')), 0) as about_me_length,\n        (users.Location is null) as location_is_null\n    from labels\n    left join users\n        on labels.OwnerUserId = users.Id\n),\n\ncomment_aggs_by_user as (\n    select\n        labels.OwnerUserId,\n        labels.timestamp,\n        min(date_diff('week', comments.CreationDate, labels.timestamp)) as weeks_since_last_comment,\n        count(distinct comments.Id) as num_comments,\n        count(distinct comments.PostId) as num_posts_commented,\n        avg(coalesce(len(string_split(comments.Text, ' ')), 0)) as avg_comment_length\n    from labels\n    left join comments\n        on\n            labels.OwnerUserId = comments.UserId\n            and labels.timestamp > comments.CreationDate\n    group by all\n),\n\n-- A row per (time-censored) post per user, timestamp tuple.\npost_labels as (\n    select\n        labels.OwnerUserId,\n        labels.timestamp,\n        posts.Id as post_id\n    from labels\n    left join posts\n        on\n            labels.OwnerUserId = posts.OwnerUserId\n            and labels.timestamp > posts.CreationDate\n),\n\nvote_aggs as (\n    select\n        post_labels.OwnerUserId,\n        post_labels.timestamp,\n        post_labels.post_id,\n        count(case when votes.VoteTypeId in (1, 2, 5, 8, 16) then 1 end) as num_positive_votes,\n        count(case when votes.VoteTypeId in (3, 4, 6, 10, 12) then 1 end) as num_negative_votes\n    from post_labels\n    left join votes\n        on\n            post_labels.post_id = votes.PostId\n            and post_labels.timestamp > votes.CreationDate\n    group by all\n),\n\ncomment_aggs_by_post as (\n    select\n        post_labels.post_id,\n        post_labels.OwnerUserId,\n        post_labels.timestamp,\n        count(distinct comments.Id) as num_comments,\n        avg(coalesce(len(string_split(comments.Text, ' ')), 0)) as avg_comment_length,\n        count(distinct comments.UserId) as num_distinct_users,\n        avg(coalesce(badge_feats.badge_score, 0)) as avg_badge_score\n    from post_labels\n    left join comments\n        on\n            post_labels.post_id = comments.PostId\n            and post_labels.timestamp > comments.CreationDate\n    left join badge_feats\n        on\n            comments.UserId = badge_feats.OwnerUserId\n            and post_labels.timestamp = badge_feats.timestamp\n    group by all\n),\n\naccepted_answers as (\n    select AcceptedAnswerId as accepted_ans_id\n    from posts\n    where AcceptedAnswerId is not null\n),\n\npost_feats_deagged as (\n    select\n        post_labels.post_id,\n        post_labels.OwnerUserId,\n        post_labels.timestamp,\n        posts.CreationDate as creation_date,\n        row_number() over (\n            partition by post_labels.OwnerUserId, post_labels.timestamp, posts.PostTypeId\n            order by posts.CreationDate desc\n        ) as post_rank,\n        posts.PostTypeId as post_type,\n        (posts.AcceptedAnswerId is not null) as has_accepted_ans,\n        (accepted_answers.accepted_ans_id is not null) as is_accepted_ans,\n        coalesce(len(string_split(trim(posts.Tags, '<>'), '><')), 0) as num_tags,\n        len(string_split(posts.Title, ' ')) as title_length,\n        len(string_split(posts.Body, ' ')) as body_length,\n        date_diff(\n            'days',\n            lag(posts.CreationDate, 1) over (\n                partition by posts.OwnerUserId order by posts.CreationDate asc\n            ),\n            posts.CreationDate\n        ) as days_since_last_post,\n        coalesce(vote_aggs.num_positive_votes, 0) as num_positive_votes,\n        coalesce(vote_aggs.num_negative_votes, 0) as num_negative_votes,\n        coalesce(comment_aggs_by_post.num_comments, 0) as num_comments,\n        coalesce(comment_aggs_by_post.avg_comment_length, 0) as avg_comment_length,\n        coalesce(comment_aggs_by_post.num_distinct_users, 0) as num_distinct_commenters,\n        comment_aggs_by_post.avg_badge_score as avg_commenter_badge_score\n    from post_labels\n    left join posts\n        on post_labels.post_id = posts.Id\n    left join accepted_answers\n        on post_labels.post_id = accepted_answers.accepted_ans_id\n    left join vote_aggs\n        on\n            post_labels.post_id = vote_aggs.post_id\n            and post_labels.OwnerUserId = vote_aggs.OwnerUserId\n            and post_labels.timestamp = vote_aggs.timestamp\n    left join comment_aggs_by_post\n        on\n            post_labels.post_id = comment_aggs_by_post.post_id\n            and post_labels.OwnerUserId = comment_aggs_by_post.OwnerUserId\n            and post_labels.timestamp = comment_aggs_by_post.timestamp\n),\n\nlast_question_feats as (\n    select\n        *,\n        date_diff('week', creation_date, timestamp) as last_q_weeks_ago\n    from post_feats_deagged\n    where\n        post_type = 1\n        and post_rank = 1\n),\n\nlast_answer_feats as (\n    select\n        *,\n        date_diff('week', creation_date, timestamp) as last_a_weeks_ago\n    from post_feats_deagged\n    where\n        post_type = 2\n        and post_rank = 1\n),\n\nquestion_feats_last_6mo as (\n    select\n        OwnerUserId,\n        timestamp,\n        count(*) as num_questions_last_6mo,\n        avg(has_accepted_ans::int) as avg_has_accepted_ans,\n        avg(days_since_last_post) as avg_days_since_last_post_q,\n        avg(num_tags) as avg_num_tags,\n        avg(title_length) as avg_title_length,\n        avg(body_length) as avg_body_length,\n        avg(num_positive_votes) as avg_num_positive_votes,\n        avg(num_negative_votes) as avg_num_negative_votes,\n        avg(num_comments) as avg_num_comments,\n        avg(avg_comment_length) as avg_avg_comment_length,\n        avg(num_distinct_commenters) as avg_num_distinct_commenters,\n        avg(avg_commenter_badge_score) as avg_commenter_badge_score\n    from post_feats_deagged\n    where\n        date_diff('month', creation_date, timestamp) <= 6\n        and post_type = 1\n    group by all\n),\n\nanswer_feats_last_6mo as (\n    select\n        OwnerUserId,\n        timestamp,\n        count(*) as num_answers_last_6mo,\n        avg(is_accepted_ans::int) as ans_acceptance_rate,\n        avg(days_since_last_post) as avg_days_since_last_post_a,\n        avg(body_length) as avg_body_length,\n        avg(num_positive_votes) as avg_num_positive_votes,\n        avg(num_negative_votes) as avg_num_negative_votes,\n        avg(num_comments) as avg_num_comments,\n        avg(avg_comment_length) as avg_avg_comment_length,\n        avg(num_distinct_commenters) as avg_num_distinct_commenters,\n        avg(avg_commenter_badge_score) as avg_commenter_badge_score\n    from post_feats_deagged\n    where\n        date_diff('month', creation_date, timestamp) <= 6\n        and post_type = 2\n    group by all\n)\n\n-- Final feature set\nselect\n    -- labels\n    labels.OwnerUserId,\n    labels.timestamp,\n    {% if set != 'test' +%} -- noqa\n        labels.contribution,\n    {% endif %}\n    -- user-level features\n    user_feats.months_since_account_creation,\n    user_feats.display_name_is_null,\n    user_feats.website_url_is_null,\n    user_feats.about_me_length,\n    user_feats.location_is_null,\n    badge_feats.num_badges,\n    badge_feats.badge_score,\n    comment_aggs_by_user.weeks_since_last_comment,\n    comment_aggs_by_user.num_comments,\n    comment_aggs_by_user.num_posts_commented,\n    comment_aggs_by_user.avg_comment_length,\n    -- question features\n    last_question_feats.last_q_weeks_ago,\n    last_question_feats.has_accepted_ans as last_q_has_accepted_ans,\n    last_question_feats.num_tags as last_q_num_tags,\n    last_question_feats.title_length as last_q_title_length,\n    last_question_feats.body_length as last_q_body_length,\n    last_question_feats.num_positive_votes as last_q_num_positive_votes,\n    last_question_feats.num_negative_votes as last_q_num_negative_votes,\n    last_question_feats.num_comments as last_q_num_comments,\n    last_question_feats.avg_comment_length as last_q_avg_comment_length,\n    last_question_feats.num_distinct_commenters as last_q_num_distinct_commenters,\n    last_question_feats.avg_commenter_badge_score as last_q_avg_commenter_badge_score,\n    question_feats_last_6mo.num_questions_last_6mo,\n    question_feats_last_6mo.avg_has_accepted_ans,\n    question_feats_last_6mo.avg_days_since_last_post_q,\n    question_feats_last_6mo.avg_num_tags,\n    question_feats_last_6mo.avg_title_length as avg_title_length_q,\n    question_feats_last_6mo.avg_body_length as avg_body_length_q,\n    question_feats_last_6mo.avg_num_positive_votes as avg_num_positive_votes_q,\n    question_feats_last_6mo.avg_num_negative_votes as avg_num_negative_votes_q,\n    question_feats_last_6mo.avg_num_comments as avg_num_comments_q,\n    question_feats_last_6mo.avg_avg_comment_length as avg_avg_comment_length_q,\n    question_feats_last_6mo.avg_num_distinct_commenters as avg_num_distinct_commenters_q,\n    question_feats_last_6mo.avg_commenter_badge_score as avg_commenter_badge_score_q,\n    -- answer features\n    last_answer_feats.last_a_weeks_ago,\n    last_answer_feats.is_accepted_ans as last_a_is_accepted_ans,\n    last_answer_feats.body_length as last_a_body_length,\n    last_answer_feats.num_positive_votes as last_a_num_positive_votes,\n    last_answer_feats.num_negative_votes as last_a_num_negative_votes,\n    last_answer_feats.num_comments as last_a_num_comments,\n    last_answer_feats.avg_comment_length as last_a_avg_comment_length,\n    last_answer_feats.num_distinct_commenters as last_a_num_distinct_commenters,\n    last_answer_feats.avg_commenter_badge_score as last_a_avg_commenter_badge_score,\n    answer_feats_last_6mo.num_answers_last_6mo,\n    answer_feats_last_6mo.ans_acceptance_rate,\n    answer_feats_last_6mo.avg_days_since_last_post_a,\n    answer_feats_last_6mo.avg_body_length as avg_body_length_a,\n    answer_feats_last_6mo.avg_num_positive_votes as avg_num_positive_votes_a,\n    answer_feats_last_6mo.avg_num_negative_votes as avg_num_negative_votes_a,\n    answer_feats_last_6mo.avg_num_comments as avg_num_comments_a,\n    answer_feats_last_6mo.avg_avg_comment_length as avg_avg_comment_length_a,\n    answer_feats_last_6mo.avg_num_distinct_commenters as avg_num_distinct_commenters_a,\n    answer_feats_last_6mo.avg_commenter_badge_score as avg_commenter_badge_score_a\n\nfrom labels\nleft join user_feats\n    on\n        labels.OwnerUserId = user_feats.OwnerUserId\n        and labels.timestamp = user_feats.timestamp\nleft join badge_feats\n    on\n        labels.OwnerUserId = badge_feats.OwnerUserId\n        and labels.timestamp = badge_feats.timestamp\nleft join comment_aggs_by_user\n    on\n        labels.OwnerUserId = comment_aggs_by_user.OwnerUserId\n        and labels.timestamp = comment_aggs_by_user.timestamp\nleft join last_question_feats\n    on\n        labels.OwnerUserId = last_question_feats.OwnerUserId\n        and labels.timestamp = last_question_feats.timestamp\nleft join last_answer_feats\n    on\n        labels.OwnerUserId = last_answer_feats.OwnerUserId\n        and labels.timestamp = last_answer_feats.timestamp\nleft join question_feats_last_6mo\n    on\n        labels.OwnerUserId = question_feats_last_6mo.OwnerUserId\n        and labels.timestamp = question_feats_last_6mo.timestamp\nleft join answer_feats_last_6mo\n    on\n        labels.OwnerUserId = answer_feats_last_6mo.OwnerUserId\n        and labels.timestamp = answer_feats_last_6mo.timestamp;\n",
+   "dev_seeds": [
+    "2009-04-16 00:00:00",
+    "2014-01-09 00:00:00",
+    "2018-10-04 00:00:00"
+   ],
+   "held_out_seeds": [
+    "2011-07-14 00:00:00",
+    "2016-04-07 00:00:00",
+    "2021-01-01 00:00:00"
+   ],
+   "initial_checks": [
+    {
+     "seed": "2009-04-16 00:00:00",
+     "status": "error",
+     "witness": null,
+     "error": "BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n                    ^"
+    },
+    {
+     "seed": "2014-01-09 00:00:00",
+     "status": "error",
+     "witness": null,
+     "error": "BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n                    ^"
+    },
+    {
+     "seed": "2018-10-04 00:00:00",
+     "status": "error",
+     "witness": null,
+     "error": "BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n                    ^"
+    }
+   ],
+   "history": [],
+   "status": "excluded",
+   "reason": "no reproducible development witness"
+  }
+ ]
+}

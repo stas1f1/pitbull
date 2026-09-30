@@ -1,6 +1,6 @@
 {
   "experiment": "A4 RQ2b F1 held-out CLEAN@k",
-  "status": "complete; in_review",
+  "status": "complete; human_review_required",
   "verdict": "positive",
   "threshold": "CLEAN@5 >= 0.8",
   "records": 186,

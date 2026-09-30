@@ -1,0 +1,54 @@
+{
+ "program_uid": "cc203d2b936c7ee5",
+ "program": "deepseek-v4-flash-0731#1",
+ "repeat": 2,
+ "iteration": 1,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "cc203d2b936c7ee5c277be7a4f12196d1763fb51e0848a7da79d7dba30c637d8",
+ "prompt_sha256": "e8633c57a913f3e3ad7200946bfbfe7d81d63bdc760f7dccf5f502b4c8758269",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    orders = db['orders']\n    order_items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    # 1. Отбираем позиции до seed_time\n    items = order_items[order_items['product_id'].isin(entity_ids) & (order_items['ts'] < seed_time)]\n    items = items.merge(orders[['order_id', 'customer_id']], on='order_id', how='left')\n\n    # 2. Агрегации по заказам (только по данным, доступным на момент покупки)\n    # Отзывы и платежи присоединяем только если они были созданы до seed_time\n    rev_agg = reviews[reviews['review_creation_date'] < seed_time].groupby('order_id').agg(\n        mean_score=('review_score', 'mean'),\n        cnt_review=('review_score', 'count')\n    ).reset_index()\n    pay_agg = payments[payments['ts'] < seed_time].groupby('order_id').agg(\n        sum_paid=('payment_value', 'sum'),\n        cnt_payments=('payment_sequential', 'count'),\n        mean_installments=('payment_installments', 'mean')\n    ).reset_index()\n\n    items = items.merge(rev_agg, on='order_id', how='left')\n    items = items.merge(pay_agg, on='order_id', how='left')\n\n    # 3. Базовая агрегация (вся доступная история)\n    base = items.groupby('product_id').agg(\n        cnt_orders=('order_id', 'nunique'),\n        cnt_items=('order_item_id', 'count'),\n        sum_price=('price', 'sum'),\n        mean_price=('price', 'mean'),\n        std_price=('price', 'std'),\n        min_price=('price', 'min'),\n        max_price=('price', 'max'),\n        mean_freight=('freight_value', 'mean'),\n        sum_freight=('freight_value', 'sum'),\n        cnt_sellers=('seller_id', 'nunique'),\n        cnt_customers=('customer_id', 'nunique'),\n        mean_review_score=('mean_score', 'mean'),\n        cnt_reviews=('cnt_review', 'sum'),\n        sum_paid=('sum_paid', 'sum'),\n        cnt_payments=('cnt_payments', 'sum'),\n        mean_installments=('mean_installments', 'mean')\n    ).reset_index()\n\n    # 4. Оконные признаки за последние 14, 30, 60, 90, 180 дней\n    for N in [14, 30, 60, 90, 180]:\n        sub = items[items['ts'] > seed_time - pd.Timedelta(days=N)]\n        ord_cnt = sub.groupby('product_id')['order_id'].nunique().reindex(base['product_id'], fill_value=0)\n        rev_sum = sub.groupby('product_id')['price'].sum().reindex(base['product_id'], fill_value=0)\n        base[f'orders_{N}d'] = ord_cnt.values\n        base[f'revenue_{N}d'] = rev_sum.values\n\n    # 5. Возраст продукта (в днях) от первой покупки\n    first_ts = items.groupby('product_id')['ts'].min()\n    base['days_since_first'] = (seed_time - first_ts.reindex(base['product_id'])).dt.days\n\n    # 6. Приводим к полному списку экземпляров и убираем NaN\n    base = base.set_index('product_id').reindex(entity_ids)\n    base = base.fillna(0)\n\n    return base\n```",
+   "usage": {
+    "completion_tokens": 793,
+    "prompt_tokens": 3273,
+    "total_tokens": 4066,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 0,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.00247289,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.00247289,
+     "upstream_inference_prompt_cost": 0.00124374,
+     "upstream_inference_completions_cost": 0.00122915
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "def get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    orders = db['orders']\n    order_items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    # 1. Отбираем позиции до seed_time\n    items = order_items[order_items['product_id'].isin(entity_ids) & (order_items['ts'] < seed_time)]\n    items = items.merge(orders[['order_id', 'customer_id']], on='order_id', how='left')\n\n    # 2. Агрегации по заказам (только по данным, доступным на момент покупки)\n    # Отзывы и платежи присоединяем только если они были созданы до seed_time\n    rev_agg = reviews[reviews['review_creation_date'] < seed_time].groupby('order_id').agg(\n        mean_score=('review_score', 'mean'),\n        cnt_review=('review_score', 'count')\n    ).reset_index()\n    pay_agg = payments[payments['ts'] < seed_time].groupby('order_id').agg(\n        sum_paid=('payment_value', 'sum'),\n        cnt_payments=('payment_sequential', 'count'),\n        mean_installments=('payment_installments', 'mean')\n    ).reset_index()\n\n    items = items.merge(rev_agg, on='order_id', how='left')\n    items = items.merge(pay_agg, on='order_id', how='left')\n\n    # 3. Базовая агрегация (вся доступная история)\n    base = items.groupby('product_id').agg(\n        cnt_orders=('order_id', 'nunique'),\n        cnt_items=('order_item_id', 'count'),\n        sum_price=('price', 'sum'),\n        mean_price=('price', 'mean'),\n        std_price=('price', 'std'),\n        min_price=('price', 'min'),\n        max_price=('price', 'max'),\n        mean_freight=('freight_value', 'mean'),\n        sum_freight=('freight_value', 'sum'),\n        cnt_sellers=('seller_id', 'nunique'),\n        cnt_customers=('customer_id', 'nunique'),\n        mean_review_score=('mean_score', 'mean'),\n        cnt_reviews=('cnt_review', 'sum'),\n        sum_paid=('sum_paid', 'sum'),\n        cnt_payments=('cnt_payments', 'sum'),\n        mean_installments=('mean_installments', 'mean')\n    ).reset_index()\n\n    # 4. Оконные признаки за последние 14, 30, 60, 90, 180 дней\n    for N in [14, 30, 60, 90, 180]:\n        sub = items[items['ts'] > seed_time - pd.Timedelta(days=N)]\n        ord_cnt = sub.groupby('product_id')['order_id'].nunique().reindex(base['product_id'], fill_value=0)\n        rev_sum = sub.groupby('product_id')['price'].sum().reindex(base['product_id'], fill_value=0)\n        base[f'orders_{N}d'] = ord_cnt.values\n        base[f'revenue_{N}d'] = rev_sum.values\n\n    # 5. Возраст продукта (в днях) от первой покупки\n    first_ts = items.groupby('product_id')['ts'].min()\n    base['days_since_first'] = (seed_time - first_ts.reindex(base['product_id'])).dt.days\n\n    # 6. Приводим к полному списку экземпляров и убираем NaN\n    base = base.set_index('product_id').reindex(entity_ids)\n    base = base.fillna(0)\n\n    return base",
+ "usage": {
+  "prompt_tokens": 3273,
+  "completion_tokens": 793,
+  "total_tokens": 4066,
+  "cost": 0.00247289
+ },
+ "wall_seconds": 17.9
+}

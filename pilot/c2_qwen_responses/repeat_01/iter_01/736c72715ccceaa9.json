@@ -1,0 +1,54 @@
+{
+ "program_uid": "736c72715ccceaa9",
+ "program": "seed-2.0-code#70",
+ "repeat": 1,
+ "iteration": 1,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "736c72715ccceaa9577ce852b3eb9edcc5183d5063b614dadee7b26e23734e20",
+ "prompt_sha256": "4876b2e1dbe6d59ac3d1fe6a437a35d9103ce4d32fbce0432ecff26211de3009",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\nimport pandas as pd\nimport numpy as np\n\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Define lookback windows\n    lookback_90 = seed_time - pd.Timedelta(days=90)\n    lookback_180 = seed_time - pd.Timedelta(days=180)\n    \n    # Extract table references\n    orders = db[\"orders\"]\n    order_items = db[\"order_items\"]\n    reviews = db[\"reviews\"]\n    payments = db[\"payments\"]\n    \n    # Filter orders that were placed before seed_time\n    orders_before_seed = orders[orders[\"order_purchase_timestamp\"] <= seed_time]\n    \n    # Merge order_items with orders to get timestamps and status\n    items_full = order_items.merge(\n        orders_before_seed[[\"order_id\", \"order_purchase_timestamp\", \"order_status\"]],\n        on=\"order_id\",\n        how=\"inner\"\n    )\n    \n    # Filter relevant items\n    items_historic = items_full[items_full[\"product_id\"].isin(entity_ids)]\n    \n    # 90-day lookback features\n    items_90 = items_historic[items_historic[\"order_purchase_timestamp\"] > lookback_90]\n    agg_90 = items_90.groupby(\"product_id\").agg(\n        units_sold_90=(\"order_item_id\", \"count\"),\n        revenue_90=(\"price\", \"sum\"),\n        avg_price_90=(\"price\", \"mean\"),\n        total_freight_90=(\"freight_value\", \"sum\"),\n        unique_orders_90=(\"order_id\", \"nunique\")\n    ).reset_index()\n    \n    # 180-day lookback features\n    items_180 = items_historic[items_historic[\"order_purchase_timestamp\"] > lookback_180]\n    agg_180 = items_180.groupby(\"product_id\").agg(\n        units_sold_180=(\"order_item_id\", \"count\"),\n        revenue_180=(\"price\", \"sum\"),\n        avg_price_180=(\"price\", \"mean\"),\n        total_freight_180=(\"freight_value\", \"sum\"),\n        unique_orders_180=(\"order_id\", \"nunique\")\n    ).reset_index()\n    \n    # Recency feature\n    last_purchase = items_historic.groupby(\"product_id\")[\"order_purchase_timestamp\"].max().reset_index()\n    last_purchase[\"recency_days\"] = (seed_time - last_purchase[\"order_purchase_timestamp\"]).dt.days\n    recency = last_purchase[[\"product_id\", \"recency_days\"]]\n    \n    # Review features: only use reviews created before seed_time\n    reviews_before_seed = reviews[reviews[\"review_creation_date\"] <= seed_time]\n    items_with_reviews = items_historic.merge(\n        reviews_before_seed[[\"order_id\", \"review_score\"]],\n        on=\"order_id\",\n        how=\"left\"\n    )\n    review_agg = items_with_reviews.groupby(\"product_id\").agg(\n        avg_review=(\"review_score\", \"mean\"),\n        total_reviews=(\"review_score\", \"count\")\n    ).reset_index()\n    \n    # Payment features: only use payments made before seed_time\n    payments_before_seed = payments[payments[\"ts\"] <= seed_time]\n    items_with_payments = items_historic.merge(\n        payments_before_seed[[\"order_id\", \"payment_type\", \"payment_installments\", \"payment_value\"]],\n        on=\"order_id\",\n        how=\"left\"\n    )\n    payment_agg = items_with_payments.groupby(\"product_id\").agg(\n        avg_installments=(\"payment_installments\", \"mean\"),\n        unique_payment_types=(\"payment_type\", \"nunique\"),\n        total_payment_value=(\"payment_value\", \"sum\")\n    ).reset_index()\n    \n    # Create base dataframe with all entity IDs\n    final_features = pd.DataFrame({\"product_id\": entity_ids})\n    \n    # Merge all feature groups\n    for df in [agg_90, agg_180, recency, review_agg, payment_agg]:\n        final_features = final_features.merge(df, on=\"product_id\", how=\"left\")\n    \n    # Set index to product ID\n    final_features = final_features.set_index(\"product_id\")\n    \n    # Fill missing values for products with no history\n    fill_zero_cols = [\n        \"units_sold_90\", \"revenue_90\", \"avg_price_90\", \"total_freight_90\", \"unique_orders_90\",\n        \"units_sold_180\", \"revenue_180\", \"avg_price_180\", \"total_freight_180\", \"unique_orders_180\",\n        \"avg_review\", \"total_reviews\", \"avg_installments\", \"unique_payment_types\", \"total_payment_value\"\n    ]\n    for col in fill_zero_cols:\n        final_features[col] = final_features[col].fillna(0)\n    \n    # Fill recency with a large value (no recent sales)\n    final_features[\"recency_days\"] = final_features[\"recency_days\"].fillna(365)\n    \n    # Reindex to ensure exact entity_ids order\n    final_features = final_features.reindex(entity_ids)\n    \n    return final_features\n```",
+   "usage": {
+    "completion_tokens": 1099,
+    "prompt_tokens": 3459,
+    "total_tokens": 4558,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2413,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.00273918,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.00273918,
+     "upstream_inference_prompt_cost": 0.00076098,
+     "upstream_inference_completions_cost": 0.0019782
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "import pandas as pd\nimport numpy as np\n\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Define lookback windows\n    lookback_90 = seed_time - pd.Timedelta(days=90)\n    lookback_180 = seed_time - pd.Timedelta(days=180)\n    \n    # Extract table references\n    orders = db[\"orders\"]\n    order_items = db[\"order_items\"]\n    reviews = db[\"reviews\"]\n    payments = db[\"payments\"]\n    \n    # Filter orders that were placed before seed_time\n    orders_before_seed = orders[orders[\"order_purchase_timestamp\"] <= seed_time]\n    \n    # Merge order_items with orders to get timestamps and status\n    items_full = order_items.merge(\n        orders_before_seed[[\"order_id\", \"order_purchase_timestamp\", \"order_status\"]],\n        on=\"order_id\",\n        how=\"inner\"\n    )\n    \n    # Filter relevant items\n    items_historic = items_full[items_full[\"product_id\"].isin(entity_ids)]\n    \n    # 90-day lookback features\n    items_90 = items_historic[items_historic[\"order_purchase_timestamp\"] > lookback_90]\n    agg_90 = items_90.groupby(\"product_id\").agg(\n        units_sold_90=(\"order_item_id\", \"count\"),\n        revenue_90=(\"price\", \"sum\"),\n        avg_price_90=(\"price\", \"mean\"),\n        total_freight_90=(\"freight_value\", \"sum\"),\n        unique_orders_90=(\"order_id\", \"nunique\")\n    ).reset_index()\n    \n    # 180-day lookback features\n    items_180 = items_historic[items_historic[\"order_purchase_timestamp\"] > lookback_180]\n    agg_180 = items_180.groupby(\"product_id\").agg(\n        units_sold_180=(\"order_item_id\", \"count\"),\n        revenue_180=(\"price\", \"sum\"),\n        avg_price_180=(\"price\", \"mean\"),\n        total_freight_180=(\"freight_value\", \"sum\"),\n        unique_orders_180=(\"order_id\", \"nunique\")\n    ).reset_index()\n    \n    # Recency feature\n    last_purchase = items_historic.groupby(\"product_id\")[\"order_purchase_timestamp\"].max().reset_index()\n    last_purchase[\"recency_days\"] = (seed_time - last_purchase[\"order_purchase_timestamp\"]).dt.days\n    recency = last_purchase[[\"product_id\", \"recency_days\"]]\n    \n    # Review features: only use reviews created before seed_time\n    reviews_before_seed = reviews[reviews[\"review_creation_date\"] <= seed_time]\n    items_with_reviews = items_historic.merge(\n        reviews_before_seed[[\"order_id\", \"review_score\"]],\n        on=\"order_id\",\n        how=\"left\"\n    )\n    review_agg = items_with_reviews.groupby(\"product_id\").agg(\n        avg_review=(\"review_score\", \"mean\"),\n        total_reviews=(\"review_score\", \"count\")\n    ).reset_index()\n    \n    # Payment features: only use payments made before seed_time\n    payments_before_seed = payments[payments[\"ts\"] <= seed_time]\n    items_with_payments = items_historic.merge(\n        payments_before_seed[[\"order_id\", \"payment_type\", \"payment_installments\", \"payment_value\"]],\n        on=\"order_id\",\n        how=\"left\"\n    )\n    payment_agg = items_with_payments.groupby(\"product_id\").agg(\n        avg_installments=(\"payment_installments\", \"mean\"),\n        unique_payment_types=(\"payment_type\", \"nunique\"),\n        total_payment_value=(\"payment_value\", \"sum\")\n    ).reset_index()\n    \n    # Create base dataframe with all entity IDs\n    final_features = pd.DataFrame({\"product_id\": entity_ids})\n    \n    # Merge all feature groups\n    for df in [agg_90, agg_180, recency, review_agg, payment_agg]:\n        final_features = final_features.merge(df, on=\"product_id\", how=\"left\")\n    \n    # Set index to product ID\n    final_features = final_features.set_index(\"product_id\")\n    \n    # Fill missing values for products with no history\n    fill_zero_cols = [\n        \"units_sold_90\", \"revenue_90\", \"avg_price_90\", \"total_freight_90\", \"unique_orders_90\",\n        \"units_sold_180\", \"revenue_180\", \"avg_price_180\", \"total_freight_180\", \"unique_orders_180\",\n        \"avg_review\", \"total_reviews\", \"avg_installments\", \"unique_payment_types\", \"total_payment_value\"\n    ]\n    for col in fill_zero_cols:\n        final_features[col] = final_features[col].fillna(0)\n    \n    # Fill recency with a large value (no recent sales)\n    final_features[\"recency_days\"] = final_features[\"recency_days\"].fillna(365)\n    \n    # Reindex to ensure exact entity_ids order\n    final_features = final_features.reindex(entity_ids)\n    \n    return final_features",
+ "usage": {
+  "prompt_tokens": 3459,
+  "completion_tokens": 1099,
+  "total_tokens": 4558,
+  "cost": 0.00273918
+ },
+ "wall_seconds": 5.8
+}

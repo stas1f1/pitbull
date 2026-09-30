@@ -1,0 +1,43 @@
+{
+  "case_id": "3e5eca849c2d",
+  "reviewer": 1,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "{\"semantic_repair\": \"yes\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"medium\", \"comments\": \"Candidate fixes the unfiltered reviews fallback (now empty when no review_creation_date) and adds delivery/payment timestamp guards while retaining all original feature families plus safe additions; only residual concern is the payments ts-filter being conditional on column presence.\"}",
+  "parsed": {
+    "semantic_repair": "yes",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "medium",
+    "comments": "Candidate fixes the unfiltered reviews fallback (now empty when no review_creation_date) and adds delivery/payment timestamp guards while retaining all original feature families plus safe additions; only residual concern is the payments ts-filter being conditional on column presence."
+  },
+  "usage": {
+    "completion_tokens": 317,
+    "prompt_tokens": 4007,
+    "total_tokens": 4324,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 231,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.00075955,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.00075955,
+      "upstream_inference_prompt_cost": 0.00060105,
+      "upstream_inference_completions_cost": 0.0001585
+    }
+  },
+  "wall_seconds": 6.6
+}

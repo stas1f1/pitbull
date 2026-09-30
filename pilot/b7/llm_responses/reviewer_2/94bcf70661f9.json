@@ -1,0 +1,43 @@
+{
+  "case_id": "94bcf70661f9",
+  "reviewer": 2,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "```json\n{\"semantic_repair\": \"uncertain\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"medium\", \"comments\": \"Reviews, payments, and delivery dates are now gated by timestamps before seed_time, but delivered_rate still uses the mutable order_status field without verifying the delivery occurred before seed_time, and reliance on possibly absent 'ts' columns in reviews/payments leaves runtime correctness unclear.\"}\n```",
+  "parsed": {
+    "semantic_repair": "uncertain",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "medium",
+    "comments": "Reviews, payments, and delivery dates are now gated by timestamps before seed_time, but delivered_rate still uses the mutable order_status field without verifying the delivery occurred before seed_time, and reliance on possibly absent 'ts' columns in reviews/payments leaves runtime correctness unclear."
+  },
+  "usage": {
+    "completion_tokens": 1381,
+    "prompt_tokens": 4807,
+    "total_tokens": 6188,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 1283,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.0010586625,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.0010586625,
+      "upstream_inference_prompt_cost": 0.0005407875,
+      "upstream_inference_completions_cost": 0.000517875
+    }
+  },
+  "wall_seconds": 43.1
+}

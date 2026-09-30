@@ -1,0 +1,33 @@
+{
+ "program": "stack_post-votes.sql",
+ "checks": [
+  {
+   "seed": "2009-04-16 00:00:00",
+   "status": "ran",
+   "witness": false,
+   "columns": [],
+   "cells": 0,
+   "rows": 1
+  },
+  {
+   "seed": "2014-01-09 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "post_ordinal"
+   ],
+   "cells": 5,
+   "rows": 25836
+  },
+  {
+   "seed": "2018-10-04 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "post_ordinal"
+   ],
+   "cells": 34,
+   "rows": 116305
+  }
+ ]
+}

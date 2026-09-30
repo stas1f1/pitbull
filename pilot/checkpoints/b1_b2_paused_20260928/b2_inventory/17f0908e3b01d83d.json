@@ -1,0 +1,23 @@
+{
+ "program": "stack_user-engagement.sql",
+ "checks": [
+  {
+   "seed": "2009-04-16 00:00:00",
+   "status": "error",
+   "witness": null,
+   "error": "BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n                    ^"
+  },
+  {
+   "seed": "2014-01-09 00:00:00",
+   "status": "error",
+   "witness": null,
+   "error": "BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n                    ^"
+  },
+  {
+   "seed": "2018-10-04 00:00:00",
+   "status": "error",
+   "witness": null,
+   "error": "BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n                    ^"
+  }
+ ]
+}

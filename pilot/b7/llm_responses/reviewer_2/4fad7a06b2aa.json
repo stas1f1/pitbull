@@ -1,0 +1,43 @@
+{
+  "case_id": "4fad7a06b2aa",
+  "reviewer": 2,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "```json\n{\"semantic_repair\": \"yes\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"medium\", \"comments\": \"Candidate filters reviews by review_creation_date, delivery/carrier/estimated dates by seed_time availability, and payments by ts <= seed_time while retaining all original feature families (aggregates, windows, payment-type shares) plus additions; minor residual reliance on a 'ts' column existing in payments is unverifiable from code alone.\"}\n```",
+  "parsed": {
+    "semantic_repair": "yes",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "medium",
+    "comments": "Candidate filters reviews by review_creation_date, delivery/carrier/estimated dates by seed_time availability, and payments by ts <= seed_time while retaining all original feature families (aggregates, windows, payment-type shares) plus additions; minor residual reliance on a 'ts' column existing in payments is unverifiable from code alone."
+  },
+  "usage": {
+    "completion_tokens": 280,
+    "prompt_tokens": 3734,
+    "total_tokens": 4014,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 171,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.000525075,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.000525075,
+      "upstream_inference_prompt_cost": 0.000420075,
+      "upstream_inference_completions_cost": 0.000105
+    }
+  },
+  "wall_seconds": 4.3
+}

@@ -1,0 +1,41 @@
+{
+ "item_id": "bee70344e1c03b1e",
+ "pair_id": "a2-5b72d33ab59e7b9a",
+ "category": "checker_pair",
+ "arm": "F0_5",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "bdd2037a78637c6238d6a74d5aa4777d4f1dea813a6452578778253fcc30397c",
+ "prompt_sha256": "fbbc3c21fb6afd17bd4a73aef4997e6e0769bd303ff510bd6b40068f78312cc8",
+ "status": "ok",
+ "finish_reason": "length",
+ "raw_response": "",
+ "usage": {
+  "completion_tokens": 800,
+  "prompt_tokens": 1758,
+  "total_tokens": 2558,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 800,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 64,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.00113034,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.00113034,
+   "upstream_inference_prompt_cost": 0.00073034,
+   "upstream_inference_completions_cost": 0.0004
+  }
+ },
+ "wall_seconds": 35.0
+}

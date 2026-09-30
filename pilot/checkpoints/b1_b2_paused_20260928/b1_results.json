@@ -1,0 +1,27 @@
+{
+  "experiment": "B1 synthetic per-column map validation",
+  "validation": "AI-assisted substitution; not human validation",
+  "reference": "pilot/a6/annotator_1.csv (AI pass)",
+  "heuristic": {
+    "n": 179,
+    "class_accuracy": 0.9720670391061452,
+    "exact_map_agreement": 0.9441340782122905,
+    "cohen_kappa": 0.7690322580645159
+  },
+  "llm": {
+    "n": 179,
+    "class_accuracy": 0.9497206703910615,
+    "exact_map_agreement": 0.8044692737430168,
+    "cohen_kappa": 0.5050691244239632
+  },
+  "llm_not_worse_exact_agreement": false,
+  "adjudicated_map": "pilot/b1_provisional_operational_map.csv",
+  "usage": {
+    "calls": 179,
+    "prompt_tokens": 24716,
+    "completion_tokens": 27934,
+    "cost": 0.018575035000000007,
+    "api_errors": 0,
+    "invalid_items": 0
+  }
+}

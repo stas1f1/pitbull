@@ -1,0 +1,35 @@
+{
+ "program": "event_user-repeat.sql",
+ "checks": [
+  {
+   "seed": "2012-07-11 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "days_on_app"
+   ],
+   "cells": 5,
+   "rows": 5
+  },
+  {
+   "seed": "2012-09-05 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "days_on_app"
+   ],
+   "cells": 35,
+   "rows": 80
+  },
+  {
+   "seed": "2012-10-31 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "days_on_app"
+   ],
+   "cells": 70,
+   "rows": 341
+  }
+ ]
+}

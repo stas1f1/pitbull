@@ -1,0 +1,35 @@
+{
+ "program": "event_user-attendance.sql",
+ "checks": [
+  {
+   "seed": "2012-06-20 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "days_on_app"
+   ],
+   "cells": 14,
+   "rows": 16
+  },
+  {
+   "seed": "2012-08-22 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "days_on_app"
+   ],
+   "cells": 190,
+   "rows": 421
+  },
+  {
+   "seed": "2012-10-24 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "days_on_app"
+   ],
+   "cells": 1246,
+   "rows": 2546
+  }
+ ]
+}

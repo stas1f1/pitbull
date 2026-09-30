@@ -1,0 +1,141 @@
+{
+  "experiment": "C1 Fonseca mechanism reimplementation",
+  "status": "complete_clean_room_reimplementation",
+  "source": "literature/2607.04958.pdf Section 8.3",
+  "not_comparable_to_original_numbers": true,
+  "summary": {
+    "M1_coverage_miss": {
+      "n": 5,
+      "sampled_witness_detected": 0,
+      "exhaustive_witness_detected": 5,
+      "sampled_canary_detected": 0,
+      "stamp_only_accepted": 0
+    },
+    "M2_perturbation_insensitivity": {
+      "n": 5,
+      "sampled_witness_detected": 5,
+      "exhaustive_witness_detected": 5,
+      "sampled_canary_detected": 0,
+      "stamp_only_accepted": 0
+    },
+    "M3_restamp": {
+      "n": 5,
+      "sampled_witness_detected": 5,
+      "exhaustive_witness_detected": 5,
+      "sampled_canary_detected": 5,
+      "stamp_only_accepted": 5
+    }
+  },
+  "cases": [
+    {
+      "mechanism": "M1_coverage_miss",
+      "case": 3,
+      "sampled_witness": false,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M1_coverage_miss",
+      "case": 5,
+      "sampled_witness": false,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M1_coverage_miss",
+      "case": 7,
+      "sampled_witness": false,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M1_coverage_miss",
+      "case": 13,
+      "sampled_witness": false,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M1_coverage_miss",
+      "case": 17,
+      "sampled_witness": false,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M2_perturbation_insensitivity",
+      "case": 1,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M2_perturbation_insensitivity",
+      "case": 10,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M2_perturbation_insensitivity",
+      "case": 50,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M2_perturbation_insensitivity",
+      "case": 100,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M2_perturbation_insensitivity",
+      "case": 500,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": false
+    },
+    {
+      "mechanism": "M3_restamp",
+      "case": 1,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": true,
+      "stamp_only_accepts": true
+    },
+    {
+      "mechanism": "M3_restamp",
+      "case": 2,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": true,
+      "stamp_only_accepts": true
+    },
+    {
+      "mechanism": "M3_restamp",
+      "case": 3,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": true,
+      "stamp_only_accepts": true
+    },
+    {
+      "mechanism": "M3_restamp",
+      "case": 4,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": true,
+      "stamp_only_accepts": true
+    },
+    {
+      "mechanism": "M3_restamp",
+      "case": 5,
+      "sampled_witness": true,
+      "exhaustive_witness": true,
+      "sampled_canary": true,
+      "stamp_only_accepts": true
+    }
+  ]
+}

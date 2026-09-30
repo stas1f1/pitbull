@@ -1,0 +1,43 @@
+{
+ "item_id": "rel-stack:018",
+ "model": "z-ai/glm-5.3-flash",
+ "status": "ok",
+ "raw_response": "```json\n{\"availability_class\": \"unknown\", \"availability_column\": null, \"boundary\": \"unknown\", \"mutable\": true, \"checkability\": \"uncheckable\", \"confidence\": 0.9}\n```",
+ "parsed": {
+  "availability_class": "unknown",
+  "availability_column": null,
+  "boundary": "unknown",
+  "mutable": true,
+  "checkability": "uncheckable",
+  "confidence": 0.9
+ },
+ "usage": {
+  "completion_tokens": 2295,
+  "prompt_tokens": 139,
+  "total_tokens": 2434,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 2249,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.0012865,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.0012865,
+   "upstream_inference_prompt_cost": 0.000139,
+   "upstream_inference_completions_cost": 0.0011475
+  }
+ },
+ "wall_seconds": 59.5
+}

@@ -1,0 +1,43 @@
+{
+  "case_id": "3e5eca849c2d",
+  "reviewer": 2,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "```json\n{\"semantic_repair\": \"uncertain\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"medium\", \"comments\": \"Candidate fixes review fallback (empty instead of unfiltered) and gates deliveries/payments on timestamps, but payment filtering is conditional on a 'ts' column whose existence is unknown, so residual payment leakage cannot be ruled out from code alone.\"}\n```",
+  "parsed": {
+    "semantic_repair": "uncertain",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "medium",
+    "comments": "Candidate fixes review fallback (empty instead of unfiltered) and gates deliveries/payments on timestamps, but payment filtering is conditional on a 'ts' column whose existence is unknown, so residual payment leakage cannot be ruled out from code alone."
+  },
+  "usage": {
+    "completion_tokens": 320,
+    "prompt_tokens": 4007,
+    "total_tokens": 4327,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 228,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.0005707875,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.0005707875,
+      "upstream_inference_prompt_cost": 0.0004507875,
+      "upstream_inference_completions_cost": 0.00012
+    }
+  },
+  "wall_seconds": 11.8
+}

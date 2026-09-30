@@ -1,0 +1,43 @@
+{
+  "case_id": "94bcf70661f9",
+  "reviewer": 1,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "```json\n{\"semantic_repair\": \"yes\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"medium\", \"comments\": \"Candidate adds seed_time filters on review_creation_date, delivery/approval timestamps, and payment ts, fixing the original leakage from unfiltered reviews and future delivery dates, while retaining all original feature families (sales, reviews, payments, delivery, status) with only additive window features; the delivered_rate from mutable order_status is a minor residual concern.\"}\n```",
+  "parsed": {
+    "semantic_repair": "yes",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "medium",
+    "comments": "Candidate adds seed_time filters on review_creation_date, delivery/approval timestamps, and payment ts, fixing the original leakage from unfiltered reviews and future delivery dates, while retaining all original feature families (sales, reviews, payments, delivery, status) with only additive window features; the delivered_rate from mutable order_status is a minor residual concern."
+  },
+  "usage": {
+    "completion_tokens": 295,
+    "prompt_tokens": 4807,
+    "total_tokens": 5102,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 182,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.0006514125,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.0006514125,
+      "upstream_inference_prompt_cost": 0.0005407875,
+      "upstream_inference_completions_cost": 0.000110625
+    }
+  },
+  "wall_seconds": 9.1
+}

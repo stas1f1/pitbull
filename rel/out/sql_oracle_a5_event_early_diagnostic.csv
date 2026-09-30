@@ -1,0 +1,10 @@
+file,dataset,task,seed,phase,verdict,columns,cells,columns_nondet,cells_nondet,n_rows,seconds
+event_user-attendance.sql,event,user-attendance,2012-06-20 00:00:00,determinism,DETERMINISTIC,,0,,0,16,629.7
+event_user-attendance.sql,event,user-attendance,2012-06-20 00:00:00,negative_control,CLEAN,,0,,0,16,647.5
+event_user-attendance.sql,event,user-attendance,2012-06-20 00:00:00,main,LEAK,locale;age;gender;days_on_app;location;timezone,77,,0,16,370.3
+event_user-ignore.sql,event,user-ignore,2012-06-20 00:00:00,determinism,DETERMINISTIC,,0,,0,16,721.2
+event_user-ignore.sql,event,user-ignore,2012-06-20 00:00:00,negative_control,CLEAN,,0,,0,16,730.8
+event_user-ignore.sql,event,user-ignore,2012-06-20 00:00:00,main,LEAK,locale;age;gender;days_on_app;location;timezone,77,,0,16,378.8
+event_user-repeat.sql,event,user-repeat,2012-07-11 00:00:00,determinism,DETERMINISTIC,,0,,0,5,824.4
+event_user-repeat.sql,event,user-repeat,2012-07-11 00:00:00,negative_control,CLEAN,,0,,0,5,939.6
+event_user-repeat.sql,event,user-repeat,2012-07-11 00:00:00,main,LEAK,locale;age;gender;days_on_app;location;timezone,26,,0,5,499.5

@@ -1,0 +1,41 @@
+{
+ "item_id": "8eccabc06158d586",
+ "pair_id": "sql_event_cutoff",
+ "category": "handwritten_pair",
+ "arm": "F0_ALT",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "13f79ad1f27a3b7907ca4843dd3ea5f068a6b82eb69d2eebbbe6cc5a81242180",
+ "prompt_sha256": "f8530daf4e7d0fb53ade2f52bd49948af8ea27d1e172668231cc007b7d9272c9",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"LEAK\", \"rationale\": \"Grouping only by UserId collapses multiple eval rows with different seed_times into one count, so per-row features are wrong (mixing counts across seed times) rather than time-safe.\"}",
+ "usage": {
+  "completion_tokens": 195,
+  "prompt_tokens": 150,
+  "total_tokens": 345,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 170,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.000108,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.000108,
+   "upstream_inference_prompt_cost": 1.05e-05,
+   "upstream_inference_completions_cost": 9.75e-05
+  }
+ },
+ "wall_seconds": 16.9
+}

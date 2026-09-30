@@ -1,0 +1,54 @@
+{
+ "program_uid": "c3bef92f3f174aa4",
+ "program": "deepseek-v4-flash-0731#78",
+ "repeat": 1,
+ "iteration": 2,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "0c038a09e8a5b89c27584aee97e6b576a610d813e5242f5684cf857c2bfc416a",
+ "prompt_sha256": "b418533f8f48efa6e230a09d032df0b70720b15133529bb8097367809bfb6391",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Извлечение таблиц\n    orders = db['orders']\n    items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    # Фильтруем заказы, которые были созданы до момента seed_time\n    orders_filtered = orders[orders['order_purchase_timestamp'] < seed_time]\n\n    # Фильтруем позиции товаров по entity_ids и по времени (только до seed_time)\n    items_filtered = items[\n        (items['product_id'].isin(entity_ids)) &\n        (items['ts'] < seed_time)\n    ]\n\n    # Объединяем с отфильтрованными заказами\n    merged = items_filtered.merge(\n        orders_filtered[['order_id', 'order_purchase_timestamp', 'order_delivered_customer_date', 'order_estimated_delivery_date']],\n        on='order_id',\n        how='inner'\n    )\n\n    # Создаём пустой каркас для результата\n    features = pd.DataFrame(index=entity_ids)\n\n    # Если после фильтрации нет данных — вернуть нулевые признаки\n    if merged.empty:\n        features['total_orders'] = 0.0\n        features['total_items'] = 0.0\n        features['total_sales'] = 0.0\n        features['avg_price'] = 0.0\n        features['avg_freight'] = 0.0\n        features['avg_total_value'] = 0.0\n        features['avg_delivery_days'] = 0.0\n        features['delayed_count'] = 0.0\n        features['avg_review_score'] = 0.0\n        features['count_reviews'] = 0.0\n        features['neg_review_count'] = 0.0\n        return features\n\n    # Производные колонки\n    merged['total_value'] = merged['price'] + merged['freight_value']\n    \n    # Вычисляем delivery_days только если обе даты существуют и доставка уже произошла (до seed_time)\n    merged['delivery_days'] = np.where(\n        (merged['order_delivered_customer_date'].notnull()) &\n        (merged['order_delivered_customer_date'] < seed_time),\n        (merged['order_delivered_customer_date'] - merged['order_purchase_timestamp']).dt.days,\n        np.nan\n    )\n\n    # Метка опоздания: доставка позже оценочной даты (если известны обе даты и доставка уже произошла до seed_time)\n    merged['is_delayed'] = np.where(\n        (merged['order_delivered_customer_date'].notnull()) &\n        (merged['order_estimated_delivery_date'].notnull()) &\n        (merged['order_delivered_customer_date'] < seed_time),\n        (merged['order_delivered_customer_date'] > merged['order_estimated_delivery_date']).astype(int),\n        0\n    )\n\n    # Агрегация по продуктам\n    agg = merged.groupby('product_id').agg(\n        total_orders=('order_id', 'nunique'),\n        total_items=('order_item_id', 'count'),\n        total_sales=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        avg_freight=('freight_value', 'mean'),\n        avg_total_value=('total_value', 'mean'),\n        avg_delivery_days=('delivery_days', 'mean'),\n        delayed_count=('is_delayed', 'sum'),\n    ).reset_index()\n\n    agg.set_index('product_id', inplace=True)\n\n    # --- Признаки из отзывов ---\n    # Отфильтровать отзывы, созданные до seed_time\n    reviews_filtered = reviews[reviews['review_creation_date'] < seed_time][['order_id', 'review_score']]\n\n    # Присоединить отзывы к данным о товарах\n    rev_merge = merged[['product_id', 'order_id']].merge(reviews_filtered, on='order_id', how='inner')\n    \n    if not rev_merge.empty:\n        rev_agg = rev_merge.groupby('product_id').agg(\n            avg_review_score=('review_score', 'mean'),\n            count_reviews=('review_score', 'count'),\n            neg_review_count=('review_score', lambda x: (x <= 1).sum())\n        )\n        agg = agg.join(rev_agg, how='left')\n\n    # Заполнение отсутствующих значений нулями\n    agg.fillna({\n        'avg_review_score': 0,\n        'count_reviews': 0,\n        'neg_review_count': 0\n    }, inplace=True)\n\n    # Соединяем с каркасом и заполняем все остальные NaN нулями\n    features = features.join(agg, how='left')\n    features.fillna(0.0, inplace=True)\n\n    return features\n```",
+   "usage": {
+    "completion_tokens": 1049,
+    "prompt_tokens": 3530,
+    "total_tokens": 4579,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2416,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.0026648,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.0026648,
+     "upstream_inference_prompt_cost": 0.0007766,
+     "upstream_inference_completions_cost": 0.0018882
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "def get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Извлечение таблиц\n    orders = db['orders']\n    items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    # Фильтруем заказы, которые были созданы до момента seed_time\n    orders_filtered = orders[orders['order_purchase_timestamp'] < seed_time]\n\n    # Фильтруем позиции товаров по entity_ids и по времени (только до seed_time)\n    items_filtered = items[\n        (items['product_id'].isin(entity_ids)) &\n        (items['ts'] < seed_time)\n    ]\n\n    # Объединяем с отфильтрованными заказами\n    merged = items_filtered.merge(\n        orders_filtered[['order_id', 'order_purchase_timestamp', 'order_delivered_customer_date', 'order_estimated_delivery_date']],\n        on='order_id',\n        how='inner'\n    )\n\n    # Создаём пустой каркас для результата\n    features = pd.DataFrame(index=entity_ids)\n\n    # Если после фильтрации нет данных — вернуть нулевые признаки\n    if merged.empty:\n        features['total_orders'] = 0.0\n        features['total_items'] = 0.0\n        features['total_sales'] = 0.0\n        features['avg_price'] = 0.0\n        features['avg_freight'] = 0.0\n        features['avg_total_value'] = 0.0\n        features['avg_delivery_days'] = 0.0\n        features['delayed_count'] = 0.0\n        features['avg_review_score'] = 0.0\n        features['count_reviews'] = 0.0\n        features['neg_review_count'] = 0.0\n        return features\n\n    # Производные колонки\n    merged['total_value'] = merged['price'] + merged['freight_value']\n    \n    # Вычисляем delivery_days только если обе даты существуют и доставка уже произошла (до seed_time)\n    merged['delivery_days'] = np.where(\n        (merged['order_delivered_customer_date'].notnull()) &\n        (merged['order_delivered_customer_date'] < seed_time),\n        (merged['order_delivered_customer_date'] - merged['order_purchase_timestamp']).dt.days,\n        np.nan\n    )\n\n    # Метка опоздания: доставка позже оценочной даты (если известны обе даты и доставка уже произошла до seed_time)\n    merged['is_delayed'] = np.where(\n        (merged['order_delivered_customer_date'].notnull()) &\n        (merged['order_estimated_delivery_date'].notnull()) &\n        (merged['order_delivered_customer_date'] < seed_time),\n        (merged['order_delivered_customer_date'] > merged['order_estimated_delivery_date']).astype(int),\n        0\n    )\n\n    # Агрегация по продуктам\n    agg = merged.groupby('product_id').agg(\n        total_orders=('order_id', 'nunique'),\n        total_items=('order_item_id', 'count'),\n        total_sales=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        avg_freight=('freight_value', 'mean'),\n        avg_total_value=('total_value', 'mean'),\n        avg_delivery_days=('delivery_days', 'mean'),\n        delayed_count=('is_delayed', 'sum'),\n    ).reset_index()\n\n    agg.set_index('product_id', inplace=True)\n\n    # --- Признаки из отзывов ---\n    # Отфильтровать отзывы, созданные до seed_time\n    reviews_filtered = reviews[reviews['review_creation_date'] < seed_time][['order_id', 'review_score']]\n\n    # Присоединить отзывы к данным о товарах\n    rev_merge = merged[['product_id', 'order_id']].merge(reviews_filtered, on='order_id', how='inner')\n    \n    if not rev_merge.empty:\n        rev_agg = rev_merge.groupby('product_id').agg(\n            avg_review_score=('review_score', 'mean'),\n            count_reviews=('review_score', 'count'),\n            neg_review_count=('review_score', lambda x: (x <= 1).sum())\n        )\n        agg = agg.join(rev_agg, how='left')\n\n    # Заполнение отсутствующих значений нулями\n    agg.fillna({\n        'avg_review_score': 0,\n        'count_reviews': 0,\n        'neg_review_count': 0\n    }, inplace=True)\n\n    # Соединяем с каркасом и заполняем все остальные NaN нулями\n    features = features.join(agg, how='left')\n    features.fillna(0.0, inplace=True)\n\n    return features",
+ "usage": {
+  "prompt_tokens": 3530,
+  "completion_tokens": 1049,
+  "total_tokens": 4579,
+  "cost": 0.0026648
+ },
+ "wall_seconds": 16.3
+}

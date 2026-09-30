@@ -1,0 +1,41 @@
+{
+ "item_id": "029466ab2b2e34ce",
+ "pair_id": "a2-7f0902132101548f",
+ "category": "checker_pair",
+ "arm": "F0_ALT",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "7f0902132101548fbb2c644eb7a5813a86025564ba17c7e92e340014ebe0860e",
+ "prompt_sha256": "5cd514697fea80dcf1da893bae61cbebb084ba20bb8e4665fe2060d0f4e7d65a",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"LEAK\", \"rationale\": \"Delivery features (delivery_time_days, delay_days, late_share) use order_delivered_customer_date without filtering to deliveries occurring before seed_time, so they incorporate post-seed_time outcome information.\"}",
+ "usage": {
+  "completion_tokens": 146,
+  "prompt_tokens": 1516,
+  "total_tokens": 1662,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 118,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.0003004,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.0003004,
+   "upstream_inference_prompt_cost": 0.0002274,
+   "upstream_inference_completions_cost": 7.3e-05
+  }
+ },
+ "wall_seconds": 1.5
+}

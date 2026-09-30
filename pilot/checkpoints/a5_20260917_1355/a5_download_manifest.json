@@ -1,0 +1,188 @@
+{
+  "source": "https://huggingface.co/datasets/stanford-star/relbench-v1",
+  "revision": "d8e976fd0a4b78877204bc8dfbcfc9a9f7f48600",
+  "subsets": [
+    "rel-event",
+    "rel-f1"
+  ],
+  "files": 44,
+  "bytes": 120319364,
+  "inventory": [
+    {
+      "path": "rel-event/db/event_attendees.parquet",
+      "bytes": 1135796
+    },
+    {
+      "path": "rel-event/db/event_interest.parquet",
+      "bytes": 155136
+    },
+    {
+      "path": "rel-event/db/events.parquet",
+      "bytes": 114480441
+    },
+    {
+      "path": "rel-event/db/user_friends.parquet",
+      "bytes": 2109524
+    },
+    {
+      "path": "rel-event/db/users.parquet",
+      "bytes": 774582
+    },
+    {
+      "path": "rel-event/manifest.yaml",
+      "bytes": 672
+    },
+    {
+      "path": "rel-event/README.md",
+      "bytes": 1874
+    },
+    {
+      "path": "rel-event/schema.svg",
+      "bytes": 78100
+    },
+    {
+      "path": "rel-event/tasks/user-attendance/manifest.yaml",
+      "bytes": 746
+    },
+    {
+      "path": "rel-event/tasks/user-attendance/test.parquet",
+      "bytes": 13716
+    },
+    {
+      "path": "rel-event/tasks/user-attendance/train.parquet",
+      "bytes": 77562
+    },
+    {
+      "path": "rel-event/tasks/user-attendance/val.parquet",
+      "bytes": 14051
+    },
+    {
+      "path": "rel-event/tasks/user-ignore/manifest.yaml",
+      "bytes": 823
+    },
+    {
+      "path": "rel-event/tasks/user-ignore/test.parquet",
+      "bytes": 13274
+    },
+    {
+      "path": "rel-event/tasks/user-ignore/train.parquet",
+      "bytes": 74248
+    },
+    {
+      "path": "rel-event/tasks/user-ignore/val.parquet",
+      "bytes": 13618
+    },
+    {
+      "path": "rel-event/tasks/user-repeat/manifest.yaml",
+      "bytes": 1427
+    },
+    {
+      "path": "rel-event/tasks/user-repeat/test.parquet",
+      "bytes": 3707
+    },
+    {
+      "path": "rel-event/tasks/user-repeat/train.parquet",
+      "bytes": 11560
+    },
+    {
+      "path": "rel-event/tasks/user-repeat/val.parquet",
+      "bytes": 3851
+    },
+    {
+      "path": "rel-f1/db/circuits.parquet",
+      "bytes": 10623
+    },
+    {
+      "path": "rel-f1/db/constructor_results.parquet",
+      "bytes": 113911
+    },
+    {
+      "path": "rel-f1/db/constructor_standings.parquet",
+      "bytes": 143374
+    },
+    {
+      "path": "rel-f1/db/constructors.parquet",
+      "bytes": 8477
+    },
+    {
+      "path": "rel-f1/db/drivers.parquet",
+      "bytes": 38814
+    },
+    {
+      "path": "rel-f1/db/qualifying.parquet",
+      "bytes": 101467
+    },
+    {
+      "path": "rel-f1/db/races.parquet",
+      "bytes": 24868
+    },
+    {
+      "path": "rel-f1/db/results.parquet",
+      "bytes": 438901
+    },
+    {
+      "path": "rel-f1/db/standings.parquet",
+      "bytes": 344321
+    },
+    {
+      "path": "rel-f1/manifest.yaml",
+      "bytes": 1196
+    },
+    {
+      "path": "rel-f1/README.md",
+      "bytes": 1823
+    },
+    {
+      "path": "rel-f1/schema.svg",
+      "bytes": 50316
+    },
+    {
+      "path": "rel-f1/tasks/driver-dnf/manifest.yaml",
+      "bytes": 787
+    },
+    {
+      "path": "rel-f1/tasks/driver-dnf/test.parquet",
+      "bytes": 3190
+    },
+    {
+      "path": "rel-f1/tasks/driver-dnf/train.parquet",
+      "bytes": 20861
+    },
+    {
+      "path": "rel-f1/tasks/driver-dnf/val.parquet",
+      "bytes": 3198
+    },
+    {
+      "path": "rel-f1/tasks/driver-position/manifest.yaml",
+      "bytes": 752
+    },
+    {
+      "path": "rel-f1/tasks/driver-position/test.parquet",
+      "bytes": 4795
+    },
+    {
+      "path": "rel-f1/tasks/driver-position/train.parquet",
+      "bytes": 26979
+    },
+    {
+      "path": "rel-f1/tasks/driver-position/val.parquet",
+      "bytes": 4168
+    },
+    {
+      "path": "rel-f1/tasks/driver-top3/manifest.yaml",
+      "bytes": 827
+    },
+    {
+      "path": "rel-f1/tasks/driver-top3/test.parquet",
+      "bytes": 3238
+    },
+    {
+      "path": "rel-f1/tasks/driver-top3/train.parquet",
+      "bytes": 4521
+    },
+    {
+      "path": "rel-f1/tasks/driver-top3/val.parquet",
+      "bytes": 3249
+    }
+  ]
+}

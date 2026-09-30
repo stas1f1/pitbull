@@ -1,0 +1,430 @@
+{
+  "experiment": "B7 AI-assisted proxy repair assessment",
+  "status": "complete_ai_assisted_proxy; not_human_expert_validation",
+  "model": "z-ai/glm-5.3-flash",
+  "cases": 20,
+  "independent_reviews": 40,
+  "usage": {
+    "prompt_tokens": 139422,
+    "completion_tokens": 14586,
+    "total_tokens": 154008,
+    "cost": 0.026113475
+  },
+  "agreement": {
+    "semantic_repair": {
+      "exact": 16,
+      "n": 20,
+      "rate": 0.8,
+      "cohen_kappa": 0.3442622950819672,
+      "reviewer_1": {
+        "yes": 17,
+        "uncertain": 2,
+        "no": 1
+      },
+      "reviewer_2": {
+        "yes": 16,
+        "uncertain": 2,
+        "no": 2
+      }
+    },
+    "feature_intent_preserved": {
+      "exact": 20,
+      "n": 20,
+      "rate": 1.0,
+      "cohen_kappa": 1.0,
+      "reviewer_1": {
+        "yes": 20
+      },
+      "reviewer_2": {
+        "yes": 20
+      }
+    },
+    "unnecessary_feature_deletion": {
+      "exact": 20,
+      "n": 20,
+      "rate": 1.0,
+      "cohen_kappa": 1.0,
+      "reviewer_1": {
+        "no": 20
+      },
+      "reviewer_2": {
+        "no": 20
+      }
+    }
+  },
+  "unanimous_semantic_yes": 15,
+  "unanimous_full_accept": 15,
+  "checker_clean": {
+    "n": 16,
+    "unanimous_semantic_yes": 12,
+    "unanimous_full_accept": 12
+  },
+  "checker_failed": {
+    "n": 4,
+    "unanimous_semantic_yes": 3,
+    "unanimous_semantic_no": 0
+  },
+  "cases_detail": [
+    {
+      "case_id": "02b404a1f40a",
+      "checker_status": "clean",
+      "mechanism": "VAR_MIXUP",
+      "clean_at": 1,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "062788bb00b1",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 2,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "3abb65903665",
+      "checker_status": "failed",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": null,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "3e5eca849c2d",
+      "checker_status": "failed",
+      "mechanism": "PAYMENTS_NO_FILTER",
+      "clean_at": null,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "uncertain",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "disagree",
+      "unanimous_accept": false
+    },
+    {
+      "case_id": "4fad7a06b2aa",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 1,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "5c4c47d81735",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 1,
+      "reviewer_1": {
+        "semantic_repair": "uncertain",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "disagree",
+      "unanimous_accept": false
+    },
+    {
+      "case_id": "5f8f8a90e1de",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 3,
+      "reviewer_1": {
+        "semantic_repair": "uncertain",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "no",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "disagree",
+      "unanimous_accept": false
+    },
+    {
+      "case_id": "6719fc777dc7",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 3,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "779d22f7acfc",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 2,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "7f75bc391cd5",
+      "checker_status": "failed",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": null,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "94bcf70661f9",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 1,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "uncertain",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "disagree",
+      "unanimous_accept": false
+    },
+    {
+      "case_id": "966185d2de25",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 1,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "affaa869a7ea",
+      "checker_status": "clean",
+      "mechanism": "PAYMENTS_NO_FILTER",
+      "clean_at": 2,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "ba8b9e991eb5",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 2,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "c53419b5b494",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 2,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "e154fa611534",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 4,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "f3ef78deeb82",
+      "checker_status": "clean",
+      "mechanism": "REVIEWS_NO_FILTER",
+      "clean_at": 4,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "fbd34db00757",
+      "checker_status": "clean",
+      "mechanism": "VAR_MIXUP",
+      "clean_at": 1,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    },
+    {
+      "case_id": "fc42055d2e78",
+      "checker_status": "clean",
+      "mechanism": "VAR_MIXUP",
+      "clean_at": 1,
+      "reviewer_1": {
+        "semantic_repair": "no",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "no",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "no",
+      "unanimous_accept": false
+    },
+    {
+      "case_id": "fd8843bedd4d",
+      "checker_status": "failed",
+      "mechanism": "PAYMENTS_NO_FILTER",
+      "clean_at": null,
+      "reviewer_1": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "reviewer_2": {
+        "semantic_repair": "yes",
+        "feature_intent_preserved": "yes",
+        "unnecessary_feature_deletion": "no"
+      },
+      "unanimous_semantic": "yes",
+      "unanimous_accept": true
+    }
+  ],
+  "limitation": "Both reviewers are independent calls to the same LLM; this is an authorized proxy and does not satisfy the preregistered external-human criterion."
+}

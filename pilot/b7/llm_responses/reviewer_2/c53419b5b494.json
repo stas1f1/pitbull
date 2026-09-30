@@ -1,0 +1,43 @@
+{
+  "case_id": "c53419b5b494",
+  "reviewer": 2,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "```json\n{\"semantic_repair\": \"yes\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"high\", \"comments\": \"Candidate fixes the leaks by filtering payments on ts, reviews on review_creation_date, and masking delivery dates at/after seed_time, while retaining all original feature families and only adding new ones.\"}\n```",
+  "parsed": {
+    "semantic_repair": "yes",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "high",
+    "comments": "Candidate fixes the leaks by filtering payments on ts, reviews on review_creation_date, and masking delivery dates at/after seed_time, while retaining all original feature families and only adding new ones."
+  },
+  "usage": {
+    "completion_tokens": 139,
+    "prompt_tokens": 3225,
+    "total_tokens": 3364,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 73,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.00029525,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.00029525,
+      "upstream_inference_prompt_cost": 0.00022575,
+      "upstream_inference_completions_cost": 6.95e-05
+    }
+  },
+  "wall_seconds": 13.2
+}

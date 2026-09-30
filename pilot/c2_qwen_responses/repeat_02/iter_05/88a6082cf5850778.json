@@ -1,0 +1,54 @@
+{
+ "program_uid": "88a6082cf5850778",
+ "program": "deepseek-v4-flash-0731#41",
+ "repeat": 2,
+ "iteration": 5,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "be0ec3a44cf7c015912ecf2c61b3af55b1b2910d271ad3e471ff667e5f51ed9c",
+ "prompt_sha256": "baeca5703be62c2851857fcfb89c7de9f0f6eddee188cf2541ef62cb287abc31",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\nimport pandas as pd\nimport numpy as np\n\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    \"\"\"\n    Возвращает матрицу признаков для каждого product_id на основе истории до seed_time.\n    \"\"\"\n    orders = db['orders']\n    items = db['order_items']\n    payments = db['payments']\n    reviews = db['reviews']\n    \n    seed_time = pd.Timestamp(seed_time)\n    \n    # Отбираем только заказы, созданные до seed_time\n    orders_before = orders[orders['order_purchase_timestamp'] < seed_time].copy()\n    \n    if orders_before.empty:\n        feature_cols = [\n            'order_count', 'total_revenue', 'avg_price', 'median_price', 'std_price',\n            'unique_sellers', 'days_since_last_purchase', 'product_age_days',\n            'avg_freight', 'avg_installments', 'avg_delivery_days',\n            'avg_estimated_delivery_days', 'avg_review_score'\n        ]\n        return pd.DataFrame(0, index=entity_ids, columns=feature_cols)\n    \n    # Присоединяем элементы заказов\n    merged = items.merge(\n        orders_before[['order_id', 'order_purchase_timestamp', 'order_delivered_customer_date',\n                       'order_estimated_delivery_date']],\n        on='order_id',\n        how='inner'\n    )\n    \n    # Фильтруем только те строки из items, где ts < seed_time (момент покупки)\n    merged = merged[merged['ts'] < seed_time]\n    \n    if merged.empty:\n        feature_cols = [\n            'order_count', 'total_revenue', 'avg_price', 'median_price', 'std_price',\n            'unique_sellers', 'days_since_last_purchase', 'product_age_days',\n            'avg_freight', 'avg_installments', 'avg_delivery_days',\n            'avg_estimated_delivery_days', 'avg_review_score'\n        ]\n        return pd.DataFrame(0, index=entity_ids, columns=feature_cols)\n    \n    # Агрегируем по product_id\n    grp = merged.groupby('product_id')\n    \n    features = pd.DataFrame()\n    features['order_count'] = grp.size()\n    features['total_revenue'] = grp.apply(lambda x: (x['price'] + x['freight_value']).sum())\n    features['avg_price'] = grp['price'].mean()\n    features['median_price'] = grp['price'].median()\n    features['std_price'] = grp['price'].std()\n    features['unique_sellers'] = grp['seller_id'].nunique()\n    features['avg_freight'] = grp['freight_value'].mean()\n    \n    # Временные метрики\n    last_purchase = grp['order_purchase_timestamp'].max()\n    first_purchase = grp['order_purchase_timestamp'].min()\n    features['days_since_last_purchase'] = (seed_time - last_purchase).dt.days\n    features['product_age_days'] = (seed_time - first_purchase).dt.days\n    \n    # Среднее время доставки (только если дата доставки была до seed_time)\n    def avg_delivery_days(x):\n        valid = x['order_delivered_customer_date'] <= seed_time\n        if valid.sum() == 0:\n            return np.nan\n        delta = (x.loc[valid, 'order_delivered_customer_date'] - x.loc[valid, 'order_purchase_timestamp']).dt.days\n        return delta.mean()\n    features['avg_delivery_days'] = grp.apply(avg_delivery_days)\n    \n    # Среднее ожидаемое время доставки (берём из заказов, где estimated дата <= seed_time)\n    def avg_est_delivery_days(x):\n        valid = x['order_estimated_delivery_date'] <= seed_time\n        if valid.sum() == 0:\n            return np.nan\n        delta = (x.loc[valid, 'order_estimated_delivery_date'] - x.loc[valid, 'order_purchase_timestamp']).dt.days\n        return delta.mean()\n    features['avg_estimated_delivery_days'] = grp.apply(avg_est_delivery_days)\n    \n    # Признаки оплаты: среднее число рассрочек (только платежи до seed_time)\n    order_pay = payments[payments['ts'] < seed_time].groupby('order_id')['payment_installments'].mean().rename('avg_installments')\n    merged_pay = merged[['order_id', 'product_id']].drop_duplicates().merge(order_pay, on='order_id', how='left')\n    pay_agg = merged_pay.groupby('product_id')['avg_installments'].mean()\n    features['avg_installments'] = pay_agg\n    \n    # Признаки отзывов: средняя оценка (только отзывы до seed_time)\n    order_rev = reviews[reviews['review_creation_date'] < seed_time].groupby('order_id')['review_score'].mean().rename('review_score')\n    merged_rev = merged[['order_id', 'product_id']].drop_duplicates().merge(order_rev, on='order_id', how='left')\n    rev_agg = merged_rev.groupby('product_id')['review_score'].mean()\n    features['avg_review_score'] = rev_agg\n    \n    # Удаляем дубликаты индексов\n    features = features[~features.index.duplicated(keep='first')]\n    \n    # Реиндексируем под entity_ids и заполняем пропуски нулями\n    features = features.reindex(entity_ids)\n    features = features.fillna(0)\n    \n    return features\n```",
+   "usage": {
+    "completion_tokens": 1160,
+    "prompt_tokens": 3582,
+    "total_tokens": 4742,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2368,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.00225962,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.00225962,
+     "upstream_inference_prompt_cost": 0.00051962,
+     "upstream_inference_completions_cost": 0.00174
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "import pandas as pd\nimport numpy as np\n\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    \"\"\"\n    Возвращает матрицу признаков для каждого product_id на основе истории до seed_time.\n    \"\"\"\n    orders = db['orders']\n    items = db['order_items']\n    payments = db['payments']\n    reviews = db['reviews']\n    \n    seed_time = pd.Timestamp(seed_time)\n    \n    # Отбираем только заказы, созданные до seed_time\n    orders_before = orders[orders['order_purchase_timestamp'] < seed_time].copy()\n    \n    if orders_before.empty:\n        feature_cols = [\n            'order_count', 'total_revenue', 'avg_price', 'median_price', 'std_price',\n            'unique_sellers', 'days_since_last_purchase', 'product_age_days',\n            'avg_freight', 'avg_installments', 'avg_delivery_days',\n            'avg_estimated_delivery_days', 'avg_review_score'\n        ]\n        return pd.DataFrame(0, index=entity_ids, columns=feature_cols)\n    \n    # Присоединяем элементы заказов\n    merged = items.merge(\n        orders_before[['order_id', 'order_purchase_timestamp', 'order_delivered_customer_date',\n                       'order_estimated_delivery_date']],\n        on='order_id',\n        how='inner'\n    )\n    \n    # Фильтруем только те строки из items, где ts < seed_time (момент покупки)\n    merged = merged[merged['ts'] < seed_time]\n    \n    if merged.empty:\n        feature_cols = [\n            'order_count', 'total_revenue', 'avg_price', 'median_price', 'std_price',\n            'unique_sellers', 'days_since_last_purchase', 'product_age_days',\n            'avg_freight', 'avg_installments', 'avg_delivery_days',\n            'avg_estimated_delivery_days', 'avg_review_score'\n        ]\n        return pd.DataFrame(0, index=entity_ids, columns=feature_cols)\n    \n    # Агрегируем по product_id\n    grp = merged.groupby('product_id')\n    \n    features = pd.DataFrame()\n    features['order_count'] = grp.size()\n    features['total_revenue'] = grp.apply(lambda x: (x['price'] + x['freight_value']).sum())\n    features['avg_price'] = grp['price'].mean()\n    features['median_price'] = grp['price'].median()\n    features['std_price'] = grp['price'].std()\n    features['unique_sellers'] = grp['seller_id'].nunique()\n    features['avg_freight'] = grp['freight_value'].mean()\n    \n    # Временные метрики\n    last_purchase = grp['order_purchase_timestamp'].max()\n    first_purchase = grp['order_purchase_timestamp'].min()\n    features['days_since_last_purchase'] = (seed_time - last_purchase).dt.days\n    features['product_age_days'] = (seed_time - first_purchase).dt.days\n    \n    # Среднее время доставки (только если дата доставки была до seed_time)\n    def avg_delivery_days(x):\n        valid = x['order_delivered_customer_date'] <= seed_time\n        if valid.sum() == 0:\n            return np.nan\n        delta = (x.loc[valid, 'order_delivered_customer_date'] - x.loc[valid, 'order_purchase_timestamp']).dt.days\n        return delta.mean()\n    features['avg_delivery_days'] = grp.apply(avg_delivery_days)\n    \n    # Среднее ожидаемое время доставки (берём из заказов, где estimated дата <= seed_time)\n    def avg_est_delivery_days(x):\n        valid = x['order_estimated_delivery_date'] <= seed_time\n        if valid.sum() == 0:\n            return np.nan\n        delta = (x.loc[valid, 'order_estimated_delivery_date'] - x.loc[valid, 'order_purchase_timestamp']).dt.days\n        return delta.mean()\n    features['avg_estimated_delivery_days'] = grp.apply(avg_est_delivery_days)\n    \n    # Признаки оплаты: среднее число рассрочек (только платежи до seed_time)\n    order_pay = payments[payments['ts'] < seed_time].groupby('order_id')['payment_installments'].mean().rename('avg_installments')\n    merged_pay = merged[['order_id', 'product_id']].drop_duplicates().merge(order_pay, on='order_id', how='left')\n    pay_agg = merged_pay.groupby('product_id')['avg_installments'].mean()\n    features['avg_installments'] = pay_agg\n    \n    # Признаки отзывов: средняя оценка (только отзывы до seed_time)\n    order_rev = reviews[reviews['review_creation_date'] < seed_time].groupby('order_id')['review_score'].mean().rename('review_score')\n    merged_rev = merged[['order_id', 'product_id']].drop_duplicates().merge(order_rev, on='order_id', how='left')\n    rev_agg = merged_rev.groupby('product_id')['review_score'].mean()\n    features['avg_review_score'] = rev_agg\n    \n    # Удаляем дубликаты индексов\n    features = features[~features.index.duplicated(keep='first')]\n    \n    # Реиндексируем под entity_ids и заполняем пропуски нулями\n    features = features.reindex(entity_ids)\n    features = features.fillna(0)\n    \n    return features",
+ "usage": {
+  "prompt_tokens": 3582,
+  "completion_tokens": 1160,
+  "total_tokens": 4742,
+  "cost": 0.00225962
+ },
+ "wall_seconds": 16.2
+}

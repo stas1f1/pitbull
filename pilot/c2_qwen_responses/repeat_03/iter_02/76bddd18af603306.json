@@ -1,0 +1,54 @@
+{
+ "program_uid": "76bddd18af603306",
+ "program": "deepseek-v4-flash-0731#32",
+ "repeat": 3,
+ "iteration": 2,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "76bddd18af60330634b87d86cae09b8b0e464fb12791533015f8b121511d4719",
+ "prompt_sha256": "c3fd91faf4f3d05c4e6f633746f14383a677406c692326fa105f254e760d5a54",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    orders = db[\"orders\"]\n    items = db[\"order_items\"]\n    reviews = db[\"reviews\"]\n    payments = db[\"payments\"]\n\n    seed_time = pd.Timestamp(seed_time)\n    \n    # Оставляем только данные до момента seed_time\n    past_items = items[items[\"ts\"] < seed_time].copy()\n    past_orders = orders[orders[\"order_purchase_timestamp\"] < seed_time].copy()\n    past_reviews = reviews[reviews[\"review_creation_date\"] < seed_time].copy()\n    past_payments = payments[payments[\"ts\"] < seed_time].copy()\n\n    result_index = pd.Index(entity_ids)\n    result = pd.DataFrame(index=result_index)\n\n    if len(past_items) == 0:\n        zero_cols = [\n            \"total_items_sold\", \"total_orders_sold\", \"total_customers\",\n            \"avg_price\", \"avg_freight\", \"min_price\", \"max_price\", \"std_price\",\n            \"total_price\", \"total_revenue\", \"days_since_last\", \"span_days\",\n            \"sales_last_30d\", \"orders_last_30d\",\n            \"sales_last_60d\", \"orders_last_60d\",\n            \"sales_last_90d\", \"orders_last_90d\",\n            \"sales_last_180d\", \"orders_last_180d\",\n            \"avg_review_score\", \"review_count\", \"avg_interval_days\",\n            \"share_last_90\", \"had_sales\", \"sales_per_day\"\n        ]\n        for col in zero_cols:\n            result[col] = 0\n        return result\n\n    # Объединяем данные о заказах с товарами\n    orders_sub = past_orders[[\"order_id\", \"customer_id\"]]\n    merged = past_items.merge(orders_sub, on=\"order_id\", how=\"left\")\n    merged[\"price_freight\"] = merged[\"price\"] + merged[\"freight_value\"]\n\n    # Агрегируем основные метрики по продуктам\n    grp = merged.groupby(\"product_id\").agg(\n        total_items_sold=(\"price_freight\", \"count\"),\n        total_orders_sold=(\"order_id\", \"nunique\"),\n        total_customers=(\"customer_id\", \"nunique\"),\n        avg_price=(\"price\", \"mean\"),\n        avg_freight=(\"freight_value\", \"mean\"),\n        min_price=(\"price\", \"min\"),\n        max_price=(\"price\", \"max\"),\n        std_price=(\"price\", \"std\"),\n        total_price=(\"price\", \"sum\"),\n        total_revenue=(\"price_freight\", \"sum\"),\n        first_ts=(\"ts\", \"min\"),\n        last_ts=(\"ts\", \"max\"),\n    )\n\n    # Вычисляем временные окна продаж\n    for window in [30, 60, 90, 180]:\n        start = seed_time - pd.Timedelta(days=window)\n        mask = (merged[\"ts\"] >= start) & (merged[\"ts\"] < seed_time)\n        win = merged[mask]\n        sales_win = win.groupby(\"product_id\").size()\n        orders_win = win.groupby(\"product_id\")[\"order_id\"].nunique()\n        grp[f\"sales_last_{window}d\"] = sales_win\n        grp[f\"orders_last_{window}d\"] = orders_win\n\n    # Добавляем информацию об отзывах (только те, что были созданы до seed_time)\n    review_joined = past_items[[\"order_id\", \"product_id\"]].merge(\n        past_reviews[[\"order_id\", \"review_score\"]], on=\"order_id\", how=\"inner\"\n    )\n    \n    if len(review_joined) > 0:\n        rev_agg = review_joined.groupby(\"product_id\").agg(\n            avg_review_score=(\"review_score\", \"mean\"),\n            review_count=(\"review_score\", \"count\"),\n        )\n        grp = grp.join(rev_agg, how=\"left\")\n    else:\n        grp[\"avg_review_score\"] = np.nan\n        grp[\"review_count\"] = 0\n\n    # Вычисляем дополнительные признаки\n    grp[\"days_since_last\"] = (seed_time - grp[\"last_ts\"]).dt.days\n    grp[\"span_days\"] = (grp[\"last_ts\"] - grp[\"first_ts\"]).dt.days\n    grp[\"span_days\"] = grp[\"span_days\"].replace(0, 1)  # Избегаем деления на 0\n\n    # Средний интервал между покупками\n    def avg_interval(s):\n        s = s.drop_duplicates().sort_values()\n        if len(s) < 2:\n            return np.nan\n        diffs = s.diff().dropna().dt.days\n        return diffs.mean()\n\n    grp[\"avg_interval_days\"] = merged.groupby(\"product_id\")[\"ts\"].apply(avg_interval)\n\n    # Продажи в день и доля последних продаж\n    grp[\"sales_per_day\"] = grp[\"total_orders_sold\"] / grp[\"span_days\"]\n    grp[\"sales_per_day\"] = grp[\"sales_per_day\"].replace([np.inf, -np.inf], np.nan)\n    \n    grp[\"share_last_90\"] = grp[\"orders_last_90d\"] / grp[\"total_orders_sold\"]\n    grp[\"share_last_90\"] = grp[\"share_last_90\"].replace([np.inf, -np.inf], np.nan)\n\n    # Заполняем отсутствующие значения и формируем результат\n    result = grp.reindex(result_index).fillna(0)\n    result[\"had_sales\"] = result[\"total_orders_sold\"] > 0\n\n    return result\n```",
+   "usage": {
+    "completion_tokens": 1197,
+    "prompt_tokens": 3471,
+    "total_tokens": 4668,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 0,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.00301035,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.00301035,
+     "upstream_inference_prompt_cost": 0.00121485,
+     "upstream_inference_completions_cost": 0.0017955
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "def get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    orders = db[\"orders\"]\n    items = db[\"order_items\"]\n    reviews = db[\"reviews\"]\n    payments = db[\"payments\"]\n\n    seed_time = pd.Timestamp(seed_time)\n    \n    # Оставляем только данные до момента seed_time\n    past_items = items[items[\"ts\"] < seed_time].copy()\n    past_orders = orders[orders[\"order_purchase_timestamp\"] < seed_time].copy()\n    past_reviews = reviews[reviews[\"review_creation_date\"] < seed_time].copy()\n    past_payments = payments[payments[\"ts\"] < seed_time].copy()\n\n    result_index = pd.Index(entity_ids)\n    result = pd.DataFrame(index=result_index)\n\n    if len(past_items) == 0:\n        zero_cols = [\n            \"total_items_sold\", \"total_orders_sold\", \"total_customers\",\n            \"avg_price\", \"avg_freight\", \"min_price\", \"max_price\", \"std_price\",\n            \"total_price\", \"total_revenue\", \"days_since_last\", \"span_days\",\n            \"sales_last_30d\", \"orders_last_30d\",\n            \"sales_last_60d\", \"orders_last_60d\",\n            \"sales_last_90d\", \"orders_last_90d\",\n            \"sales_last_180d\", \"orders_last_180d\",\n            \"avg_review_score\", \"review_count\", \"avg_interval_days\",\n            \"share_last_90\", \"had_sales\", \"sales_per_day\"\n        ]\n        for col in zero_cols:\n            result[col] = 0\n        return result\n\n    # Объединяем данные о заказах с товарами\n    orders_sub = past_orders[[\"order_id\", \"customer_id\"]]\n    merged = past_items.merge(orders_sub, on=\"order_id\", how=\"left\")\n    merged[\"price_freight\"] = merged[\"price\"] + merged[\"freight_value\"]\n\n    # Агрегируем основные метрики по продуктам\n    grp = merged.groupby(\"product_id\").agg(\n        total_items_sold=(\"price_freight\", \"count\"),\n        total_orders_sold=(\"order_id\", \"nunique\"),\n        total_customers=(\"customer_id\", \"nunique\"),\n        avg_price=(\"price\", \"mean\"),\n        avg_freight=(\"freight_value\", \"mean\"),\n        min_price=(\"price\", \"min\"),\n        max_price=(\"price\", \"max\"),\n        std_price=(\"price\", \"std\"),\n        total_price=(\"price\", \"sum\"),\n        total_revenue=(\"price_freight\", \"sum\"),\n        first_ts=(\"ts\", \"min\"),\n        last_ts=(\"ts\", \"max\"),\n    )\n\n    # Вычисляем временные окна продаж\n    for window in [30, 60, 90, 180]:\n        start = seed_time - pd.Timedelta(days=window)\n        mask = (merged[\"ts\"] >= start) & (merged[\"ts\"] < seed_time)\n        win = merged[mask]\n        sales_win = win.groupby(\"product_id\").size()\n        orders_win = win.groupby(\"product_id\")[\"order_id\"].nunique()\n        grp[f\"sales_last_{window}d\"] = sales_win\n        grp[f\"orders_last_{window}d\"] = orders_win\n\n    # Добавляем информацию об отзывах (только те, что были созданы до seed_time)\n    review_joined = past_items[[\"order_id\", \"product_id\"]].merge(\n        past_reviews[[\"order_id\", \"review_score\"]], on=\"order_id\", how=\"inner\"\n    )\n    \n    if len(review_joined) > 0:\n        rev_agg = review_joined.groupby(\"product_id\").agg(\n            avg_review_score=(\"review_score\", \"mean\"),\n            review_count=(\"review_score\", \"count\"),\n        )\n        grp = grp.join(rev_agg, how=\"left\")\n    else:\n        grp[\"avg_review_score\"] = np.nan\n        grp[\"review_count\"] = 0\n\n    # Вычисляем дополнительные признаки\n    grp[\"days_since_last\"] = (seed_time - grp[\"last_ts\"]).dt.days\n    grp[\"span_days\"] = (grp[\"last_ts\"] - grp[\"first_ts\"]).dt.days\n    grp[\"span_days\"] = grp[\"span_days\"].replace(0, 1)  # Избегаем деления на 0\n\n    # Средний интервал между покупками\n    def avg_interval(s):\n        s = s.drop_duplicates().sort_values()\n        if len(s) < 2:\n            return np.nan\n        diffs = s.diff().dropna().dt.days\n        return diffs.mean()\n\n    grp[\"avg_interval_days\"] = merged.groupby(\"product_id\")[\"ts\"].apply(avg_interval)\n\n    # Продажи в день и доля последних продаж\n    grp[\"sales_per_day\"] = grp[\"total_orders_sold\"] / grp[\"span_days\"]\n    grp[\"sales_per_day\"] = grp[\"sales_per_day\"].replace([np.inf, -np.inf], np.nan)\n    \n    grp[\"share_last_90\"] = grp[\"orders_last_90d\"] / grp[\"total_orders_sold\"]\n    grp[\"share_last_90\"] = grp[\"share_last_90\"].replace([np.inf, -np.inf], np.nan)\n\n    # Заполняем отсутствующие значения и формируем результат\n    result = grp.reindex(result_index).fillna(0)\n    result[\"had_sales\"] = result[\"total_orders_sold\"] > 0\n\n    return result",
+ "usage": {
+  "prompt_tokens": 3471,
+  "completion_tokens": 1197,
+  "total_tokens": 4668,
+  "cost": 0.00301035
+ },
+ "wall_seconds": 31.0
+}

@@ -1,0 +1,76 @@
+{
+  "experiment": "C2 alternate-model F1 held-out CLEAN@k",
+  "model": "qwen/qwen3-coder",
+  "status": "in_process; not_finished; stopped_by_user",
+  "repeat_summary": [
+    {
+      "repeat": 1,
+      "clean": 55,
+      "failed": 7,
+      "pending": 0,
+      "complete": true
+    },
+    {
+      "repeat": 2,
+      "clean": 50,
+      "failed": 12,
+      "pending": 0,
+      "complete": true
+    },
+    {
+      "repeat": 3,
+      "clean": 49,
+      "failed": 0,
+      "pending": 13,
+      "complete": false
+    }
+  ],
+  "completed_repeats": {
+    "clean": 105,
+    "n": 124,
+    "rate": 0.8467741935483871
+  },
+  "clean_at_k_all_repeats_provisional": [
+    {
+      "k": 1,
+      "clean_observed": 129,
+      "full_n": 186,
+      "provisional_rate": 0.6935483870967742
+    },
+    {
+      "k": 2,
+      "clean_observed": 149,
+      "full_n": 186,
+      "provisional_rate": 0.8010752688172043
+    },
+    {
+      "k": 3,
+      "clean_observed": 150,
+      "full_n": 186,
+      "provisional_rate": 0.8064516129032258
+    },
+    {
+      "k": 4,
+      "clean_observed": 150,
+      "full_n": 186,
+      "provisional_rate": 0.8064516129032258
+    },
+    {
+      "k": 5,
+      "clean_observed": 154,
+      "full_n": 186,
+      "provisional_rate": 0.8279569892473119
+    }
+  ],
+  "usage": {
+    "files": 313,
+    "calls": 313,
+    "prompt_tokens": 1239741,
+    "completion_tokens": 465713,
+    "total_tokens": 1705454,
+    "cost": 1.293801,
+    "api_errors": 0
+  },
+  "stop_point": "repeat 3, iteration 2 validation; 13 programs pending",
+  "interpretation_rule": "Pending cases are neither CLEAN nor failed and are excluded from completed-repeat estimate."
+}

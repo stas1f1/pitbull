@@ -1,0 +1,41 @@
+{
+ "item_id": "ec53365ce0792195",
+ "pair_id": "a2-351ea6efee4ae94d",
+ "category": "checker_pair",
+ "arm": "F0_5",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "351ea6efee4ae94d0f553030c0d01af810998d50f469b0db2b1b13f1b9012601",
+ "prompt_sha256": "a6faf35f71020af9828778f6a377ee74e39632d762819fbf1fc7a8614f3a3d36",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"LEAK\", \"rationale\": \"Order-status features use order_delivered_customer_date (and delivery/late flags) for orders purchased before seed_time, but those deliveries/reviews of post-purchase outcomes can occur after seed_time, so future delivery information leaks into features.\"}",
+ "usage": {
+  "completion_tokens": 279,
+  "prompt_tokens": 1818,
+  "total_tokens": 2097,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 216,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.0004122,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.0004122,
+   "upstream_inference_prompt_cost": 0.0002727,
+   "upstream_inference_completions_cost": 0.0001395
+  }
+ },
+ "wall_seconds": 38.2
+}

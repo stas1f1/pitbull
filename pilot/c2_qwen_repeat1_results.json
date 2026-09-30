@@ -1,0 +1,134 @@
+{
+  "experiment": "C2 alternate-model F1 held-out CLEAN@k",
+  "model": "qwen/qwen3-coder",
+  "status": "repeat_1_complete; repeats_2_3_not_started_by_user_request",
+  "clean_at_k": [
+    {
+      "k": 1,
+      "clean": 47,
+      "n": 62,
+      "rate": 0.7580645161290323
+    },
+    {
+      "k": 2,
+      "clean": 51,
+      "n": 62,
+      "rate": 0.8225806451612904
+    },
+    {
+      "k": 3,
+      "clean": 51,
+      "n": 62,
+      "rate": 0.8225806451612904
+    },
+    {
+      "k": 4,
+      "clean": 51,
+      "n": 62,
+      "rate": 0.8225806451612904
+    },
+    {
+      "k": 5,
+      "clean": 55,
+      "n": 62,
+      "rate": 0.8870967741935484
+    }
+  ],
+  "final": {
+    "clean": 55,
+    "failed": 7,
+    "n": 62
+  },
+  "by_mechanism": {
+    "REVIEWS_NO_FILTER": {
+      "n": 60,
+      "clean": 55,
+      "clean_at": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        null,
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        null,
+        1,
+        5,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        5,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        null,
+        1,
+        1,
+        2,
+        1,
+        5,
+        1,
+        null,
+        1,
+        5,
+        1,
+        1
+      ]
+    },
+    "VAR_MIXUP": {
+      "n": 1,
+      "clean": 0,
+      "clean_at": [
+        null
+      ]
+    },
+    "PAYMENTS_NO_FILTER": {
+      "n": 1,
+      "clean": 0,
+      "clean_at": [
+        null
+      ]
+    }
+  },
+  "usage": {
+    "files": 110,
+    "calls": 110,
+    "prompt_tokens": 439721,
+    "completion_tokens": 168727,
+    "total_tokens": 608448,
+    "cost": 0.667174,
+    "api_errors": 0
+  },
+  "limitation": "Single repetition only; not directly equivalent to A4's three-repetition estimate."
+}

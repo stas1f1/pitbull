@@ -1,0 +1,43 @@
+{
+  "case_id": "779d22f7acfc",
+  "reviewer": 2,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "```json\n{\"semantic_repair\": \"yes\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"medium\", \"comments\": \"Candidate filters orders by purchase timestamp, reviews by review_creation_date, and payments by ts, and masks delivery-derived features to deliveries on/before seed_time, while retaining all original feature families plus allowed additions; residual uncertainty comes from reliance on a 'ts' column in payments/order_items whose semantics are not shown.\"}\n```",
+  "parsed": {
+    "semantic_repair": "yes",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "medium",
+    "comments": "Candidate filters orders by purchase timestamp, reviews by review_creation_date, and payments by ts, and masks delivery-derived features to deliveries on/before seed_time, while retaining all original feature families plus allowed additions; residual uncertainty comes from reliance on a 'ts' column in payments/order_items whose semantics are not shown."
+  },
+  "usage": {
+    "completion_tokens": 238,
+    "prompt_tokens": 2843,
+    "total_tokens": 3081,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 132,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.0004090875,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.0004090875,
+      "upstream_inference_prompt_cost": 0.0003198375,
+      "upstream_inference_completions_cost": 8.925e-05
+    }
+  },
+  "wall_seconds": 3.9
+}

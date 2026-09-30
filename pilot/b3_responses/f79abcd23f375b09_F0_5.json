@@ -1,0 +1,41 @@
+{
+ "item_id": "f79abcd23f375b09",
+ "pair_id": "featuretools_cutoff",
+ "category": "handwritten_pair",
+ "arm": "F0_5",
+ "model": "z-ai/glm-5.3-flash",
+ "code_sha256": "97426a9c42d2c1c8dd20c81e5e45dd33a5b8d83ab7aa7ee885edcf035e6c1b35",
+ "prompt_sha256": "86e277a70c57add2b3a3246e2a08f821f3a1c8bcf2668c082cfe539847e97ad2",
+ "status": "ok",
+ "finish_reason": "stop",
+ "raw_response": "{\"verdict\": \"LEAK\", \"rationale\": \"The cutoff_table is never passed to dfs via cutoff_time, so features aggregate all events including those at or after each row's prediction time, and the last-time indexes are ignored.\"}",
+ "usage": {
+  "completion_tokens": 232,
+  "prompt_tokens": 145,
+  "total_tokens": 377,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 181,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.00017835,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.00017835,
+   "upstream_inference_prompt_cost": 6.235e-05,
+   "upstream_inference_completions_cost": 0.000116
+  }
+ },
+ "wall_seconds": 7.1
+}

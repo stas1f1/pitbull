@@ -1,0 +1,68 @@
+{
+ "program": "stack_user-badge.sql",
+ "checks": [
+  {
+   "seed": "2010-10-14 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "avg_commenter_badge_score_a",
+    "avg_commenter_badge_score_q",
+    "avg_rarity",
+    "badge_momentum",
+    "badge_score",
+    "last_a_avg_commenter_badge_score",
+    "last_badge_name",
+    "last_badge_rarity",
+    "last_q_avg_commenter_badge_score",
+    "max_rarity",
+    "rarest_badge_age_weeks"
+   ],
+   "cells": 4939,
+   "rows": 1093
+  },
+  {
+   "seed": "2014-10-09 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "avg_commenter_badge_score_a",
+    "avg_commenter_badge_score_q",
+    "avg_days_since_last_post_a",
+    "avg_days_since_last_post_q",
+    "avg_rarity",
+    "badge_momentum",
+    "badge_score",
+    "last_a_avg_commenter_badge_score",
+    "last_badge_name",
+    "last_badge_rarity",
+    "last_q_avg_commenter_badge_score",
+    "max_rarity",
+    "rarest_badge_age_weeks"
+   ],
+   "cells": 135413,
+   "rows": 38818
+  },
+  {
+   "seed": "2019-01-03 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "avg_commenter_badge_score_a",
+    "avg_commenter_badge_score_q",
+    "avg_days_since_last_post_a",
+    "avg_days_since_last_post_q",
+    "avg_rarity",
+    "badge_momentum",
+    "badge_score",
+    "last_a_avg_commenter_badge_score",
+    "last_badge_rarity",
+    "last_q_avg_commenter_badge_score",
+    "max_rarity",
+    "rarest_badge_age_weeks"
+   ],
+   "cells": 360665,
+   "rows": 185480
+  }
+ ]
+}

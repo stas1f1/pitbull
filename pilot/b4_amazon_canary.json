@@ -1,0 +1,237 @@
+[
+  {
+    "file": "amazon_item-churn.sql",
+    "dataset": "amazon",
+    "task": "item-churn",
+    "seed": "2016-01-01 00:00:00",
+    "phase": "negative_control",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 166842,
+    "seconds": 143.6
+  },
+  {
+    "file": "amazon_item-churn.sql",
+    "dataset": "amazon",
+    "task": "item-churn",
+    "seed": "2008-01-10 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 6024,
+    "seconds": 1.9
+  },
+  {
+    "file": "amazon_item-churn.sql",
+    "dataset": "amazon",
+    "task": "item-churn",
+    "seed": "2012-01-05 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 56839,
+    "seconds": 21.4
+  },
+  {
+    "file": "amazon_item-churn.sql",
+    "dataset": "amazon",
+    "task": "item-churn",
+    "seed": "2016-01-01 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 166842,
+    "seconds": 41.0
+  },
+  {
+    "file": "amazon_item-ltv.sql",
+    "dataset": "amazon",
+    "task": "item-ltv",
+    "seed": "2016-01-01 00:00:00",
+    "phase": "negative_control",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 178334,
+    "seconds": 45.1
+  },
+  {
+    "file": "amazon_item-ltv.sql",
+    "dataset": "amazon",
+    "task": "item-ltv",
+    "seed": "2008-01-10 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 32148,
+    "seconds": 3.3
+  },
+  {
+    "file": "amazon_item-ltv.sql",
+    "dataset": "amazon",
+    "task": "item-ltv",
+    "seed": "2012-01-05 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 62867,
+    "seconds": 17.6
+  },
+  {
+    "file": "amazon_item-ltv.sql",
+    "dataset": "amazon",
+    "task": "item-ltv",
+    "seed": "2016-01-01 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 178334,
+    "seconds": 45.2
+  },
+  {
+    "file": "amazon_user-churn.sql",
+    "dataset": "amazon",
+    "task": "user-churn",
+    "seed": "2016-01-01 00:00:00",
+    "phase": "negative_control",
+    "status": "ran",
+    "canary": true,
+    "columns": {
+      "reviewed_product_modal_category": 723,
+      "avg_user_bias_trend": 1
+    },
+    "cells": 724,
+    "rows": 351885,
+    "seconds": 124.6
+  },
+  {
+    "file": "amazon_user-churn.sql",
+    "dataset": "amazon",
+    "task": "user-churn",
+    "seed": "2008-01-10 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 5372,
+    "seconds": 3.0
+  },
+  {
+    "file": "amazon_user-churn.sql",
+    "dataset": "amazon",
+    "task": "user-churn",
+    "seed": "2012-01-05 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": true,
+    "columns": {
+      "reviewed_product_modal_category": 118
+    },
+    "cells": 118,
+    "rows": 70305,
+    "seconds": 19.5
+  },
+  {
+    "file": "amazon_user-churn.sql",
+    "dataset": "amazon",
+    "task": "user-churn",
+    "seed": "2016-01-01 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": true,
+    "columns": {
+      "last_review_summary_text": 1,
+      "last_reviewed_product_title": 1,
+      "last_reviewed_product_category": 3,
+      "reviewed_product_modal_category": 33036
+    },
+    "cells": 33041,
+    "rows": 351885,
+    "seconds": 119.3
+  },
+  {
+    "file": "amazon_user-ltv.sql",
+    "dataset": "amazon",
+    "task": "user-ltv",
+    "seed": "2016-01-01 00:00:00",
+    "phase": "negative_control",
+    "status": "ran",
+    "canary": true,
+    "columns": {
+      "reviewed_product_modal_category_0_to_3": 25,
+      "reviewed_product_modal_category_3_to_6": 16974,
+      "reviewed_product_modal_category_6_to_9": 40,
+      "last_review_summary_text": 1,
+      "last_reviewed_product_title": 1,
+      "last_reviewed_product_category": 5,
+      "reviewed_product_modal_category": 63966
+    },
+    "cells": 81012,
+    "rows": 351885,
+    "seconds": 161.7
+  },
+  {
+    "file": "amazon_user-ltv.sql",
+    "dataset": "amazon",
+    "task": "user-ltv",
+    "seed": "2008-01-10 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 5372,
+    "seconds": 5.2
+  },
+  {
+    "file": "amazon_user-ltv.sql",
+    "dataset": "amazon",
+    "task": "user-ltv",
+    "seed": "2012-01-05 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": true,
+    "columns": {
+      "reviewed_product_modal_category_0_to_3": 1,
+      "reviewed_product_modal_category": 155
+    },
+    "cells": 156,
+    "rows": 70305,
+    "seconds": 29.3
+  },
+  {
+    "file": "amazon_user-ltv.sql",
+    "dataset": "amazon",
+    "task": "user-ltv",
+    "seed": "2016-01-01 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": true,
+    "columns": {
+      "reviewed_product_modal_category_0_to_3": 27,
+      "reviewed_product_modal_category_3_to_6": 29,
+      "reviewed_product_modal_category_6_to_9": 29,
+      "last_reviewed_product_category": 1,
+      "reviewed_product_modal_category": 67516
+    },
+    "cells": 67602,
+    "rows": 351885,
+    "seconds": 152.7
+  }
+]

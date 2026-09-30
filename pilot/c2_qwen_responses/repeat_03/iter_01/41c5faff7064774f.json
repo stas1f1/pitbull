@@ -1,0 +1,54 @@
+{
+ "program_uid": "41c5faff7064774f",
+ "program": "deepseek-v4-flash-0731#37",
+ "repeat": 3,
+ "iteration": 1,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "41c5faff7064774f118d8827d5529416b8899b6135c51a8ddf9b943e9b906726",
+ "prompt_sha256": "67a7a6d86fd0b8737c9d8a2cb2b904d2efd48b3cfc08ceb1a5ea9a9ed429e7cb",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\nimport pandas as pd\nimport numpy as np\n\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Извлечение таблиц\n    orders = db['orders']\n    order_items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    seed_time = pd.Timestamp(seed_time)\n\n    # Заказы, совершённые до seed_time\n    orders_before = orders[orders['order_purchase_timestamp'] < seed_time].copy()\n\n    # Отзывы, созданные до seed_time\n    reviews_before = reviews[reviews['review_creation_date'] < seed_time].copy()\n\n    # Платежи до seed_time (по ts)\n    payments_before = payments[payments['ts'] < seed_time].copy()\n\n    # Соединяем позиции с заказами (только до seed_time)\n    items_hist = order_items.merge(\n        orders_before[['order_id', 'order_purchase_timestamp']],\n        on='order_id',\n        how='inner'\n    )\n\n    # Добавляем ограничение по времени: только те позиции, которые были куплены до seed_time\n    items_hist = items_hist[items_hist['ts'] < seed_time]\n\n    # Агрегаты по товарам\n    agg = items_hist.groupby('product_id').agg(\n        total_orders=('order_id', 'nunique'),\n        total_quantity=('order_item_id', 'count'),\n        total_sales=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        std_price=('price', 'std'),\n        total_freight=('freight_value', 'sum'),\n        avg_freight=('freight_value', 'mean'),\n        std_freight=('freight_value', 'std'),\n        max_price=('price', 'max'),\n        min_price=('price', 'min'),\n    ).reset_index()\n\n    # Давность последней покупки\n    last_purchase = items_hist.groupby('product_id')['order_purchase_timestamp'].max().reset_index()\n    last_purchase['days_since_last'] = (seed_time - last_purchase['order_purchase_timestamp']).dt.days\n    last_purchase['days_since_last'] = last_purchase['days_since_last'].fillna(9999)\n    agg = agg.merge(last_purchase[['product_id', 'days_since_last']], on='product_id', how='left')\n\n    # Давность первого появления\n    first_purchase = items_hist.groupby('product_id')['order_purchase_timestamp'].min().reset_index()\n    first_purchase['days_since_first'] = (seed_time - first_purchase['order_purchase_timestamp']).dt.days\n    first_purchase['days_since_first'] = first_purchase['days_since_first'].fillna(9999)\n    agg = agg.merge(first_purchase[['product_id', 'days_since_first']], on='product_id', how='left')\n\n    # Оконные признаки (30, 60, 90 дней)\n    for window in [30, 60, 90]:\n        cutoff = seed_time - pd.Timedelta(days=window)\n        mask = items_hist['order_purchase_timestamp'] >= cutoff\n        window_items = items_hist[mask]\n        window_agg = window_items.groupby('product_id').agg(\n            **{f'orders_last_{window}': ('order_id', 'nunique'),\n               f'sales_last_{window}': ('price', 'sum')}\n        ).reset_index()\n        agg = agg.merge(window_agg, on='product_id', how='left')\n\n    # Признаки на основе отзывов (только те, что созданы до seed_time)\n    items_reviews = items_hist[['order_id', 'product_id']].merge(\n        reviews_before[['order_id', 'review_score']], on='order_id', how='inner'\n    )\n    reviews_agg = items_reviews.groupby('product_id').agg(\n        review_count=('review_score', 'count'),\n        avg_review_score=('review_score', 'mean'),\n        std_review_score=('review_score', 'std'),\n        pos_review_count=('review_score', lambda x: (x >= 4).sum())\n    ).reset_index()\n    reviews_agg['pos_review_ratio'] = reviews_agg['pos_review_count'] / reviews_agg['review_count'].replace(0, np.nan)\n    reviews_agg['pos_review_ratio'] = reviews_agg['pos_review_ratio'].fillna(0)\n    agg = agg.merge(reviews_agg, on='product_id', how='left')\n\n    # Признаки по продавцам\n    sellers_agg = items_hist.groupby('product_id').agg(\n        unique_sellers=('seller_id', 'nunique')\n    ).reset_index()\n    agg = agg.merge(sellers_agg, on='product_id', how='left')\n\n    # Дополнительные признаки интенсивности продаж\n    agg['sales_per_day_since_first'] = agg['total_sales'] / (agg['days_since_first'] + 1)\n    agg['orders_per_day_since_first'] = agg['total_orders'] / (agg['days_since_first'] + 1)\n\n    # Устанавливаем индекс и реиндексируем\n    agg = agg.set_index('product_id')\n    agg = agg.reindex(entity_ids).fillna(0)\n\n    return agg\n```",
+   "usage": {
+    "completion_tokens": 1113,
+    "prompt_tokens": 3678,
+    "total_tokens": 4791,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2400,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.0022128,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.0022128,
+     "upstream_inference_prompt_cost": 0.0005433,
+     "upstream_inference_completions_cost": 0.0016695
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "import pandas as pd\nimport numpy as np\n\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Извлечение таблиц\n    orders = db['orders']\n    order_items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n\n    seed_time = pd.Timestamp(seed_time)\n\n    # Заказы, совершённые до seed_time\n    orders_before = orders[orders['order_purchase_timestamp'] < seed_time].copy()\n\n    # Отзывы, созданные до seed_time\n    reviews_before = reviews[reviews['review_creation_date'] < seed_time].copy()\n\n    # Платежи до seed_time (по ts)\n    payments_before = payments[payments['ts'] < seed_time].copy()\n\n    # Соединяем позиции с заказами (только до seed_time)\n    items_hist = order_items.merge(\n        orders_before[['order_id', 'order_purchase_timestamp']],\n        on='order_id',\n        how='inner'\n    )\n\n    # Добавляем ограничение по времени: только те позиции, которые были куплены до seed_time\n    items_hist = items_hist[items_hist['ts'] < seed_time]\n\n    # Агрегаты по товарам\n    agg = items_hist.groupby('product_id').agg(\n        total_orders=('order_id', 'nunique'),\n        total_quantity=('order_item_id', 'count'),\n        total_sales=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        std_price=('price', 'std'),\n        total_freight=('freight_value', 'sum'),\n        avg_freight=('freight_value', 'mean'),\n        std_freight=('freight_value', 'std'),\n        max_price=('price', 'max'),\n        min_price=('price', 'min'),\n    ).reset_index()\n\n    # Давность последней покупки\n    last_purchase = items_hist.groupby('product_id')['order_purchase_timestamp'].max().reset_index()\n    last_purchase['days_since_last'] = (seed_time - last_purchase['order_purchase_timestamp']).dt.days\n    last_purchase['days_since_last'] = last_purchase['days_since_last'].fillna(9999)\n    agg = agg.merge(last_purchase[['product_id', 'days_since_last']], on='product_id', how='left')\n\n    # Давность первого появления\n    first_purchase = items_hist.groupby('product_id')['order_purchase_timestamp'].min().reset_index()\n    first_purchase['days_since_first'] = (seed_time - first_purchase['order_purchase_timestamp']).dt.days\n    first_purchase['days_since_first'] = first_purchase['days_since_first'].fillna(9999)\n    agg = agg.merge(first_purchase[['product_id', 'days_since_first']], on='product_id', how='left')\n\n    # Оконные признаки (30, 60, 90 дней)\n    for window in [30, 60, 90]:\n        cutoff = seed_time - pd.Timedelta(days=window)\n        mask = items_hist['order_purchase_timestamp'] >= cutoff\n        window_items = items_hist[mask]\n        window_agg = window_items.groupby('product_id').agg(\n            **{f'orders_last_{window}': ('order_id', 'nunique'),\n               f'sales_last_{window}': ('price', 'sum')}\n        ).reset_index()\n        agg = agg.merge(window_agg, on='product_id', how='left')\n\n    # Признаки на основе отзывов (только те, что созданы до seed_time)\n    items_reviews = items_hist[['order_id', 'product_id']].merge(\n        reviews_before[['order_id', 'review_score']], on='order_id', how='inner'\n    )\n    reviews_agg = items_reviews.groupby('product_id').agg(\n        review_count=('review_score', 'count'),\n        avg_review_score=('review_score', 'mean'),\n        std_review_score=('review_score', 'std'),\n        pos_review_count=('review_score', lambda x: (x >= 4).sum())\n    ).reset_index()\n    reviews_agg['pos_review_ratio'] = reviews_agg['pos_review_count'] / reviews_agg['review_count'].replace(0, np.nan)\n    reviews_agg['pos_review_ratio'] = reviews_agg['pos_review_ratio'].fillna(0)\n    agg = agg.merge(reviews_agg, on='product_id', how='left')\n\n    # Признаки по продавцам\n    sellers_agg = items_hist.groupby('product_id').agg(\n        unique_sellers=('seller_id', 'nunique')\n    ).reset_index()\n    agg = agg.merge(sellers_agg, on='product_id', how='left')\n\n    # Дополнительные признаки интенсивности продаж\n    agg['sales_per_day_since_first'] = agg['total_sales'] / (agg['days_since_first'] + 1)\n    agg['orders_per_day_since_first'] = agg['total_orders'] / (agg['days_since_first'] + 1)\n\n    # Устанавливаем индекс и реиндексируем\n    agg = agg.set_index('product_id')\n    agg = agg.reindex(entity_ids).fillna(0)\n\n    return agg",
+ "usage": {
+  "prompt_tokens": 3678,
+  "completion_tokens": 1113,
+  "total_tokens": 4791,
+  "cost": 0.0022128
+ },
+ "wall_seconds": 12.3
+}

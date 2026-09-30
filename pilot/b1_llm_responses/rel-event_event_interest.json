@@ -1,0 +1,106 @@
+{
+ "dataset": "rel-event",
+ "table": "event_interest",
+ "model": "z-ai/glm-5.3-flash",
+ "expected_items": [
+  "rel-event:003",
+  "rel-event:004",
+  "rel-event:005",
+  "rel-event:006",
+  "rel-event:007",
+  "rel-event:008"
+ ],
+ "status": "ok",
+ "raw_response": "```json\n[\n  {\"item_id\": \"rel-event:003\", \"availability_class\": \"row_time\", \"availability_column\": \"timestamp\", \"boundary\": \"inclusive\", \"mutable\": false, \"checkability\": \"strong\", \"confidence\": 0.9, \"rationale\": \"The (user, event) relationship row becomes observable at its event timestamp; the key pair is knowable once the row exists at t.\"},\n  {\"item_id\": \"rel-event:004\", \"availability_class\": \"row_time\", \"availability_column\": \"timestamp\", \"boundary\": \"inclusive\", \"mutable\": false, \"checkability\": \"strong\", \"confidence\": 0.9, \"rationale\": \"The event key is part of the relationship row and is observable from the row's timestamp onward.\"},\n  {\"item_id\": \"rel-event:005\", \"availability_class\": \"row_time\", \"availability_column\": \"timestamp\", \"boundary\": \"inclusive\", \"mutable\": false, \"checkability\": \"strong\", \"confidence\": 0.95, \"rationale\": \"Declared time column; trivially observable at its own value, defining the row's availability time.\"},\n  {\"item_id\": \"rel-event:006\", \"availability_class\": \"unknown\", \"availability_column\": null, \"boundary\": null, \"mutable\": true, \"checkability\": \"weak\", \"confidence\": 0.5, \"rationale\": \"Invited count looks like a snapshot aggregate that may be recomputed/edited after the row timestamp; current value may not equal the value observable at t, and no per-column history column exists.\"},\n  {\"item_id\": \"rel-event:007\", \"availability_class\": \"unknown\", \"availability_column\": null, \"boundary\": null, \"mutable\": true, \"checkability\": \"weak\", \"confidence\": 0.5, \"rationale\": \"Interested count is a mutable snapshot aggregate; without edit history we cannot confirm the value at t matched the current snapshot, so no defensible point-in-time guarantee.\"},\n  {\"item_id\": \"rel-event:008\", \"availability_class\": \"unknown\", \"availability_column\": null, \"boundary\": null, \"mutable\": true, \"checkability\": \"weak\", \"confidence\": 0.5, \"rationale\": \"Not_interested count is a mutable snapshot aggregate; later edits could have changed it since t, so its historical observability cannot be defended from the schema alone.\"}\n]\n```",
+ "parsed": [
+  {
+   "item_id": "rel-event:003",
+   "availability_class": "row_time",
+   "availability_column": "timestamp",
+   "boundary": "inclusive",
+   "mutable": false,
+   "checkability": "strong",
+   "confidence": 0.9,
+   "rationale": "The (user, event) relationship row becomes observable at its event timestamp; the key pair is knowable once the row exists at t."
+  },
+  {
+   "item_id": "rel-event:004",
+   "availability_class": "row_time",
+   "availability_column": "timestamp",
+   "boundary": "inclusive",
+   "mutable": false,
+   "checkability": "strong",
+   "confidence": 0.9,
+   "rationale": "The event key is part of the relationship row and is observable from the row's timestamp onward."
+  },
+  {
+   "item_id": "rel-event:005",
+   "availability_class": "row_time",
+   "availability_column": "timestamp",
+   "boundary": "inclusive",
+   "mutable": false,
+   "checkability": "strong",
+   "confidence": 0.95,
+   "rationale": "Declared time column; trivially observable at its own value, defining the row's availability time."
+  },
+  {
+   "item_id": "rel-event:006",
+   "availability_class": "unknown",
+   "availability_column": null,
+   "boundary": null,
+   "mutable": true,
+   "checkability": "weak",
+   "confidence": 0.5,
+   "rationale": "Invited count looks like a snapshot aggregate that may be recomputed/edited after the row timestamp; current value may not equal the value observable at t, and no per-column history column exists."
+  },
+  {
+   "item_id": "rel-event:007",
+   "availability_class": "unknown",
+   "availability_column": null,
+   "boundary": null,
+   "mutable": true,
+   "checkability": "weak",
+   "confidence": 0.5,
+   "rationale": "Interested count is a mutable snapshot aggregate; without edit history we cannot confirm the value at t matched the current snapshot, so no defensible point-in-time guarantee."
+  },
+  {
+   "item_id": "rel-event:008",
+   "availability_class": "unknown",
+   "availability_column": null,
+   "boundary": null,
+   "mutable": true,
+   "checkability": "weak",
+   "confidence": 0.5,
+   "rationale": "Not_interested count is a mutable snapshot aggregate; later edits could have changed it since t, so its historical observability cannot be defended from the schema alone."
+  }
+ ],
+ "usage": {
+  "completion_tokens": 674,
+  "prompt_tokens": 262,
+  "total_tokens": 936,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": null,
+   "audio_tokens": 0,
+   "reasoning_tokens": 212,
+   "rejected_prediction_tokens": null,
+   "text_tokens": null,
+   "image_tokens": 0
+  },
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cached_tokens": 0,
+   "text_tokens": null,
+   "image_tokens": null,
+   "cache_write_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost": 0.0003763,
+  "is_byok": false,
+  "cost_details": {
+   "upstream_inference_cost": 0.0003763,
+   "upstream_inference_prompt_cost": 3.93e-05,
+   "upstream_inference_completions_cost": 0.000337
+  }
+ },
+ "wall_seconds": 11.0
+}

@@ -1,0 +1,45 @@
+{
+  "experiment": "B5 rel-amazon machine time",
+  "status": "complete; human_review_required",
+  "source": "rel/out/sql_oracle_amazon.csv",
+  "programs": 4,
+  "recorded_runs": 28,
+  "total_seconds": 430.3,
+  "main_seconds": 157.3,
+  "errors": 0,
+  "per_program": [
+    {
+      "file": "amazon_item-churn.sql",
+      "runs": 7,
+      "main_checks": 3,
+      "total_seconds": 105.7,
+      "main_seconds": 34.2,
+      "errors": 0
+    },
+    {
+      "file": "amazon_item-ltv.sql",
+      "runs": 7,
+      "main_checks": 3,
+      "total_seconds": 115.5,
+      "main_seconds": 41.0,
+      "errors": 0
+    },
+    {
+      "file": "amazon_user-churn.sql",
+      "runs": 7,
+      "main_checks": 3,
+      "total_seconds": 72.1,
+      "main_seconds": 26.5,
+      "errors": 0
+    },
+    {
+      "file": "amazon_user-ltv.sql",
+      "runs": 7,
+      "main_checks": 3,
+      "total_seconds": 137.0,
+      "main_seconds": 55.6,
+      "errors": 0
+    }
+  ],
+  "caveat": "Runtime is from the pinned historical run recorded in the source CSV; it was not rerun on the current host."
+}

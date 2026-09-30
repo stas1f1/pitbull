@@ -1,0 +1,86 @@
+[
+  {
+    "file": "stack_post-votes.sql",
+    "dataset": "stack",
+    "task": "post-votes",
+    "seed": "2009-04-16 00:00:00",
+    "phase": "negative_control",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 1,
+    "seconds": 25.8
+  },
+  {
+    "file": "stack_post-votes.sql",
+    "dataset": "stack",
+    "task": "post-votes",
+    "seed": "2009-04-16 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 1,
+    "seconds": 21.3
+  },
+  {
+    "file": "stack_user-badge.sql",
+    "dataset": "stack",
+    "task": "user-badge",
+    "seed": "2010-10-14 00:00:00",
+    "phase": "negative_control",
+    "status": "ran",
+    "canary": false,
+    "columns": {},
+    "cells": 0,
+    "rows": 1093,
+    "seconds": 1.4
+  },
+  {
+    "file": "stack_user-badge.sql",
+    "dataset": "stack",
+    "task": "user-badge",
+    "seed": "2010-10-14 00:00:00",
+    "phase": "main",
+    "status": "ran",
+    "canary": true,
+    "columns": {
+      "badge_score": 828,
+      "max_rarity": 800,
+      "avg_rarity": 828,
+      "last_badge_name": 773,
+      "rarest_badge_age_weeks": 100,
+      "last_badge_rarity": 815,
+      "badge_momentum": 828,
+      "last_q_avg_commenter_badge_score": 162,
+      "avg_commenter_badge_score_q": 207,
+      "last_a_avg_commenter_badge_score": 100,
+      "avg_commenter_badge_score_a": 189
+    },
+    "cells": 5630,
+    "rows": 1093,
+    "seconds": 1.1
+  },
+  {
+    "file": "stack_user-engagement.sql",
+    "dataset": "stack",
+    "task": "user-engagement",
+    "seed": "2009-04-16 00:00:00",
+    "phase": "negative_control",
+    "status": "error",
+    "error": "BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n                    ^",
+    "seconds": 0.1
+  },
+  {
+    "file": "stack_user-engagement.sql",
+    "dataset": "stack",
+    "task": "user-engagement",
+    "seed": "2009-04-16 00:00:00",
+    "phase": "main",
+    "status": "error",
+    "error": "BinderException: Binder Error: Referenced column \"AcceptedAnswerId\" not found in FROM clause!\nCandidate bindings: \"ContentLicense\", \"OwnerUserId\", \"Id\", \"ParentId\"\n\nLINE 115:     where AcceptedAnswerId is not null\n                    ^",
+    "seconds": 0.1
+  }
+]

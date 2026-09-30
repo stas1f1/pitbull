@@ -1,0 +1,54 @@
+{
+ "program_uid": "7cffa575655794d4",
+ "program": "deepseek-v4-flash-0731#22",
+ "repeat": 3,
+ "iteration": 1,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "7cffa575655794d48a5e0151ff013f9565156dc83377c73a66be9d59b1779439",
+ "prompt_sha256": "fa4ad9082213854b07ffb78114dbdd744d8bd9d440a0c625eb7617d3b09ec144",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\nimport pandas as pd\nimport numpy as np\n\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Извлекаем таблицы\n    orders = db[\"orders\"]\n    order_items = db[\"order_items\"]\n    reviews = db[\"reviews\"]\n    payments = db[\"payments\"]\n\n    # Фильтруем заказы до seed_time по моменту покупки (ts в order_items)\n    # Это важно для предотвращения утечки данных\n    orders_filtered = orders[orders[\"order_purchase_timestamp\"] <= seed_time]\n    \n    # Объединяем с order_items по order_id\n    merged = pd.merge(order_items, orders_filtered, on=\"order_id\", how=\"inner\")\n    \n    # Оставляем только те строки, где покупка была до seed_time\n    merged = merged[merged[\"ts_x\"] <= seed_time]  # используем ts из order_items как точное время покупки\n    \n    # Фильтруем отзывы: они должны быть созданы до seed_time\n    reviews_filtered = reviews[reviews[\"review_creation_date\"] <= seed_time]\n    \n    # Агрегируем отзывы по order_id\n    review_stats = reviews_filtered.groupby(\"order_id\").agg(\n        avg_review_score=(\"review_score\", \"mean\"),\n        count_reviews=(\"review_score\", \"count\")\n    ).reset_index()\n    \n    # Присоединяем статистику отзывов\n    merged = pd.merge(merged, review_stats, on=\"order_id\", how=\"left\")\n    \n    # Фильтруем платежи: они должны быть сделаны до seed_time\n    payments_filtered = payments[payments[\"ts\"] <= seed_time]\n    \n    # Агрегируем платежи по order_id\n    payment_stats = payments_filtered.groupby(\"order_id\").agg(\n        payment_count=(\"payment_sequential\", \"count\"),\n        payment_value_mean=(\"payment_value\", \"mean\"),\n        payment_value_sum=(\"payment_value\", \"sum\"),\n        payment_installments_mean=(\"payment_installments\", \"mean\"),\n        credit_card_share=(\"payment_type\", lambda x: (x == \"credit_card\").mean())\n    ).reset_index()\n    \n    # Присоединяем статистику платежей\n    merged = pd.merge(merged, payment_stats, on=\"order_id\", how=\"left\")\n    \n    # Вычисляем разницу во времени от покупки до seed_time в днях\n    merged[\"days_since_order\"] = (seed_time - merged[\"ts_x\"]).dt.days\n    \n    # Добавляем выручку по позиции\n    merged[\"revenue\"] = merged[\"price\"] + merged[\"freight_value\"]\n    \n    # Группируем по product_id и считаем признаки\n    features = merged.groupby(\"product_id\").agg(\n        count_orders=(\"order_id\", \"nunique\"),\n        count_items=(\"order_id\", \"count\"),\n        unique_customers=(\"customer_id\", \"nunique\"),\n        avg_price=(\"price\", \"mean\"),\n        std_price=(\"price\", \"std\"),\n        min_price=(\"price\", \"min\"),\n        max_price=(\"price\", \"max\"),\n        sum_price=(\"price\", \"sum\"),\n        avg_freight=(\"freight_value\", \"mean\"),\n        sum_freight=(\"freight_value\", \"sum\"),\n        total_revenue=(\"revenue\", \"sum\"),\n        avg_review_score=(\"avg_review_score\", \"mean\"),\n        count_reviews=(\"count_reviews\", \"sum\"),\n        payment_count_mean=(\"payment_count\", \"mean\"),\n        payment_value_mean=(\"payment_value_mean\", \"mean\"),\n        payment_installments_mean=(\"payment_installments_mean\", \"mean\"),\n        credit_card_share=(\"credit_card_share\", \"mean\"),\n        days_since_last_order=(\"days_since_order\", \"min\"),\n        days_since_first_order=(\"days_since_order\", \"max\"),\n    ).reset_index()\n    \n    # Добавляем признаки за последние 30, 90, 180 дней\n    for days in [30, 90, 180]:\n        tmp = merged[merged[\"days_since_order\"] <= days].groupby(\"product_id\").agg(\n            **{f\"count_orders_{days}d\": (\"order_id\", \"nunique\"),\n               f\"revenue_{days}d\": (\"revenue\", \"sum\")}\n        ).reset_index()\n        features = pd.merge(features, tmp, on=\"product_id\", how=\"left\")\n    \n    # Вычисляем частоту заказов (заказов в день)\n    features[\"active_period\"] = features[\"days_since_first_order\"] - features[\"days_since_last_order\"]\n    features[\"order_frequency\"] = np.where(\n        features[\"active_period\"] > 0,\n        features[\"count_orders\"] / features[\"active_period\"],\n        0\n    )\n    \n    # Заполняем пропуски нулями\n    features = features.fillna(0)\n    \n    # Устанавливаем индекс product_id\n    features = features.set_index(\"product_id\")\n    \n    # Реиндексируем по entity_ids\n    result = features.reindex(entity_ids, fill_value=0)\n    \n    return result\n```",
+   "usage": {
+    "completion_tokens": 1095,
+    "prompt_tokens": 3602,
+    "total_tokens": 4697,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2400,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.0021592,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.0021592,
+     "upstream_inference_prompt_cost": 0.0005167,
+     "upstream_inference_completions_cost": 0.0016425
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "import pandas as pd\nimport numpy as np\n\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Извлекаем таблицы\n    orders = db[\"orders\"]\n    order_items = db[\"order_items\"]\n    reviews = db[\"reviews\"]\n    payments = db[\"payments\"]\n\n    # Фильтруем заказы до seed_time по моменту покупки (ts в order_items)\n    # Это важно для предотвращения утечки данных\n    orders_filtered = orders[orders[\"order_purchase_timestamp\"] <= seed_time]\n    \n    # Объединяем с order_items по order_id\n    merged = pd.merge(order_items, orders_filtered, on=\"order_id\", how=\"inner\")\n    \n    # Оставляем только те строки, где покупка была до seed_time\n    merged = merged[merged[\"ts_x\"] <= seed_time]  # используем ts из order_items как точное время покупки\n    \n    # Фильтруем отзывы: они должны быть созданы до seed_time\n    reviews_filtered = reviews[reviews[\"review_creation_date\"] <= seed_time]\n    \n    # Агрегируем отзывы по order_id\n    review_stats = reviews_filtered.groupby(\"order_id\").agg(\n        avg_review_score=(\"review_score\", \"mean\"),\n        count_reviews=(\"review_score\", \"count\")\n    ).reset_index()\n    \n    # Присоединяем статистику отзывов\n    merged = pd.merge(merged, review_stats, on=\"order_id\", how=\"left\")\n    \n    # Фильтруем платежи: они должны быть сделаны до seed_time\n    payments_filtered = payments[payments[\"ts\"] <= seed_time]\n    \n    # Агрегируем платежи по order_id\n    payment_stats = payments_filtered.groupby(\"order_id\").agg(\n        payment_count=(\"payment_sequential\", \"count\"),\n        payment_value_mean=(\"payment_value\", \"mean\"),\n        payment_value_sum=(\"payment_value\", \"sum\"),\n        payment_installments_mean=(\"payment_installments\", \"mean\"),\n        credit_card_share=(\"payment_type\", lambda x: (x == \"credit_card\").mean())\n    ).reset_index()\n    \n    # Присоединяем статистику платежей\n    merged = pd.merge(merged, payment_stats, on=\"order_id\", how=\"left\")\n    \n    # Вычисляем разницу во времени от покупки до seed_time в днях\n    merged[\"days_since_order\"] = (seed_time - merged[\"ts_x\"]).dt.days\n    \n    # Добавляем выручку по позиции\n    merged[\"revenue\"] = merged[\"price\"] + merged[\"freight_value\"]\n    \n    # Группируем по product_id и считаем признаки\n    features = merged.groupby(\"product_id\").agg(\n        count_orders=(\"order_id\", \"nunique\"),\n        count_items=(\"order_id\", \"count\"),\n        unique_customers=(\"customer_id\", \"nunique\"),\n        avg_price=(\"price\", \"mean\"),\n        std_price=(\"price\", \"std\"),\n        min_price=(\"price\", \"min\"),\n        max_price=(\"price\", \"max\"),\n        sum_price=(\"price\", \"sum\"),\n        avg_freight=(\"freight_value\", \"mean\"),\n        sum_freight=(\"freight_value\", \"sum\"),\n        total_revenue=(\"revenue\", \"sum\"),\n        avg_review_score=(\"avg_review_score\", \"mean\"),\n        count_reviews=(\"count_reviews\", \"sum\"),\n        payment_count_mean=(\"payment_count\", \"mean\"),\n        payment_value_mean=(\"payment_value_mean\", \"mean\"),\n        payment_installments_mean=(\"payment_installments_mean\", \"mean\"),\n        credit_card_share=(\"credit_card_share\", \"mean\"),\n        days_since_last_order=(\"days_since_order\", \"min\"),\n        days_since_first_order=(\"days_since_order\", \"max\"),\n    ).reset_index()\n    \n    # Добавляем признаки за последние 30, 90, 180 дней\n    for days in [30, 90, 180]:\n        tmp = merged[merged[\"days_since_order\"] <= days].groupby(\"product_id\").agg(\n            **{f\"count_orders_{days}d\": (\"order_id\", \"nunique\"),\n               f\"revenue_{days}d\": (\"revenue\", \"sum\")}\n        ).reset_index()\n        features = pd.merge(features, tmp, on=\"product_id\", how=\"left\")\n    \n    # Вычисляем частоту заказов (заказов в день)\n    features[\"active_period\"] = features[\"days_since_first_order\"] - features[\"days_since_last_order\"]\n    features[\"order_frequency\"] = np.where(\n        features[\"active_period\"] > 0,\n        features[\"count_orders\"] / features[\"active_period\"],\n        0\n    )\n    \n    # Заполняем пропуски нулями\n    features = features.fillna(0)\n    \n    # Устанавливаем индекс product_id\n    features = features.set_index(\"product_id\")\n    \n    # Реиндексируем по entity_ids\n    result = features.reindex(entity_ids, fill_value=0)\n    \n    return result",
+ "usage": {
+  "prompt_tokens": 3602,
+  "completion_tokens": 1095,
+  "total_tokens": 4697,
+  "cost": 0.0021592
+ },
+ "wall_seconds": 21.6
+}

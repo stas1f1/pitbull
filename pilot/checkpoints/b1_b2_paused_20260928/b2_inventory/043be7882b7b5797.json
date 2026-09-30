@@ -1,0 +1,47 @@
+{
+ "program": "amazon_user-churn.sql",
+ "checks": [
+  {
+   "seed": "2008-01-10 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "last_review_is_verified",
+    "last_review_summary_text",
+    "last_reviewed_product_category",
+    "last_reviewed_product_title",
+    "reviewed_product_modal_category"
+   ],
+   "cells": 1666,
+   "rows": 5372
+  },
+  {
+   "seed": "2011-04-07 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "last_review_is_verified",
+    "last_review_summary_text",
+    "last_reviewed_product_category",
+    "last_reviewed_product_title",
+    "reviewed_product_modal_category"
+   ],
+   "cells": 23876,
+   "rows": 59408
+  },
+  {
+   "seed": "2014-07-03 00:00:00",
+   "status": "ran",
+   "witness": true,
+   "columns": [
+    "last_review_is_verified",
+    "last_review_summary_text",
+    "last_reviewed_product_category",
+    "last_reviewed_product_title",
+    "reviewed_product_modal_category"
+   ],
+   "cells": 180347,
+   "rows": 366666
+  }
+ ]
+}

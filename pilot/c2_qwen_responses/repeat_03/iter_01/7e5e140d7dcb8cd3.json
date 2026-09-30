@@ -1,0 +1,54 @@
+{
+ "program_uid": "7e5e140d7dcb8cd3",
+ "program": "deepseek-v4-flash-0731#61",
+ "repeat": 3,
+ "iteration": 1,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "7e5e140d7dcb8cd377a1f595584a5d465ccf0b2baa691d870b616f5d7e657181",
+ "prompt_sha256": "08cfdf1ed05ead51b9923acba1d874763cc92f08e68d22098c80367ccf205b37",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\ndef get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Подготовка DataFrame для признаков\n    features = pd.DataFrame(index=entity_ids)\n\n    # Фильтрация заказов только до момента предсказания\n    orders = db['orders']\n    orders_filtered = orders[orders['order_purchase_timestamp'] <= seed_time]\n\n    # Получаем релевантные order_id\n    relevant_order_ids = orders_filtered['order_id']\n\n    # Фильтруем order_items по времени и релевантным заказам\n    items = db['order_items']\n    items_filtered = items[\n        (items['ts'] <= seed_time) &\n        (items['order_id'].isin(relevant_order_ids))\n    ]\n\n    # Отбираем только нужные товары\n    items_target = items_filtered[items_filtered['product_id'].isin(entity_ids)]\n\n    # ---- Признаки по продажам (order_items) ----\n    agg_items = items_target.groupby('product_id').agg(\n        sales_count=('order_id', 'count'),\n        sum_price=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        sum_freight=('freight_value', 'sum'),\n        avg_freight=('freight_value', 'mean'),\n        first_purchase_ts=('ts', 'min'),\n        last_purchase_ts=('ts', 'max'),\n        n_sellers=('seller_id', 'nunique')\n    )\n\n    features = features.join(agg_items, how='left')\n\n    # Время с первой и последней покупки (в днях)\n    features['days_since_first'] = (seed_time - features['first_purchase_ts']).dt.days.fillna(99999)\n    features['days_since_last'] = (seed_time - features['last_purchase_ts']).dt.days.fillna(99999)\n\n    # Удаляем временные столбцы\n    features = features.drop(columns=['first_purchase_ts', 'last_purchase_ts'])\n\n    # ---- Признаки по отзывам (reviews) ----\n    if not items_target.empty:\n        # Берём отзывы, созданные до seed_time\n        reviews_filtered = db['reviews'][\n            (db['reviews']['review_creation_date'] <= seed_time) &\n            (db['reviews']['order_id'].isin(relevant_order_ids))\n        ]\n        review_data = items_target[['order_id', 'product_id']].merge(\n            reviews_filtered[['order_id', 'review_score']],\n            on='order_id',\n            how='left'\n        )\n        review_agg = review_data.groupby('product_id').agg(\n            review_mean_score=('review_score', 'mean'),\n            review_count=('review_score', 'count')\n        )\n        features = features.join(review_agg, how='left')\n    else:\n        features['review_mean_score'] = np.nan\n        features['review_count'] = 0\n\n    # ---- Признаки по платежам (payments) ----\n    payments_filtered = db['payments'][\n        (db['payments']['ts'] <= seed_time) &\n        (db['payments']['order_id'].isin(relevant_order_ids))\n    ]\n    if not items_target.empty and not payments_filtered.empty:\n        payment_data = items_target[['order_id', 'product_id']].merge(\n            payments_filtered,\n            on='order_id',\n            how='left'\n        )\n        payment_agg = payment_data.groupby('product_id').agg(\n            total_payment_value=('payment_value', 'sum'),\n            avg_payment_value=('payment_value', 'mean'),\n            installment_mean=('payment_installments', 'mean')\n        )\n        features = features.join(payment_agg, how='left')\n    else:\n        features['total_payment_value'] = 0\n        features['avg_payment_value'] = 0\n        features['installment_mean'] = 0\n\n    # Заполняем все пропуски нулями\n    features = features.fillna(0)\n\n    # Флаг: был ли товар продан ранее\n    features['was_sold'] = (features['sales_count'] > 0).astype(int)\n\n    # Гарантируем порядок строк в соответствии с переданным списком\n    features = features.reindex(entity_ids)\n\n    return features\n```",
+   "usage": {
+    "completion_tokens": 899,
+    "prompt_tokens": 3107,
+    "total_tokens": 4006,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2368,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.00170187,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.00170187,
+     "upstream_inference_prompt_cost": 0.00035337,
+     "upstream_inference_completions_cost": 0.0013485
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "def get_features(db: dict, entity_ids, seed_time) -> pd.DataFrame:\n    # Подготовка DataFrame для признаков\n    features = pd.DataFrame(index=entity_ids)\n\n    # Фильтрация заказов только до момента предсказания\n    orders = db['orders']\n    orders_filtered = orders[orders['order_purchase_timestamp'] <= seed_time]\n\n    # Получаем релевантные order_id\n    relevant_order_ids = orders_filtered['order_id']\n\n    # Фильтруем order_items по времени и релевантным заказам\n    items = db['order_items']\n    items_filtered = items[\n        (items['ts'] <= seed_time) &\n        (items['order_id'].isin(relevant_order_ids))\n    ]\n\n    # Отбираем только нужные товары\n    items_target = items_filtered[items_filtered['product_id'].isin(entity_ids)]\n\n    # ---- Признаки по продажам (order_items) ----\n    agg_items = items_target.groupby('product_id').agg(\n        sales_count=('order_id', 'count'),\n        sum_price=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        sum_freight=('freight_value', 'sum'),\n        avg_freight=('freight_value', 'mean'),\n        first_purchase_ts=('ts', 'min'),\n        last_purchase_ts=('ts', 'max'),\n        n_sellers=('seller_id', 'nunique')\n    )\n\n    features = features.join(agg_items, how='left')\n\n    # Время с первой и последней покупки (в днях)\n    features['days_since_first'] = (seed_time - features['first_purchase_ts']).dt.days.fillna(99999)\n    features['days_since_last'] = (seed_time - features['last_purchase_ts']).dt.days.fillna(99999)\n\n    # Удаляем временные столбцы\n    features = features.drop(columns=['first_purchase_ts', 'last_purchase_ts'])\n\n    # ---- Признаки по отзывам (reviews) ----\n    if not items_target.empty:\n        # Берём отзывы, созданные до seed_time\n        reviews_filtered = db['reviews'][\n            (db['reviews']['review_creation_date'] <= seed_time) &\n            (db['reviews']['order_id'].isin(relevant_order_ids))\n        ]\n        review_data = items_target[['order_id', 'product_id']].merge(\n            reviews_filtered[['order_id', 'review_score']],\n            on='order_id',\n            how='left'\n        )\n        review_agg = review_data.groupby('product_id').agg(\n            review_mean_score=('review_score', 'mean'),\n            review_count=('review_score', 'count')\n        )\n        features = features.join(review_agg, how='left')\n    else:\n        features['review_mean_score'] = np.nan\n        features['review_count'] = 0\n\n    # ---- Признаки по платежам (payments) ----\n    payments_filtered = db['payments'][\n        (db['payments']['ts'] <= seed_time) &\n        (db['payments']['order_id'].isin(relevant_order_ids))\n    ]\n    if not items_target.empty and not payments_filtered.empty:\n        payment_data = items_target[['order_id', 'product_id']].merge(\n            payments_filtered,\n            on='order_id',\n            how='left'\n        )\n        payment_agg = payment_data.groupby('product_id').agg(\n            total_payment_value=('payment_value', 'sum'),\n            avg_payment_value=('payment_value', 'mean'),\n            installment_mean=('payment_installments', 'mean')\n        )\n        features = features.join(payment_agg, how='left')\n    else:\n        features['total_payment_value'] = 0\n        features['avg_payment_value'] = 0\n        features['installment_mean'] = 0\n\n    # Заполняем все пропуски нулями\n    features = features.fillna(0)\n\n    # Флаг: был ли товар продан ранее\n    features['was_sold'] = (features['sales_count'] > 0).astype(int)\n\n    # Гарантируем порядок строк в соответствии с переданным списком\n    features = features.reindex(entity_ids)\n\n    return features",
+ "usage": {
+  "prompt_tokens": 3107,
+  "completion_tokens": 899,
+  "total_tokens": 4006,
+  "cost": 0.00170187
+ },
+ "wall_seconds": 11.4
+}

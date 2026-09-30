@@ -1,0 +1,54 @@
+{
+ "program_uid": "52648fcdc514695b",
+ "program": "deepseek-v4-flash-0731#33",
+ "repeat": 3,
+ "iteration": 2,
+ "repair_model": "qwen/qwen3-coder",
+ "source_code_sha256": "4a155138717e83a29ed109267ceb0aaa32f5522853cd2afbcbc858954148a11e",
+ "prompt_sha256": "d37a30f4897fc4f6ab9ac99de8770517f7c9ee8faa3f9d7d918d75be9b139f61",
+ "attempts": [
+  {
+   "attempt": 1,
+   "status": "ok",
+   "finish_reason": "stop",
+   "raw_response": "```python\ndef get_features(db, entity_ids, seed_time):\n    orders = db['orders']\n    items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n    \n    # Оставляем только заказы, которые были сделаны до seed_time\n    orders_before = orders[orders['order_purchase_timestamp'] <= seed_time]\n    \n    # Оставляем только позиции, которые были куплены до seed_time\n    items_before = items[items['ts'] <= seed_time].copy()\n    \n    # Если нет ни одной продажи до seed_time – возвращаем DataFrame с нулями\n    if items_before.empty:\n        cols = [\n            'n_items', 'n_orders', 'n_customers', 'sum_price', 'avg_price',\n            'sum_freight', 'avg_freight', 'count_review', 'avg_review',\n            'avg_delivery_days', 'recent_30', 'recent_60', 'recent_90',\n            'lifetime_days', 'days_since_last', 'months_active'\n        ]\n        res = pd.DataFrame(0.0, index=entity_ids, columns=cols)\n        return res.reindex(entity_ids)\n    \n    # Объединяем items с orders, чтобы получить customer_id и дату доставки\n    items_with_orders = items_before.merge(\n        orders_before[['order_id', 'customer_id', 'order_delivered_customer_date']],\n        on='order_id',\n        how='left'\n    )\n    \n    # Отфильтровываем отзывы, созданные до или в момент seed_time\n    reviews_before = reviews[reviews['review_creation_date'] <= seed_time]\n    review_agg = reviews_before.groupby('order_id')['review_score'].agg(['mean', 'count']).reset_index()\n    review_agg.columns = ['order_id', 'avg_review_score', 'count_reviews']\n    \n    # Присоединяем отзывы к позициям\n    items_with_reviews = items_with_orders.merge(review_agg, on='order_id', how='left')\n    \n    # Вычисляем длительность доставки в днях (если известна)\n    items_with_reviews['delivery_days'] = (\n        items_with_reviews['order_delivered_customer_date'] - items_with_reviews['ts']\n    ).dt.days\n    \n    # Агрегируем данные по product_id\n    features = items_with_reviews.groupby('product_id').agg(\n        n_items=('order_id', 'count'),\n        n_orders=('order_id', 'nunique'),\n        n_customers=('customer_id', 'nunique'),\n        sum_price=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        sum_freight=('freight_value', 'sum'),\n        avg_freight=('freight_value', 'mean'),\n        count_review=('count_reviews', 'sum'),\n        avg_review=('avg_review_score', 'mean'),\n        avg_delivery_days=('delivery_days', 'mean')\n    ).reset_index()\n    \n    # Добавляем оконные признаки за последние 30, 60 и 90 дней\n    for window in [30, 60, 90]:\n        start_date = seed_time - pd.Timedelta(days=window)\n        recent_items = items_with_reviews[\n            (items_with_reviews['ts'] >= start_date) &\n            (items_with_reviews['ts'] <= seed_time)\n        ]\n        recent_counts = recent_items.groupby('product_id').size().rename(f'recent_{window}')\n        features = features.merge(recent_counts, on='product_id', how='left')\n    \n    # Добавляем временные метрики: первый и последний заказ, время жизни, дней с последнего заказа\n    first_last_dates = items_with_reviews.groupby('product_id')['ts'].agg(['min', 'max']).reset_index()\n    first_last_dates['lifetime_days'] = (first_last_dates['max'] - first_last_dates['min']).dt.days\n    first_last_dates['days_since_last'] = (seed_time - first_last_dates['max']).dt.days\n    features = features.merge(first_last_dates[['product_id', 'lifetime_days', 'days_since_last']], on='product_id', how='left')\n    \n    # Количество уникальных месяцев активности\n    items_with_reviews['year_month'] = items_with_reviews['ts'].dt.to_period('M')\n    months_active = items_with_reviews.groupby('product_id')['year_month'].nunique().rename('months_active').reset_index()\n    features = features.merge(months_active, on='product_id', how='left')\n    \n    # Индексация по entity_ids и заполнение отсутствующих значений нулями\n    features = features.set_index('product_id').reindex(entity_ids).fillna(0)\n    \n    return features\n```",
+   "usage": {
+    "completion_tokens": 1018,
+    "prompt_tokens": 3392,
+    "total_tokens": 4410,
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": null,
+     "audio_tokens": 0,
+     "reasoning_tokens": 0,
+     "rejected_prediction_tokens": null,
+     "text_tokens": null,
+     "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 2368,
+     "text_tokens": null,
+     "image_tokens": null,
+     "cache_write_tokens": 0,
+     "video_tokens": 0
+    },
+    "cost": 0.00198012,
+    "is_byok": false,
+    "cost_details": {
+     "upstream_inference_cost": 0.00198012,
+     "upstream_inference_prompt_cost": 0.00045312,
+     "upstream_inference_completions_cost": 0.001527
+    }
+   }
+  }
+ ],
+ "status": "ok",
+ "code": "def get_features(db, entity_ids, seed_time):\n    orders = db['orders']\n    items = db['order_items']\n    reviews = db['reviews']\n    payments = db['payments']\n    \n    # Оставляем только заказы, которые были сделаны до seed_time\n    orders_before = orders[orders['order_purchase_timestamp'] <= seed_time]\n    \n    # Оставляем только позиции, которые были куплены до seed_time\n    items_before = items[items['ts'] <= seed_time].copy()\n    \n    # Если нет ни одной продажи до seed_time – возвращаем DataFrame с нулями\n    if items_before.empty:\n        cols = [\n            'n_items', 'n_orders', 'n_customers', 'sum_price', 'avg_price',\n            'sum_freight', 'avg_freight', 'count_review', 'avg_review',\n            'avg_delivery_days', 'recent_30', 'recent_60', 'recent_90',\n            'lifetime_days', 'days_since_last', 'months_active'\n        ]\n        res = pd.DataFrame(0.0, index=entity_ids, columns=cols)\n        return res.reindex(entity_ids)\n    \n    # Объединяем items с orders, чтобы получить customer_id и дату доставки\n    items_with_orders = items_before.merge(\n        orders_before[['order_id', 'customer_id', 'order_delivered_customer_date']],\n        on='order_id',\n        how='left'\n    )\n    \n    # Отфильтровываем отзывы, созданные до или в момент seed_time\n    reviews_before = reviews[reviews['review_creation_date'] <= seed_time]\n    review_agg = reviews_before.groupby('order_id')['review_score'].agg(['mean', 'count']).reset_index()\n    review_agg.columns = ['order_id', 'avg_review_score', 'count_reviews']\n    \n    # Присоединяем отзывы к позициям\n    items_with_reviews = items_with_orders.merge(review_agg, on='order_id', how='left')\n    \n    # Вычисляем длительность доставки в днях (если известна)\n    items_with_reviews['delivery_days'] = (\n        items_with_reviews['order_delivered_customer_date'] - items_with_reviews['ts']\n    ).dt.days\n    \n    # Агрегируем данные по product_id\n    features = items_with_reviews.groupby('product_id').agg(\n        n_items=('order_id', 'count'),\n        n_orders=('order_id', 'nunique'),\n        n_customers=('customer_id', 'nunique'),\n        sum_price=('price', 'sum'),\n        avg_price=('price', 'mean'),\n        sum_freight=('freight_value', 'sum'),\n        avg_freight=('freight_value', 'mean'),\n        count_review=('count_reviews', 'sum'),\n        avg_review=('avg_review_score', 'mean'),\n        avg_delivery_days=('delivery_days', 'mean')\n    ).reset_index()\n    \n    # Добавляем оконные признаки за последние 30, 60 и 90 дней\n    for window in [30, 60, 90]:\n        start_date = seed_time - pd.Timedelta(days=window)\n        recent_items = items_with_reviews[\n            (items_with_reviews['ts'] >= start_date) &\n            (items_with_reviews['ts'] <= seed_time)\n        ]\n        recent_counts = recent_items.groupby('product_id').size().rename(f'recent_{window}')\n        features = features.merge(recent_counts, on='product_id', how='left')\n    \n    # Добавляем временные метрики: первый и последний заказ, время жизни, дней с последнего заказа\n    first_last_dates = items_with_reviews.groupby('product_id')['ts'].agg(['min', 'max']).reset_index()\n    first_last_dates['lifetime_days'] = (first_last_dates['max'] - first_last_dates['min']).dt.days\n    first_last_dates['days_since_last'] = (seed_time - first_last_dates['max']).dt.days\n    features = features.merge(first_last_dates[['product_id', 'lifetime_days', 'days_since_last']], on='product_id', how='left')\n    \n    # Количество уникальных месяцев активности\n    items_with_reviews['year_month'] = items_with_reviews['ts'].dt.to_period('M')\n    months_active = items_with_reviews.groupby('product_id')['year_month'].nunique().rename('months_active').reset_index()\n    features = features.merge(months_active, on='product_id', how='left')\n    \n    # Индексация по entity_ids и заполнение отсутствующих значений нулями\n    features = features.set_index('product_id').reindex(entity_ids).fillna(0)\n    \n    return features",
+ "usage": {
+  "prompt_tokens": 3392,
+  "completion_tokens": 1018,
+  "total_tokens": 4410,
+  "cost": 0.00198012
+ },
+ "wall_seconds": 30.1
+}

@@ -1,0 +1,43 @@
+{
+  "case_id": "5c4c47d81735",
+  "reviewer": 1,
+  "model": "z-ai/glm-5.3-flash",
+  "status": "ok",
+  "raw_response": "```json\n{\"semantic_repair\": \"uncertain\", \"feature_intent_preserved\": \"yes\", \"unnecessary_feature_deletion\": \"no\", \"confidence\": \"medium\", \"comments\": \"The candidate correctly filters reviews by review_creation_date <= seed_time (fixing the delayed-review leak) and keeps all original feature families, but it newly aggregates order_status at snapshot time without an availability timestamp, so mutable status (e.g., delivered/canceled set after seed_time) may introduce a new temporal violation.\"}\n```",
+  "parsed": {
+    "semantic_repair": "uncertain",
+    "feature_intent_preserved": "yes",
+    "unnecessary_feature_deletion": "no",
+    "confidence": "medium",
+    "comments": "The candidate correctly filters reviews by review_creation_date <= seed_time (fixing the delayed-review leak) and keeps all original feature families, but it newly aggregates order_status at snapshot time without an availability timestamp, so mutable status (e.g., delivered/canceled set after seed_time) may introduce a new temporal violation."
+  },
+  "usage": {
+    "completion_tokens": 311,
+    "prompt_tokens": 2766,
+    "total_tokens": 3077,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": null,
+      "audio_tokens": 0,
+      "reasoning_tokens": 203,
+      "rejected_prediction_tokens": null,
+      "text_tokens": null,
+      "image_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": null,
+      "image_tokens": null,
+      "cache_write_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost": 0.0004278,
+    "is_byok": false,
+    "cost_details": {
+      "upstream_inference_cost": 0.0004278,
+      "upstream_inference_prompt_cost": 0.000311175,
+      "upstream_inference_completions_cost": 0.000116625
+    }
+  },
+  "wall_seconds": 9.3
+}
