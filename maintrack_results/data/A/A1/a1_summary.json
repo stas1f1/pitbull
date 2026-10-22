@@ -1,0 +1,14 @@
+{
+  "experiment": "PLAN_main_track A1 fresh run",
+  "split_tasks": 21,
+  "split_ordered": 21,
+  "population_tasks": 8,
+  "population_tasks_with_violation": 5,
+  "population_violations": 18642,
+  "boundary_tasks": 21,
+  "boundary_passed": 21,
+  "uncheckable_entity_time": [
+    "rel-f1",
+    "rel-amazon"
+  ]
+}

@@ -1,0 +1,4 @@
+database,task,n_fit,n_validation,n_test,future_edges
+rel-f1,driver-dnf,9128,2283,566,76811
+rel-f1,driver-top3,1082,271,588,12827
+rel-event,user-ignore,15391,3848,2013,49022

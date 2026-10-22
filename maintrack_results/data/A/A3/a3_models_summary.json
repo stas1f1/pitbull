@@ -1,0 +1,22 @@
+{
+  "experiment": "PLAN_main_track A3 fresh run",
+  "cells": 30,
+  "positive_controls_leak": 30,
+  "negative_controls_clean": 30,
+  "by_model": [
+    {
+      "model": "LightGBM",
+      "mean_auc_clean": 0.8611720772986614,
+      "mean_auc_leaky": 0.9193026296540121,
+      "mean_delta_auc": 0.058130552355350695,
+      "min_prediction_diff": 0.08479037565101855
+    },
+    {
+      "model": "RDL_HeteroGraphSAGE",
+      "mean_auc_clean": 0.7620075776278253,
+      "mean_auc_leaky": 0.8738806026442835,
+      "mean_delta_auc": 0.1118730250164582,
+      "min_prediction_diff": 0.2759973704814911
+    }
+  ]
+}

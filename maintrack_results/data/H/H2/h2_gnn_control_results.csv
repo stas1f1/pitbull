@@ -1,0 +1,11 @@
+control,seed,expected_leak,observed_leak,pass,max_abs_delta
+negative_temporal_sampler,11,False,False,True,0.0
+negative_temporal_sampler,23,False,False,True,0.0
+negative_temporal_sampler,37,False,False,True,0.0
+negative_temporal_sampler,41,False,False,True,0.0
+negative_temporal_sampler,53,False,False,True,0.0
+positive_nontemporal_sampler,11,True,True,True,0.00954252
+positive_nontemporal_sampler,23,True,True,True,0.01514715
+positive_nontemporal_sampler,37,True,True,True,0.02337837
+positive_nontemporal_sampler,41,True,True,True,0.01259536
+positive_nontemporal_sampler,53,True,True,True,0.01924378

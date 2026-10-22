@@ -1,0 +1,6 @@
+{
+  "agent": "agent_gamma",
+  "run": 3,
+  "approach": "Bounded-memory online logistic classifier with feature hashing, robustly scaled numeric columns, categorical tokens, cyclical calendar features, and entity-month interactions. It reads train.parquet plus the requested split and emits predictions in original split order.",
+  "run_command": "python solution.py --task-dir PATH --time-col NAME --entity-col NAME --target-col NAME --split val|test --out FILE"
+}

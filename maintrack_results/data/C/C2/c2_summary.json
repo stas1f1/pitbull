@@ -1,0 +1,95 @@
+{
+  "experiment": "PLAN_main_track C2 fresh remaining-database extension",
+  "databases": 3,
+  "tasks": 3,
+  "seed_cells": 15,
+  "decision_positive": true,
+  "verdict": "positive",
+  "negative_controls_pass": true,
+  "audit": [
+    {
+      "database": "rel-stack",
+      "task": "user-badge",
+      "cutoff": "2019-04-04 00:00:00",
+      "rows_scanned": 3386276,
+      "selected_entities": 256,
+      "selected_history_rows": 4749,
+      "future_only_entities_sample": 4096,
+      "a1_population_changed": true,
+      "a2_changed_rows": 256,
+      "a2_max_diff": 5.0,
+      "a2_repeat_diff": 0.0
+    },
+    {
+      "database": "rel-amazon",
+      "task": "item-churn",
+      "cutoff": "2013-04-04 00:00:00",
+      "rows_scanned": 2536014,
+      "selected_entities": 256,
+      "selected_history_rows": 2200,
+      "future_only_entities_sample": 6924,
+      "a1_population_changed": true,
+      "a2_changed_rows": 241,
+      "a2_max_diff": 9.0,
+      "a2_repeat_diff": 0.0
+    },
+    {
+      "database": "rel-hm",
+      "task": "user-churn",
+      "cutoff": "2020-03-30 00:00:00",
+      "rows_scanned": 3832692,
+      "selected_entities": 256,
+      "selected_history_rows": 2475,
+      "future_only_entities_sample": 4096,
+      "a1_population_changed": true,
+      "a2_changed_rows": 235,
+      "a2_max_diff": 21.0,
+      "a2_repeat_diff": 0.0
+    }
+  ],
+  "by_database": [
+    {
+      "database": "rel-amazon",
+      "task": "item-churn",
+      "a3_delta_auc": 0.007611083984375044,
+      "a3_clean_auc": 0.526507568359375,
+      "a3_cells_changed": 5,
+      "a3_negative_controls": 5,
+      "a4_delta_auc": 0.1652777777777779,
+      "a4_clean_auc": 0.4930555555555555,
+      "a4_cells_changed": 5,
+      "a4_negative_controls": 5
+    },
+    {
+      "database": "rel-hm",
+      "task": "user-churn",
+      "a3_delta_auc": 0.042584228515625044,
+      "a3_clean_auc": 0.51595458984375,
+      "a3_cells_changed": 5,
+      "a3_negative_controls": 5,
+      "a4_delta_auc": 0.09444444444444455,
+      "a4_clean_auc": 0.5152777777777777,
+      "a4_cells_changed": 5,
+      "a4_negative_controls": 5
+    },
+    {
+      "database": "rel-stack",
+      "task": "user-badge",
+      "a3_delta_auc": 0.017987060546875044,
+      "a3_clean_auc": 0.58134765625,
+      "a3_cells_changed": 5,
+      "a3_negative_controls": 5,
+      "a4_delta_auc": 0.10138888888888875,
+      "a4_clean_auc": 0.6666666666666667,
+      "a4_cells_changed": 5,
+      "a4_negative_controls": 5
+    }
+  ],
+  "peak_rss_mb": 219.5703125,
+  "wall_seconds": 4.417150497436523,
+  "limitations": [
+    "One large binary task per remaining database, not every task.",
+    "Streaming scan with 256 selected entities; estimates are historical replay, not leaderboard scores.",
+    "A3 uses a resource-safe tabular random forest; A4 uses weighted kNN context."
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "agent": "agent_alpha",
+  "run": 2,
+  "approach": "Independent single-threaded sparse logistic baseline: hashed categorical/entity tokens, normalized numeric and calendar features, and leave-one-out smoothed entity history for training. It caps training rows, source columns, and hash dimensionality to remain below the memory budget while preserving prediction-row order.",
+  "command": "python solution.py --task-dir PATH --time-col NAME --entity-col NAME --target-col NAME --split val|test --out FILE"
+}

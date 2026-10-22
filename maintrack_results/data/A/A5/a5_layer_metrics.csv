@@ -1,0 +1,6 @@
+layer,detector,positives,negatives,recall,fpr
+task,checker_leak,10,8,1.0,0.0
+features,checker_leak,57,37,1.0,0.0
+model,checker_leak,35,35,1.0,0.0
+icl,checker_leak,35,5,0.9714285714285714,0.0
+agent,checker_leak,5,5,1.0,0.0

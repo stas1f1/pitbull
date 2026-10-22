@@ -1,0 +1,51 @@
+layer,seed,gold_leak,code,prob_leak,review_leak
+task,11,False,label = any(t < event.time <= t+h for event in events),0.5054967403411865,True
+task,11,True,label = any(t < event.time for event in events),0.5055057406425476,True
+task,23,False,label = any(t < event.time <= t+h for event in events),0.5054917335510254,True
+task,23,True,label = any(t < event.time for event in events),0.5055001974105835,True
+task,37,False,label = any(t < event.time <= t+h for event in events),0.5054917335510254,True
+task,37,True,label = any(t < event.time for event in events),0.5055001974105835,True
+task,41,False,label = any(t < event.time <= t+h for event in events),0.5054917335510254,True
+task,41,True,label = any(t < event.time for event in events),0.5055001974105835,True
+task,53,False,label = any(t < event.time <= t+h for event in events),0.5054917335510254,True
+task,53,True,label = any(t < event.time for event in events),0.5055002570152283,True
+features,11,False,rows = events[events.available_at <= cutoff],0.505480170249939,True
+features,11,True,rows = events,0.5055004954338074,True
+features,23,False,rows = events[events.available_at <= cutoff],0.5054742097854614,True
+features,23,True,rows = events,0.5054925680160522,True
+features,37,False,rows = events[events.available_at <= cutoff],0.5054742097854614,True
+features,37,True,rows = events,0.5054925084114075,True
+features,41,False,rows = events[events.available_at <= cutoff],0.5054742097854614,True
+features,41,True,rows = events,0.5054925680160522,True
+features,53,False,rows = events[events.available_at <= cutoff],0.5054742693901062,True
+features,53,True,rows = events,0.5054925680160522,True
+model,11,False,"loader = NeighborLoader(time_attr='time', input_time=cutoff)",0.5055098533630371,True
+model,11,True,"loader = NeighborLoader(data, input_nodes=nodes)",0.5054993629455566,True
+model,23,False,"loader = NeighborLoader(time_attr='time', input_time=cutoff)",0.5055049061775208,True
+model,23,True,"loader = NeighborLoader(data, input_nodes=nodes)",0.5054939985275269,True
+model,37,False,"loader = NeighborLoader(time_attr='time', input_time=cutoff)",0.5055049061775208,True
+model,37,True,"loader = NeighborLoader(data, input_nodes=nodes)",0.5054939985275269,True
+model,41,False,"loader = NeighborLoader(time_attr='time', input_time=cutoff)",0.5055049061775208,True
+model,41,True,"loader = NeighborLoader(data, input_nodes=nodes)",0.5054939985275269,True
+model,53,False,"loader = NeighborLoader(time_attr='time', input_time=cutoff)",0.5055049657821655,True
+model,53,True,"loader = NeighborLoader(data, input_nodes=nodes)",0.5054939985275269,True
+icl,11,False,examples = [x for x in examples if x.time < query.time],0.5054941773414612,True
+icl,11,True,examples = all_labeled_examples,0.5055055022239685,True
+icl,23,False,examples = [x for x in examples if x.time < query.time],0.5054889917373657,True
+icl,23,True,examples = all_labeled_examples,0.5054991245269775,True
+icl,37,False,examples = [x for x in examples if x.time < query.time],0.5054889917373657,True
+icl,37,True,examples = all_labeled_examples,0.5054991245269775,True
+icl,41,False,examples = [x for x in examples if x.time < query.time],0.5054889917373657,True
+icl,41,True,examples = all_labeled_examples,0.5054991245269775,True
+icl,53,False,examples = [x for x in examples if x.time < query.time],0.5054890513420105,True
+icl,53,True,examples = all_labeled_examples,0.5054991841316223,True
+agent,11,False,score = model(numeric_evidence),0.5054953098297119,True
+agent,11,True,score = memorized_outcomes[entity_name],0.505488395690918,True
+agent,23,False,score = model(numeric_evidence),0.5054888725280762,True
+agent,23,True,score = memorized_outcomes[entity_name],0.5054824948310852,True
+agent,37,False,score = model(numeric_evidence),0.5054888725280762,True
+agent,37,True,score = memorized_outcomes[entity_name],0.5054824948310852,True
+agent,41,False,score = model(numeric_evidence),0.5054888725280762,True
+agent,41,True,score = memorized_outcomes[entity_name],0.5054824948310852,True
+agent,53,False,score = model(numeric_evidence),0.505488932132721,True
+agent,53,True,score = memorized_outcomes[entity_name],0.5054824948310852,True

@@ -1,0 +1,16 @@
+mechanism,case,fixed_grid_detected,exhaustive_detected,perturbation_detected,stamp_only_accepted
+M1_incomplete_temporal_coverage,3,False,True,False,False
+M1_incomplete_temporal_coverage,5,False,True,False,False
+M1_incomplete_temporal_coverage,7,False,True,False,False
+M1_incomplete_temporal_coverage,13,False,True,False,False
+M1_incomplete_temporal_coverage,17,False,True,False,False
+M2_perturbation_insensitivity,1,True,True,False,False
+M2_perturbation_insensitivity,10,True,True,False,False
+M2_perturbation_insensitivity,50,True,True,False,False
+M2_perturbation_insensitivity,100,True,True,False,False
+M2_perturbation_insensitivity,500,True,True,False,False
+M3_restamped_future_value,1,True,True,True,True
+M3_restamped_future_value,2,True,True,True,True
+M3_restamped_future_value,3,True,True,True,True
+M3_restamped_future_value,4,True,True,True,True
+M3_restamped_future_value,5,True,True,True,True

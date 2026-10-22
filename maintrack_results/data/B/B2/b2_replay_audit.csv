@@ -1,0 +1,4 @@
+dataset,task,task_dir,time_col,entity_col,target_col,cutoff,n_past,n_full,n_query,positive_rate
+rel-f1,driver-dnf,PITFALL_ext_data/rel-f1/tasks/driver-dnf,date,driverId,did_not_finish,1988-10-27 00:00:00,7729,11379,32,0.90625
+rel-f1,driver-top3,PITFALL_ext_data/rel-f1/tasks/driver-top3,date,driverId,qualifying,2001-09-19 00:00:00,919,1331,22,0.13636363636363635
+rel-event,user-ignore,PITFALL_ext_data/rel-event/tasks/user-ignore,timestamp,user,target,2012-09-19 00:00:00,3755,18482,441,0.41950113378684806

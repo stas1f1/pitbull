@@ -1,0 +1,7 @@
+{
+  "agent": "agent_beta",
+  "run": 3,
+  "approach": "Independent sparse temporal model using only the requested task-table columns. Entity and entity-season tokens are feature-hashed, while strictly past per-entity outcomes, recency, expanding/recent prevalence, and calendar phase form numeric features. A recency-weighted regularized logistic classifier is blended with a smoothed entity rate. Validation uses train labels; test uses train plus validation labels, and row_id preserves query order.",
+  "dependencies": ["Python 3", "pandas", "numpy", "scipy", "scikit-learn"],
+  "command": "python solution.py --task-dir PATH --time-col NAME --entity-col NAME --target-col NAME --split val|test --out FILE"
+}

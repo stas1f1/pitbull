@@ -1,0 +1,11 @@
+control,seed,expected_leak,observed_leak,pass,max_abs_delta
+negative_clean,11,False,False,True,0.0
+negative_clean,23,False,False,True,0.0
+negative_clean,37,False,False,True,0.0
+negative_clean,41,False,False,True,0.0
+negative_clean,53,False,False,True,0.0
+positive_memorisation,11,True,True,True,0.85
+positive_memorisation,23,True,True,True,0.85
+positive_memorisation,37,True,True,True,0.85
+positive_memorisation,41,True,True,True,0.85
+positive_memorisation,53,True,True,True,0.85

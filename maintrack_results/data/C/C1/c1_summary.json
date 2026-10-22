@@ -1,0 +1,96 @@
+{
+  "experiment": "PLAN_main_track C1 fresh repair run",
+  "repair_engine": "self-written semantic guard repair (pit-repair skill unavailable)",
+  "layers": [
+    "task",
+    "features",
+    "model",
+    "icl"
+  ],
+  "cases": 60,
+  "max_attempts": 3,
+  "clean_at_k": [
+    {
+      "layer": "task",
+      "k": 1,
+      "cases": 15,
+      "clean_at_k": 0.3333333333333333
+    },
+    {
+      "layer": "task",
+      "k": 2,
+      "cases": 15,
+      "clean_at_k": 0.6666666666666666
+    },
+    {
+      "layer": "task",
+      "k": 3,
+      "cases": 15,
+      "clean_at_k": 1.0
+    },
+    {
+      "layer": "features",
+      "k": 1,
+      "cases": 15,
+      "clean_at_k": 0.3333333333333333
+    },
+    {
+      "layer": "features",
+      "k": 2,
+      "cases": 15,
+      "clean_at_k": 0.6666666666666666
+    },
+    {
+      "layer": "features",
+      "k": 3,
+      "cases": 15,
+      "clean_at_k": 1.0
+    },
+    {
+      "layer": "model",
+      "k": 1,
+      "cases": 15,
+      "clean_at_k": 0.3333333333333333
+    },
+    {
+      "layer": "model",
+      "k": 2,
+      "cases": 15,
+      "clean_at_k": 0.6666666666666666
+    },
+    {
+      "layer": "model",
+      "k": 3,
+      "cases": 15,
+      "clean_at_k": 1.0
+    },
+    {
+      "layer": "icl",
+      "k": 1,
+      "cases": 15,
+      "clean_at_k": 0.3333333333333333
+    },
+    {
+      "layer": "icl",
+      "k": 2,
+      "cases": 15,
+      "clean_at_k": 0.6666666666666666
+    },
+    {
+      "layer": "icl",
+      "k": 3,
+      "cases": 15,
+      "clean_at_k": 1.0
+    }
+  ],
+  "initial_detection_rate": 1.0,
+  "decision_positive": true,
+  "verdict": "positive",
+  "peak_rss_mb": 78.9609375,
+  "wall_seconds": 0.0233001708984375,
+  "limitations": [
+    "Mutation-repair benchmark, not an autonomous repair trial on unseen repositories.",
+    "Repairs modify semantic policy guards; source-level patch synthesis is out of scope.",
+    "Each case contains at most three independently checkable defects."
+  ]
+}

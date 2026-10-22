@@ -1,0 +1,30 @@
+{
+  "kind": "technical diagnostic, not post-cutoff or pretraining test",
+  "cells": 27,
+  "new_runs": 54,
+  "old_shift_mean": 0.10738856814694306,
+  "common_shift_mean": 0.013966129809482794,
+  "shifted_alias_mean": -0.0003479008822040359,
+  "peak_child_mib": 193.5234375,
+  "seconds": 447.85807824134827,
+  "date_audit": [
+    {
+      "task": "driver-dnf",
+      "common_shift": "29811 days 00:00:00",
+      "train_to_query_gap": "30 days 00:00:00",
+      "gap_preserved": true
+    },
+    {
+      "task": "driver-top3",
+      "common_shift": "13821 days 00:00:00",
+      "train_to_query_gap": "360 days 00:00:00",
+      "gap_preserved": true
+    },
+    {
+      "task": "user-ignore",
+      "common_shift": "7134 days 00:00:00",
+      "train_to_query_gap": "7 days 00:00:00",
+      "gap_preserved": true
+    }
+  ]
+}

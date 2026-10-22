@@ -1,0 +1,4 @@
+database,task,cutoff,rows_scanned,selected_entities,selected_history_rows,future_only_entities_sample,a1_population_changed,a2_changed_rows,a2_max_diff,a2_repeat_diff
+rel-stack,user-badge,2019-04-04 00:00:00,3386276,256,4749,4096,True,256,5.0,0.0
+rel-amazon,item-churn,2013-04-04 00:00:00,2536014,256,2200,6924,True,241,9.0,0.0
+rel-hm,user-churn,2020-03-30 00:00:00,3832692,256,2475,4096,True,235,21.0,0.0

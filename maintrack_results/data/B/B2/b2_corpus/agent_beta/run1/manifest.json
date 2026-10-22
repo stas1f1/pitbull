@@ -1,0 +1,6 @@
+{
+  "agent": "agent_beta",
+  "run": 1,
+  "approach": "Leakage-safe temporal ensemble using only the task tables: causal per-entity target history, recency/frequency, recent global target rates, and calendar features feed a regularized logistic model plus shallow histogram gradient boosting. Validation fits train only; test fits train and validation. Input row order is preserved through zero-based row_id.",
+  "command": "python solution.py --task-dir PATH --time-col NAME --entity-col NAME --target-col NAME --split val|test --out FILE"
+}

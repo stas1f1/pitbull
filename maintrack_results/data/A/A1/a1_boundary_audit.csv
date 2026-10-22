@@ -1,0 +1,22 @@
+﻿dataset,task,horizon,lower_strict,upper_inclusive,canary_selected,canary_at_t,canary_at_t_plus_h,boundary_pass
+rel-amazon,item-churn,91 days,True,True,1,0,1,True
+rel-amazon,item-ltv,91 days,True,True,1,0,1,True
+rel-amazon,user-churn,91 days,True,True,1,0,1,True
+rel-amazon,user-item-purchase,91 days,True,True,1,0,1,True
+rel-amazon,user-item-rate,91 days,True,True,1,0,1,True
+rel-amazon,user-item-review,91 days,True,True,1,0,1,True
+rel-amazon,user-ltv,91 days,True,True,1,0,1,True
+rel-event,user-attendance,7 days,True,True,1,0,1,True
+rel-event,user-ignore,7 days,True,True,1,0,1,True
+rel-event,user-repeat,7 days,True,True,1,0,1,True
+rel-f1,driver-dnf,30 days,True,True,1,0,1,True
+rel-f1,driver-position,60 days,True,True,1,0,1,True
+rel-f1,driver-top3,30 days,True,True,1,0,1,True
+rel-hm,item-sales,7 days,True,True,1,0,1,True
+rel-hm,user-churn,7 days,True,True,1,0,1,True
+rel-hm,user-item-purchase,7 days,True,True,1,0,1,True
+rel-stack,post-post-related,91 days,True,True,1,0,1,True
+rel-stack,post-votes,91 days,True,True,1,0,1,True
+rel-stack,user-badge,91 days,True,True,1,0,1,True
+rel-stack,user-engagement,91 days,True,True,1,0,1,True
+rel-stack,user-post-comment,91 days,True,True,1,0,1,True

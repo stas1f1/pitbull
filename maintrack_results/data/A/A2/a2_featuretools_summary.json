@@ -1,0 +1,15 @@
+{
+  "experiment": "PLAN_main_track A2 Featuretools fresh run",
+  "cells": 60,
+  "by_mode": {
+    "D1": {
+      "LEAK": 20
+    },
+    "D2": {
+      "LEAK": 20
+    },
+    "D3": {
+      "CLEAN": 20
+    }
+  }
+}

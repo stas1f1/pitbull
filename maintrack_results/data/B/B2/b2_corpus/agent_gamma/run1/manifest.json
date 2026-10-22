@@ -1,0 +1,6 @@
+{
+  "agent": "agent_gamma",
+  "run": 1,
+  "approach": "Memory-bounded HistGradientBoosting on numeric/time features plus leakage-resistant leave-one-out categorical target rates and category frequencies; constant-prior fallback for degenerate labels.",
+  "run_command": "python solution.py --task-dir PATH --time-col NAME --entity-col NAME --target-col NAME --split val|test --out FILE"
+}

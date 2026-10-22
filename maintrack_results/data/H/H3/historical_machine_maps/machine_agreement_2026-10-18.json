@@ -1,0 +1,33 @@
+{
+  "status": "complete_second_machine_pass",
+  "items": 179,
+  "human_vote": false,
+  "first": "codex_annotation_2026-10-15.csv",
+  "second": "machine_annotation_2_2026-10-18.csv",
+  "cohen_kappa_availability_class": 0.8861504213706471,
+  "class_agreement": 0.9553072625698324,
+  "exact_map_agreement": 0.9553072625698324,
+  "disagreements": 8,
+  "by_dataset": {
+    "rel-event": {
+      "items": 129,
+      "class_agreement": 0.9767441860465116,
+      "exact_map_agreement": 0.9767441860465116
+    },
+    "rel-stack": {
+      "items": 50,
+      "class_agreement": 0.9,
+      "exact_map_agreement": 0.9
+    }
+  },
+  "second_class_counts": {
+    "unknown": 132,
+    "row_time": 47
+  },
+  "consensus_class_counts": {
+    "unknown": 135,
+    "row_time": 44
+  },
+  "consensus_policy": "retain exact machine agreement; map disagreements to unknown",
+  "counts_toward_h3_human_annotations": 0
+}

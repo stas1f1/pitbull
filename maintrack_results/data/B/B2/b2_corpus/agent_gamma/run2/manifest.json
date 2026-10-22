@@ -1,0 +1,6 @@
+{
+  "agent": "agent_gamma",
+  "run": 2,
+  "approach": "Single-threaded empirical-Bayes ensemble using smoothed full and recent entity histories, optional categorical or quantile-binned context rates, and calendar context; train.parquet supplies labels/features and the requested split preserves row order.",
+  "run_command": "python solution.py --task-dir PATH --time-col NAME --entity-col NAME --target-col NAME --split val|test --out FILE"
+}

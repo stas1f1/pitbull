@@ -1,0 +1,15 @@
+file,dataset,task,seed,phase,verdict,columns,cells,columns_nondet,cells_nondet,n_rows,seconds
+hm_item-sales.sql,hm,item-sales,2019-09-09 00:00:00,determinism,DETERMINISTIC,,0,,0,16,0.4
+hm_item-sales.sql,hm,item-sales,2020-03-09 00:00:00,determinism,DETERMINISTIC,,0,,0,16,0.3
+hm_item-sales.sql,hm,item-sales,2020-09-14 00:00:00,determinism,DETERMINISTIC,,0,,0,16,0.3
+hm_item-sales.sql,hm,item-sales,2020-09-14 00:00:00,negative_control,CLEAN,,0,,0,16,0.3
+hm_item-sales.sql,hm,item-sales,2019-09-09 00:00:00,main,CLEAN,,0,,0,16,0.3
+hm_item-sales.sql,hm,item-sales,2020-03-09 00:00:00,main,CLEAN,,0,,0,16,0.6
+hm_item-sales.sql,hm,item-sales,2020-09-14 00:00:00,main,CLEAN,,0,,0,16,0.6
+hm_user-churn.sql,hm,user-churn,2019-09-09 00:00:00,determinism,DETERMINISTIC,,0,,0,16,0.8
+hm_user-churn.sql,hm,user-churn,2020-03-09 00:00:00,determinism,DETERMINISTIC,,0,,0,16,0.8
+hm_user-churn.sql,hm,user-churn,2020-09-14 00:00:00,determinism,DETERMINISTIC,,0,,0,16,0.7
+hm_user-churn.sql,hm,user-churn,2020-09-14 00:00:00,negative_control,CLEAN,,0,,0,16,0.7
+hm_user-churn.sql,hm,user-churn,2019-09-09 00:00:00,main,CLEAN,,0,,0,16,0.8
+hm_user-churn.sql,hm,user-churn,2020-03-09 00:00:00,main,CLEAN,,0,,0,16,0.8
+hm_user-churn.sql,hm,user-churn,2020-09-14 00:00:00,main,CLEAN,,0,,0,16,0.7

@@ -1,0 +1,38 @@
+{
+  "experiment": "PLAN_main_track A3 fast real-task run",
+  "tasks": [
+    "rel-f1/driver-dnf",
+    "rel-f1/driver-top3",
+    "rel-event/user-ignore"
+  ],
+  "seeds": [
+    3,
+    17,
+    31,
+    53,
+    79
+  ],
+  "epochs": 8,
+  "cells": 30,
+  "all_positive_controls_changed": true,
+  "all_negative_controls_stable": true,
+  "by_model": [
+    {
+      "model": "LightGBM",
+      "mean_auc_clean": 0.775518838612492,
+      "mean_auc_leaky": 0.8021363237220268,
+      "mean_delta_auc": 0.02661748510953473,
+      "min_prediction_diff": 0.33397146798555566
+    },
+    {
+      "model": "RelBench_HeteroGraphSAGE",
+      "mean_auc_clean": 0.6616810285534609,
+      "mean_auc_leaky": 0.6761926833684379,
+      "mean_delta_auc": 0.014511654814976956,
+      "min_prediction_diff": 0.04852330684661865
+    }
+  ],
+  "peak_rss_mb": 462.0,
+  "wall_seconds": 7.165073394775391,
+  "scope_limitation": "Exact RelBench HeteroGraphSAGE layer on complete task-label histories; not the full multi-table official database graph."
+}

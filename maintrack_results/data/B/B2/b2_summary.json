@@ -1,0 +1,44 @@
+{
+  "experiment": "PLAN_main_track B2 fresh isolated-agent run",
+  "agent_instances": 3,
+  "distinct_base_models": 1,
+  "runs_per_agent": 3,
+  "tasks": 3,
+  "solution_task_cells": 27,
+  "executable_cells": 27,
+  "layer_counts": [
+    {
+      "layer": "task",
+      "violating_solutions": 0,
+      "total_solutions": 27,
+      "fraction": 0.0
+    },
+    {
+      "layer": "features",
+      "violating_solutions": 15,
+      "total_solutions": 27,
+      "fraction": 0.5555555555555556
+    },
+    {
+      "layer": "model",
+      "violating_solutions": 27,
+      "total_solutions": 27,
+      "fraction": 1.0
+    },
+    {
+      "layer": "icl",
+      "violating_solutions": 0,
+      "total_solutions": 27,
+      "fraction": 0.0
+    }
+  ],
+  "layers_with_violations": [
+    "features",
+    "model"
+  ],
+  "decision_positive": true,
+  "max_peak_rss_mb": 214.66796875,
+  "wall_seconds": 121.00373482704163,
+  "manual_review": "all nine source programs reviewed; feature attribution frozen in FEATURE_REVIEW",
+  "limitation": "Three isolated instances/runs of one Codex base model, not three different model families."
+}

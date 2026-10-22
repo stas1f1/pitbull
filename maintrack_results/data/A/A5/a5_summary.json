@@ -1,0 +1,103 @@
+{
+  "experiment": "PLAN_main_track A5 fresh run",
+  "cases": 232,
+  "decision_positive": true,
+  "layer_metrics": [
+    {
+      "layer": "task",
+      "detector": "checker_leak",
+      "positives": 10,
+      "negatives": 8,
+      "recall": 1.0,
+      "fpr": 0.0
+    },
+    {
+      "layer": "features",
+      "detector": "checker_leak",
+      "positives": 57,
+      "negatives": 37,
+      "recall": 1.0,
+      "fpr": 0.0
+    },
+    {
+      "layer": "model",
+      "detector": "checker_leak",
+      "positives": 35,
+      "negatives": 35,
+      "recall": 1.0,
+      "fpr": 0.0
+    },
+    {
+      "layer": "icl",
+      "detector": "checker_leak",
+      "positives": 35,
+      "negatives": 5,
+      "recall": 0.9714285714285714,
+      "fpr": 0.0
+    },
+    {
+      "layer": "agent",
+      "detector": "checker_leak",
+      "positives": 5,
+      "negatives": 5,
+      "recall": 1.0,
+      "fpr": 0.0
+    }
+  ],
+  "univariate": {
+    "cases": 6,
+    "datarobot_recall": 0.3333333333333333,
+    "datarobot_fpr": 0.3333333333333333,
+    "h2o_recall": 0.3333333333333333,
+    "h2o_fpr": 0.3333333333333333
+  },
+  "llm_review_metrics": [
+    {
+      "layer": "task",
+      "detector": "review_leak",
+      "positives": 5,
+      "negatives": 5,
+      "recall": 1.0,
+      "fpr": 1.0
+    },
+    {
+      "layer": "features",
+      "detector": "review_leak",
+      "positives": 5,
+      "negatives": 5,
+      "recall": 1.0,
+      "fpr": 1.0
+    },
+    {
+      "layer": "model",
+      "detector": "review_leak",
+      "positives": 5,
+      "negatives": 5,
+      "recall": 1.0,
+      "fpr": 1.0
+    },
+    {
+      "layer": "icl",
+      "detector": "review_leak",
+      "positives": 5,
+      "negatives": 5,
+      "recall": 1.0,
+      "fpr": 1.0
+    },
+    {
+      "layer": "agent",
+      "detector": "review_leak",
+      "positives": 5,
+      "negatives": 5,
+      "recall": 1.0,
+      "fpr": 1.0
+    }
+  ],
+  "peak_rss_mb": 451.9609375,
+  "wall_seconds": 2.993461847305298,
+  "limitations": [
+    "tiny-gpt2 is a resource-safe local LLM baseline, not a frontier code reviewer.",
+    "The univariate baseline is defined only where real numeric feature matrices are available.",
+    "Agent-layer evidence in A5 consists of fresh controls; natural agent solutions belong to B2."
+  ]
+}

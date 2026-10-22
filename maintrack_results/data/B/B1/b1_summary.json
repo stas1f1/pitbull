@@ -1,0 +1,94 @@
+{
+  "experiment": "PLAN_main_track B1 fresh one-switch run",
+  "tasks": [
+    "rel-f1/driver-dnf",
+    "rel-f1/driver-top3",
+    "rel-event/user-ignore"
+  ],
+  "seeds": [
+    3,
+    17,
+    31,
+    53,
+    79
+  ],
+  "cells": 75,
+  "bootstrap_replicates": 10000,
+  "layer_means": [
+    {
+      "layer": "clean",
+      "validation_auc": 0.8223389004334545,
+      "test_auc": 0.7472515087408041,
+      "validation_test_gap": 0.07508739169265037,
+      "delta_test_auc": 0.0,
+      "delta_gap": 0.0
+    },
+    {
+      "layer": "features",
+      "validation_auc": 0.8526505768375342,
+      "test_auc": 0.8093104080543522,
+      "validation_test_gap": 0.04334016878318203,
+      "delta_test_auc": 0.062058899313548056,
+      "delta_gap": -0.03174722290946833
+    },
+    {
+      "layer": "icl",
+      "validation_auc": 0.7963666122504716,
+      "test_auc": 0.7939967030008727,
+      "validation_test_gap": 0.0023699092495989373,
+      "delta_test_auc": 0.04674519426006851,
+      "delta_gap": -0.07271748244305143
+    },
+    {
+      "layer": "model",
+      "validation_auc": 0.8381889840375619,
+      "test_auc": 0.8217253704767546,
+      "validation_test_gap": 0.016463613560807278,
+      "delta_test_auc": 0.07447386173595057,
+      "delta_gap": -0.058623778131843086
+    },
+    {
+      "layer": "task",
+      "validation_auc": 0.9945936093919391,
+      "test_auc": 0.9938646422311227,
+      "validation_test_gap": 0.000728967160816348,
+      "delta_test_auc": 0.2466131334903186,
+      "delta_gap": -0.07435842453183401
+    }
+  ],
+  "cluster_bootstrap": [
+    {
+      "layer": "features",
+      "mean_delta_test_auc": 0.062058899313548056,
+      "ci95_low": -0.002492672295012266,
+      "ci95_high": 0.10980498866213151,
+      "n_task_clusters": 3
+    },
+    {
+      "layer": "icl",
+      "mean_delta_test_auc": 0.04674519426006851,
+      "ci95_low": -0.01770298369115908,
+      "ci95_high": 0.09287074829931963,
+      "n_task_clusters": 3
+    },
+    {
+      "layer": "model",
+      "mean_delta_test_auc": 0.07447386173595057,
+      "ci95_low": 0.016164791943282242,
+      "ci95_high": 0.12566893424036285,
+      "n_task_clusters": 3
+    },
+    {
+      "layer": "task",
+      "mean_delta_test_auc": 0.24661313349031858,
+      "ci95_low": 0.18215046220908382,
+      "ci95_high": 0.3625034013605443,
+      "n_task_clusters": 3
+    }
+  ],
+  "non_feature_layers_ci_excludes_zero": 2,
+  "decision_positive": true,
+  "peak_rss_mb": 444.0234375,
+  "wall_seconds": 11.295275688171387,
+  "scope_limitation": "Controlled one-switch benchmark on complete real task-label histories; planted layer violations estimate causal sensitivity, not natural prevalence."
+}

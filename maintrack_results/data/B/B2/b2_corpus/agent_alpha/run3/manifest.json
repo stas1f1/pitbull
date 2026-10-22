@@ -1,0 +1,6 @@
+{
+  "agent": "agent_alpha",
+  "run": 3,
+  "approach": "Independent bounded random-forest baseline using the task train table: clipped numeric features, calendar decomposition of the supplied time column, and leave-one-out smoothed target/frequency statistics for the entity and selected categorical columns. Row order is preserved and training rows, maps, tree depth, leaf count, and threads are capped for the memory budget.",
+  "command": "python solution.py --task-dir PATH --time-col NAME --entity-col NAME --target-col NAME --split val|test --out FILE"
+}

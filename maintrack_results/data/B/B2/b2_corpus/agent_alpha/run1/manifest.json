@@ -1,0 +1,6 @@
+{
+  "agent": "agent_alpha",
+  "run": 1,
+  "approach": "Single-threaded, memory-capped HistGradientBoosting baseline with train-only smoothed target/frequency encoding for categorical and entity columns, robust numeric scaling, and calendar/time features; predictions preserve input row order.",
+  "command": "python solution.py --task-dir PATH --time-col NAME --entity-col NAME --target-col NAME --split val|test --out FILE"
+}

@@ -1,0 +1,35 @@
+{
+  "experiment": "PLAN_main_track C3 fresh run",
+  "scope": "clean-room qualitative mechanism reimplementation; no comparison with paper rates",
+  "mechanisms": [
+    {
+      "mechanism": "M1_incomplete_temporal_coverage",
+      "n": 5,
+      "fixed_grid_detected": 0,
+      "exhaustive_detected": 5,
+      "perturbation_detected": 0,
+      "stamp_only_accepted": 0
+    },
+    {
+      "mechanism": "M2_perturbation_insensitivity",
+      "n": 5,
+      "fixed_grid_detected": 5,
+      "exhaustive_detected": 5,
+      "perturbation_detected": 0,
+      "stamp_only_accepted": 0
+    },
+    {
+      "mechanism": "M3_restamped_future_value",
+      "n": 5,
+      "fixed_grid_detected": 5,
+      "exhaustive_detected": 5,
+      "perturbation_detected": 5,
+      "stamp_only_accepted": 5
+    }
+  ],
+  "negative_controls": 5,
+  "truncation_false_positives": 0,
+  "perturbation_false_positives": 0,
+  "peak_rss_mb": 79.22265625,
+  "wall_seconds": 0.06701850891113281
+}

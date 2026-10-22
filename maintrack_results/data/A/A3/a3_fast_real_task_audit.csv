@@ -1,0 +1,4 @@
+database,task,n_train,n_val,n_events,past_edges,future_edges
+rel-f1,driver-dnf,11411,566,12679,76100,76811
+rel-f1,driver-top3,1353,588,2667,12110,12827
+rel-event,user-ignore,19239,2013,23210,43802,49022

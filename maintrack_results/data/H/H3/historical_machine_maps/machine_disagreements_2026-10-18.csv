@@ -1,0 +1,9 @@
+item_id,dataset,table,column,first_class,second_class,first_availability_column,second_availability_column,first_boundary,second_boundary
+rel-event:020,rel-event,events,event_id,unknown,row_time,,start_time,unknown,inclusive
+rel-event:021,rel-event,events,user_id,unknown,row_time,,start_time,unknown,inclusive
+rel-event:022,rel-event,events,start_time,unknown,row_time,,start_time,unknown,inclusive
+rel-stack:014,rel-stack,users,AccountId,row_time,unknown,CreationDate,,inclusive,unknown
+rel-stack:023,rel-stack,comments,ContentLicense,row_time,unknown,CreationDate,,inclusive,unknown
+rel-stack:024,rel-stack,comments,UserDisplayName,row_time,unknown,CreationDate,,inclusive,unknown
+rel-stack:025,rel-stack,comments,Text,row_time,unknown,CreationDate,,inclusive,unknown
+rel-stack:027,rel-stack,posts,OwnerUserId,row_time,unknown,CreationDate,,inclusive,unknown

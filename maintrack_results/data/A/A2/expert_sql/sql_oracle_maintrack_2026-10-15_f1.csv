@@ -1,0 +1,22 @@
+file,dataset,task,seed,phase,verdict,columns,cells,columns_nondet,cells_nondet,n_rows,seconds
+f1_driver-dnf.sql,f1,driver-dnf,1950-05-20 00:00:00,determinism,DETERMINISTIC,,0,,0,63,0.4
+f1_driver-dnf.sql,f1,driver-dnf,1983-07-26 00:00:00,determinism,DETERMINISTIC,,0,,0,29,0.3
+f1_driver-dnf.sql,f1,driver-dnf,2013-03-16 00:00:00,determinism,DETERMINISTIC,,0,,0,22,0.3
+f1_driver-dnf.sql,f1,driver-dnf,2013-03-16 00:00:00,negative_control,CLEAN,,0,,0,22,0.3
+f1_driver-dnf.sql,f1,driver-dnf,1950-05-20 00:00:00,main,LEAK,upcoming_1_round;upcoming_1_circuit_id;upcoming_2_round;upcoming_2_circuit_id;upcoming_3_round;upcoming_3_circuit_id,378,,0,63,0.3
+f1_driver-dnf.sql,f1,driver-dnf,1983-07-26 00:00:00,main,LEAK,upcoming_1_round;upcoming_1_circuit_id;upcoming_2_round;upcoming_2_circuit_id,116,,0,29,0.5
+f1_driver-dnf.sql,f1,driver-dnf,2013-03-16 00:00:00,main,LEAK,upcoming_1_round;upcoming_1_circuit_id;upcoming_2_round;upcoming_2_circuit_id;upcoming_3_round;upcoming_3_circuit_id,132,,0,22,0.7
+f1_driver-position.sql,f1,driver-position,1950-06-19 00:00:00,determinism,DETERMINISTIC,,0,,0,19,0.6
+f1_driver-position.sql,f1,driver-position,1984-08-19 00:00:00,determinism,DETERMINISTIC,,0,,0,30,0.7
+f1_driver-position.sql,f1,driver-position,2016-05-29 00:00:00,determinism,DETERMINISTIC,,0,,0,22,0.6
+f1_driver-position.sql,f1,driver-position,2016-05-29 00:00:00,negative_control,CLEAN,,0,,0,22,0.6
+f1_driver-position.sql,f1,driver-position,1950-06-19 00:00:00,main,LEAK,upcoming_1_round;upcoming_1_circuit_id,38,,0,19,0.5
+f1_driver-position.sql,f1,driver-position,1984-08-19 00:00:00,main,LEAK,upcoming_2_round;upcoming_2_circuit_id;upcoming_3_round;upcoming_3_circuit_id,120,,0,30,0.6
+f1_driver-position.sql,f1,driver-position,2016-05-29 00:00:00,main,LEAK,upcoming_1_round;upcoming_1_circuit_id;upcoming_2_round;upcoming_2_circuit_id;upcoming_3_round;upcoming_3_circuit_id,132,,0,22,0.6
+f1_driver-top3.sql,f1,driver-top3,1994-02-28 00:00:00,determinism,DETERMINISTIC,,0,,0,26,0.6
+f1_driver-top3.sql,f1,driver-top3,2004-10-03 00:00:00,determinism,DETERMINISTIC,,0,,0,21,0.7
+f1_driver-top3.sql,f1,driver-top3,2013-03-16 00:00:00,determinism,DETERMINISTIC,,0,,0,22,0.7
+f1_driver-top3.sql,f1,driver-top3,2013-03-16 00:00:00,negative_control,CLEAN,,0,,0,22,0.7
+f1_driver-top3.sql,f1,driver-top3,1994-02-28 00:00:00,main,LEAK,upcoming_1_round;upcoming_1_circuit_id,52,,0,26,0.6
+f1_driver-top3.sql,f1,driver-top3,2004-10-03 00:00:00,main,LEAK,upcoming_1_round;upcoming_1_circuit_id;upcoming_2_round;upcoming_2_circuit_id,84,,0,21,0.6
+f1_driver-top3.sql,f1,driver-top3,2013-03-16 00:00:00,main,LEAK,upcoming_1_round;upcoming_1_circuit_id;upcoming_2_round;upcoming_2_circuit_id;upcoming_3_round;upcoming_3_circuit_id,132,,0,22,0.7

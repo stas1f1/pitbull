@@ -1,0 +1,28 @@
+agent,run,dataset,task,feature_leak,feature_reason,past_status,past_reason,past_auc,full_status,full_reason,full_auc,model_leak,prediction_diff_max,task_leak,icl_leak,layers,executable,peak_rss_mb,wall_seconds
+agent_alpha,1,rel-f1,driver-dnf,True,full-train categorical target map,ok,,0.942528735632184,ok,,0.9310344827586208,True,0.6601125296268997,False,False,features;model,True,170.7578125,4.149564504623413
+agent_alpha,1,rel-f1,driver-top3,True,full-train categorical target map,ok,,0.7105263157894737,ok,,0.9298245614035088,True,0.8714324209755696,False,False,features;model,True,166.75390625,3.8418920040130615
+agent_alpha,1,rel-event,user-ignore,True,full-train categorical target map,ok,,0.7341638513513514,ok,,0.7844066722972973,True,0.7449992558886777,False,False,features;model,True,173.625,4.145441770553589
+agent_alpha,2,rel-f1,driver-dnf,True,full-train entity target map for query rows,ok,,0.9310344827586207,ok,,0.9540229885057472,True,0.4141662120819092,False,False,features;model,True,167.37890625,3.9456164836883545
+agent_alpha,2,rel-f1,driver-top3,True,full-train entity target map for query rows,ok,,0.6754385964912281,ok,,0.8947368421052632,True,0.9995371096009312,False,False,features;model,True,160.5390625,3.7231616973876953
+agent_alpha,2,rel-event,user-ignore,True,full-train entity target map for query rows,ok,,0.8322212837837837,ok,,0.929444679054054,True,0.9643749278038741,False,False,features;model,True,168.86328125,3.924661874771118
+agent_alpha,3,rel-f1,driver-dnf,True,full-train entity/categorical target map for query rows,ok,,0.8735632183908046,ok,,0.7011494252873565,True,0.3340021145371186,False,False,features;model,True,189.51953125,6.109904050827026
+agent_alpha,3,rel-f1,driver-top3,True,full-train entity/categorical target map for query rows,ok,,0.6929824561403509,ok,,0.8421052631578947,True,0.5434083309000961,False,False,features;model,True,185.01953125,4.029898643493652
+agent_alpha,3,rel-event,user-ignore,True,full-train entity/categorical target map for query rows,ok,,0.7543496621621623,ok,,0.9309966216216218,True,0.451519565763777,False,False,features;model,True,189.4140625,4.8280065059661865
+agent_beta,1,rel-f1,driver-dnf,False,strict timestamp state update,ok,,0.9310344827586208,ok,,0.9540229885057472,True,0.0926615235383701,False,False,model,True,175.00390625,5.578721284866333
+agent_beta,1,rel-f1,driver-top3,False,strict timestamp state update,ok,,0.6052631578947368,ok,,0.6403508771929824,True,0.0815248675241427,False,False,model,True,167.75390625,3.9890074729919434
+agent_beta,1,rel-event,user-ignore,False,strict timestamp state update,ok,,0.8634923986486486,ok,,0.8876478040540541,True,0.4867515073092475,False,False,model,True,180.95703125,5.160400629043579
+agent_beta,2,rel-f1,driver-dnf,False,strict snapshot state update,ok,,0.9540229885057472,ok,,0.9080459770114944,True,0.09052103905199205,False,False,model,True,195.4375,9.843431949615479
+agent_beta,2,rel-f1,driver-top3,False,strict snapshot state update,ok,,0.6754385964912281,ok,,0.6228070175438597,True,0.13553795014954473,False,False,model,True,171.40625,4.524842262268066
+agent_beta,2,rel-event,user-ignore,False,strict snapshot state update,ok,,0.8454391891891893,ok,,0.8902238175675674,True,0.46146379820253425,False,False,model,True,214.66796875,9.04494857788086
+agent_beta,3,rel-f1,driver-dnf,False,strict timestamp state update,ok,,0.942528735632184,ok,,0.9655172413793104,True,0.1089864123004648,False,False,model,True,179.1015625,4.694149017333984
+agent_beta,3,rel-f1,driver-top3,False,strict timestamp state update,ok,,0.6228070175438596,ok,,0.7017543859649122,True,0.1560080808698518,False,False,model,True,165.5078125,3.7319822311401367
+agent_beta,3,rel-event,user-ignore,False,strict timestamp state update,ok,,0.8734375000000001,ok,,0.9167863175675676,True,0.5393510713518104,False,False,model,True,200.86328125,4.593394756317139
+agent_gamma,1,rel-f1,driver-dnf,True,full-train smoothed target map for query rows,ok,,0.7701149425287357,ok,,0.7816091954022989,True,0.8373676753669925,False,False,features;model,True,170.16796875,4.0367560386657715
+agent_gamma,1,rel-f1,driver-top3,True,full-train smoothed target map for query rows,ok,,0.6052631578947368,ok,,0.7543859649122807,True,0.7339235752881038,False,False,features;model,True,166.08203125,3.8204190731048584
+agent_gamma,1,rel-event,user-ignore,True,full-train smoothed target map for query rows,ok,,0.724704391891892,ok,,0.9448796452702704,True,0.6782510434284234,False,False,features;model,True,172.625,4.034718990325928
+agent_gamma,2,rel-f1,driver-dnf,True,full-train empirical-Bayes target maps,ok,,0.7701149425287357,ok,,0.942528735632184,True,0.13940234798270001,False,False,features;model,True,93.59375,1.6674919128417969
+agent_gamma,2,rel-f1,driver-top3,True,full-train empirical-Bayes target maps,ok,,0.587719298245614,ok,,0.9473684210526315,True,0.2530068825504228,False,False,features;model,True,89.7734375,1.6627838611602783
+agent_gamma,2,rel-event,user-ignore,True,full-train empirical-Bayes target maps,ok,,0.790456081081081,ok,,0.9208298141891893,True,0.1320489791308547,False,False,features;model,True,95.5390625,1.6635913848876953
+agent_gamma,3,rel-f1,driver-dnf,False,no target-derived query feature,ok,,0.6666666666666666,ok,,0.9655172413793104,True,0.7243344732407344,False,False,model,True,166.58203125,4.256026983261108
+agent_gamma,3,rel-f1,driver-top3,False,no target-derived query feature,ok,,0.8157894736842105,ok,,0.6666666666666666,True,0.9656732855648191,False,False,model,True,160.7109375,3.73929500579834
+agent_gamma,3,rel-event,user-ignore,False,no target-derived query feature,ok,,0.7874472128378378,ok,,0.9043179898648648,True,0.9386120456696235,False,False,model,True,167.37890625,4.484004735946655

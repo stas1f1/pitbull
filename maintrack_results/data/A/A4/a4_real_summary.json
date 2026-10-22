@@ -1,0 +1,47 @@
+{
+  "experiment": "PLAN_main_track A4 real-task fresh run",
+  "model_id": "sshleifer/tiny-gpt2",
+  "tasks": [
+    "rel-f1/driver-dnf",
+    "rel-f1/driver-top3",
+    "rel-event/user-ignore"
+  ],
+  "seeds": [
+    5,
+    19,
+    37,
+    61,
+    89
+  ],
+  "cells": 90,
+  "queries": 360,
+  "all_past_contexts_clean": true,
+  "all_augmented_contexts_contain_future": true,
+  "by_model": [
+    {
+      "model": "tabular_knn_icl",
+      "mean_past_auc": 0.8136574074074073,
+      "mean_future_auc": 0.8456018518518519,
+      "mean_whole_auc": 0.775,
+      "mean_future_minus_past": 0.03194444444444444,
+      "mean_whole_minus_past": -0.03865740740740742,
+      "prediction_diff_cells": 15
+    },
+    {
+      "model": "tiny_gpt2_icl",
+      "mean_past_auc": 0.4844907407407408,
+      "mean_future_auc": 0.4990740740740741,
+      "mean_whole_auc": 0.5287037037037037,
+      "mean_future_minus_past": 0.014583333333333334,
+      "mean_whole_minus_past": 0.04421296296296295,
+      "prediction_diff_cells": 14
+    }
+  ],
+  "peak_rss_mb": 981.28125,
+  "wall_seconds": 11.13192868232727,
+  "limitations": [
+    "Historical replay on real task labels, not official leaderboard test evaluation.",
+    "tiny-gpt2 is a local resource-safe causal LM and not representative of frontier LLMs.",
+    "Context rows are selected from task-label tables, without loading the full relational databases."
+  ]
+}

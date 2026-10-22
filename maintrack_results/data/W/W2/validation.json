@@ -1,0 +1,16 @@
+{
+  "payload_files": 499,
+  "payload_bytes": 1743919,
+  "agent_solutions": 9,
+  "agent_manifests": 9,
+  "summary_json_files": 18,
+  "json_valid": true,
+  "has_task_audit": true,
+  "has_layer_controls": true,
+  "has_checker_code": true,
+  "has_h3_annotation": true,
+  "has_second_h3_annotation": true,
+  "has_extensions": true,
+  "has_evaluation": true,
+  "complete": true
+}

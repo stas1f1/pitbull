@@ -1,0 +1,40 @@
+{
+  "experiment": "PLAN_main_track A2 handwritten user-authorized replacement",
+  "protocol_deviation": "handwritten code replaces unavailable external LLM generation",
+  "does_not_measure_llm_behavior": true,
+  "rows": 12,
+  "by_dataset": [
+    {
+      "dataset": "rel-amazon",
+      "cells": 3,
+      "leaks": 3,
+      "clean_controls": 3,
+      "events": 6163
+    },
+    {
+      "dataset": "rel-event",
+      "cells": 3,
+      "leaks": 3,
+      "clean_controls": 3,
+      "events": 32
+    },
+    {
+      "dataset": "rel-f1",
+      "cells": 3,
+      "leaks": 3,
+      "clean_controls": 3,
+      "events": 7777
+    },
+    {
+      "dataset": "rel-stack",
+      "cells": 3,
+      "leaks": 3,
+      "clean_controls": 3,
+      "events": 415
+    }
+  ],
+  "all_positive_controls_detected": true,
+  "all_negative_controls_clean": true,
+  "wall_seconds": 2.108433485031128,
+  "rss_mb_at_end": 101.671875
+}

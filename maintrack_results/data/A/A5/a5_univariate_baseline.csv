@@ -1,0 +1,7 @@
+database,task,view,gold_leak,max_single_feature_auc,datarobot_085,h2o_080
+rel-f1,driver-dnf,clean,False,0.7394285714285714,False,False
+rel-f1,driver-dnf,leaky,True,0.7833197278911566,False,False
+rel-f1,driver-top3,clean,False,0.8518213255451434,True,True
+rel-f1,driver-top3,leaky,True,0.8924315995054739,True,True
+rel-event,user-ignore,clean,False,0.7827805195781246,False,False
+rel-event,user-ignore,leaky,True,0.7760565673773079,False,False

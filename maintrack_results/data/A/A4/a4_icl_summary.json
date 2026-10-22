@@ -1,0 +1,24 @@
+{
+  "experiment": "PLAN_main_track A4 fresh run",
+  "model_id": "sshleifer/tiny-gpt2",
+  "cells": 90,
+  "by_model": [
+    {
+      "model": "1NN_ICL",
+      "mean_past_auc": 0.833681925070814,
+      "mean_future_auc": 0.9321023729357062,
+      "mean_all_auc": 0.9503143204532093,
+      "mean_future_minus_past": 0.09842044786489229,
+      "mean_all_minus_past": 0.11663239538239537
+    },
+    {
+      "model": "tiny-gpt2",
+      "mean_past_auc": 0.8205937015659238,
+      "mean_future_auc": 0.789554606915718,
+      "mean_all_auc": 0.8033998717332052,
+      "mean_future_minus_past": -0.03103909465020577,
+      "mean_all_minus_past": -0.017193829832718697
+    }
+  ],
+  "prediction_diff_positive": 30
+}
